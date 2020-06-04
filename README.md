@@ -1,22 +1,15 @@
-## This repo is looking for maintainers! Please reach out if interested.
-
---------
-
-
 High performance Stratum poolserver in Node.js. One instance of this software can startup and manage multiple coin
-pools, each with their own daemon and stratum port :)
+pools, each with their own daemon and stratum port
+
 
 #### Notice
 This is a module for Node.js that will do nothing on its own. Unless you're a Node.js developer who would like to
-handle stratum authentication and raw share data then this module will not be of use to you. For a full featured portal
-that uses this module, see [NOMP (Node Open Mining Portal)](https://github.com/zone117x/node-open-mining-portal). It
-handles payments, website front-end, database layer, mutli-coin/pool support, auto-switching miners between coins/pools,
-etc.. The portal also has an [MPOS](https://github.com/MPOS/php-mpos) compatibility mode so that the it can function as
-a drop-in-replacement for [python-stratum-mining](https://github.com/Crypto-Expert/stratum-mining).
+handle stratum authentication and raw share data then this module will not be of use to you. For a full featured backend server
+that uses this module, see https://github.com/blinkhash/blinkhash-server. It handles payments, the database layer, multi-coin/pool support, etc..
 
 
 #### Why
-This server was built to be more efficient and easier to setup, maintain and scale than existing stratum poolservers
+This server was built to be more efficient and easier to setup, maintain and scale than existing stratum pool-servers
 which are written in python. Compared to the spaghetti state of the latest
 [stratum-mining python server](https://github.com/Crypto-Expert/stratum-mining/), this software should also have a
 lower barrier to entry for other developers to fork and add features or fix bugs.
@@ -36,7 +29,7 @@ Features
 * __POW__ (proof-of-work) & __POS__ (proof-of-stake) support
 * Transaction messages support
 * Vardiff (variable difficulty / share limiter)
-* When started with a coin deamon that hasn't finished syncing to the network it shows the blockchain download progress and initializes once synced
+* When started with a coin daemon that hasn't finished syncing to the network it shows the blockchain download progress and initializes once synced
 
 #### Hashing algorithms supported:
 * ✓ __SHA256__ (Bitcoin, Freicoin, Peercoin/PPCoin, Terracoin, etc..)
@@ -68,14 +61,14 @@ Not working currently:
 
 Requirements
 ------------
-* node v0.10+
-* coin daemon (preferably one with a relatively updated API and not some crapcoin :p)
+* Node v0.10+
+* Coin Daemon
 
 
 Example Usage
 -------------
 
-#### Install as a node module by cloning repository
+#### Install as a Node module by cloning repository
 
 ```bash
 git clone https://github.com/blinkhash/blinkhash-stratum-pool node_modules/stratum-pool
@@ -362,19 +355,6 @@ Credits
 * [ahmedbodi](//github.com/ahmedbodi/stratum-mining) - more algo adaptions to python code
 * [steveshit](//github.com/steveshit) - ported X11 hashing algo from python to node module
 
-
-Donations
----------
-To support development of this project feel free to donate :)
-
-* BTC: `1KRotMnQpxu3sePQnsVLRy3EraRFYfJQFR`
-* LTC: `LKfavSDJmwiFdcgaP1bbu46hhyiWw5oFhE`
-* VTC: `VgW4uFTZcimMSvcnE4cwS3bjJ6P8bcTykN`
-* MAX: `mWexUXRCX5PWBmfh34p11wzS5WX2VWvTRT`
-* QRK: `QehPDAhzVQWPwDPQvmn7iT3PoFUGT7o8bC`
-* DRK: `XcQmhp8ANR7okWAuArcNFZ2bHSB81jpapQ`
-* DOGE: `DBGGVtwAAit1NPZpRm5Nz9VUFErcvVvHYW`
-* Cryptsy Trade Key: `254ca13444be14937b36c44ba29160bd8f02ff76`
 
 License
 -------
