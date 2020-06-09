@@ -45,7 +45,7 @@
   "readmeFilename": "README.md",
   "_id": "stratum-pool@0.1.9",
   "dist": {
-    "shasum": "d92ca54e3d8cc3a28b76fcd65dcd64da44ca05b4"
+    "shasum": "b1cb69519b09f9e97ae2b17fff6d9adf6310a11d"
   },
   "_resolved": "git://github.com/blinkhash/blinkhash-stratum-pool.git",
   "_from": "stratum-pool@git://github.com/blinkhash/blinkhash-stratum-pool.git"
