@@ -78,7 +78,7 @@ var DaemonInterface = function(daemons, logger) {
         // Attempt to Parse JSON from Response
         var parseJson = function(res, data) {
             var dataJson;
-            if (res.statusCode === 401) {
+            if (res.statusCode === 401) || (res.statusCode === 403) {
                 logger('error', 'Unauthorized RPC access - invalid RPC username or password');
                 return;
             }
