@@ -28,7 +28,7 @@
       "name": "TheSeven"
     }
   ],
-  "main": "lib/index.js",
+  "main": "scripts/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/blinkhash/blinkhash-stratum-pool.git"
