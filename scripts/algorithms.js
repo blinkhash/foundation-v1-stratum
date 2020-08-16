@@ -5,6 +5,7 @@
  */
 
 // Import Required Modules
+var ev = require('equihash');
 var multiHashing = require('multi-hashing');
 var util = require('./util.js');
 
@@ -72,7 +73,6 @@ var algorithms = {
                 var n = Object.keys(timeTable).sort().reverse().filter(function(nKey){
                     return Date.now() / 1000 > timeTable[nKey];
                 })[0];
-
                 var nInt = parseInt(n);
                 return Math.log(nInt) / Math.log(2);
             })();
@@ -254,6 +254,37 @@ var algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.qubit.apply(this, arguments);
+            }
+        }
+    },
+
+    // Equihash Algorithm
+    'equihash': {
+        multiplier: 1,
+        diff: parseInt('0x0007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'),
+        hash: function(coinConfig) {
+            var parameters = coinConfig.parameters
+            if (!parameters) {
+                parameters = {
+                    N: 200,
+                    K: 9,
+                    personalization: 'ZcashPoW'
+                }
+            }
+            var N = parameters.N || 200;
+            var K = parameters.K || 9;
+            var personalization = parameters.personalization || 'ZcashPoW';
+            return function() {
+                return ev.verify.apply(
+                    this,
+                    [
+                        arguments[0],
+                        arguments[1],
+                        personalization,
+                        N,
+                        K
+                    ]
+                )
             }
         }
     }
