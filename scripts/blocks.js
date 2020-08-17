@@ -16,15 +16,15 @@ var Merkle = require('./merkle.js');
 var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceholder, reward, txMessages, recipients, network) {
 
     // Function to get Merkle Hashes
-    function getMerkleHashes(steps){
-        return steps.map(function(step){
+    function getMerkleHashes(steps) {
+        return steps.map(function(step) {
             return step.toString('hex');
         });
     }
 
     // Function to get Transaction Buffers
-    function getTransactionBuffers(txs){
-        var txHashes = txs.map(function(tx){
+    function getTransactionBuffers(txs) {
+        var txHashes = txs.map(function(tx) {
             if (tx.txid !== undefined) {
                 return util.uint256BufferFromHash(tx.txid);
             }
@@ -34,7 +34,7 @@ var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceh
     }
 
     // Function to get Masternode Votes
-    function getVoteData(){
+    function getVoteData() {
         if (!rpcData.masternode_payments) return Buffer.from([]);
         return Buffer.concat(
             [util.varIntBuffer(rpcData.votes.length)].concat(
@@ -51,7 +51,7 @@ var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceh
     this.target = rpcData.target ? bignum(rpcData.target, 16) : util.bignumFromBitsHex(rpcData.bits);
     this.difficulty = parseFloat((diff1 / this.target.toNumber()).toFixed(9));
     this.prevHashReversed = util.reverseByteOrder(Buffer.from(rpcData.previousblockhash, 'hex')).toString('hex');
-    this.transactionData = Buffer.concat(rpcData.transactions.map(function(tx){
+    this.transactionData = Buffer.concat(rpcData.transactions.map(function(tx) {
         return Buffer.from(tx.data, 'hex');
     }));
 
@@ -71,7 +71,7 @@ var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceh
     );
 
     // Serialize Block Coinbase
-    this.serializeCoinbase = function(extraNonce1, extraNonce2){
+    this.serializeCoinbase = function(extraNonce1, extraNonce2) {
         return Buffer.concat([
             this.generationTransaction[0],
             extraNonce1,
@@ -81,7 +81,7 @@ var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceh
     };
 
     // Serialize Block Headers
-    this.serializeHeader = function(merkleRoot, nTime, nonce){
+    this.serializeHeader = function(merkleRoot, nTime, nonce) {
         var header =  Buffer.alloc(80);
         var position = 0;
         header.write(nonce, position, 4, 'hex');
@@ -95,7 +95,7 @@ var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceh
     };
 
     // Serialize Entire Block
-    this.serializeBlock = function(header, coinbase){
+    this.serializeBlock = function(header, coinbase) {
         return Buffer.concat([
             header,
             util.varIntBuffer(this.rpcData.transactions.length + 1),
@@ -108,9 +108,9 @@ var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceh
 
     // Push Submissions to Array
     var submits = [];
-    this.registerSubmit = function(extraNonce1, extraNonce2, nTime, nonce){
+    this.registerSubmit = function(extraNonce1, extraNonce2, nTime, nonce) {
         var submission = extraNonce1 + extraNonce2 + nTime + nonce;
-        if (submits.indexOf(submission) === -1){
+        if (submits.indexOf(submission) === -1) {
             submits.push(submission);
             return true;
         }
@@ -118,8 +118,8 @@ var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceh
     };
 
     // Get Current Job Parameters
-    this.getJobParams = function(){
-        if (!this.jobParams){
+    this.getJobParams = function() {
+        if (!this.jobParams) {
             this.jobParams = [
                 this.jobId,
                 this.prevHashReversed,
