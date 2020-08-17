@@ -177,18 +177,9 @@ var Pool = function(options, authorizeFn) {
                 return;
             }
 
-            // Set PoW/PoS Coin Reward System
+            // Set Coin Reward System
             if (!options.coin.reward) {
-                if (isNaN(rpcResults.getdifficulty) && 'proof-of-stake' in rpcResults.getdifficulty)
-                    options.coin.reward = 'POS';
-                else
-                    options.coin.reward = 'POW';
-            }
-
-            // Check if PoS Address Belongs to Daemon Wallet
-            if (options.coin.reward === 'POS' && typeof(rpcResults.validateaddress.pubkey) == 'undefined') {
-                emitErrorLog('The address provided is not from the daemon wallet - this is required for POS coins.');
-                return;
+                options.coin.reward = 'POW';
             }
 
             // Check if Mainnet/Testnet is Active
@@ -197,12 +188,7 @@ var Pool = function(options, authorizeFn) {
 
             // Establish Pool Address Script
             options.poolAddressScript = (function() {
-                switch(options.coin.reward) {
-                    case 'POS':
-                        return util.pubkeyToScript(rpcResults.validateaddress.pubkey);
-                    case 'POW':
-                         return util.addressToScript(options.network, rpcResults.validateaddress.address);
-                }
+                return util.addressToScript(options.network, rpcResults.validateaddress.address);
             })();
 
             // Establish Coin Protocol Version

@@ -50,6 +50,7 @@ var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceh
     this.jobId = jobId;
     this.target = rpcData.target ? bignum(rpcData.target, 16) : util.bignumFromBitsHex(rpcData.bits);
     this.difficulty = parseFloat((diff1 / this.target.toNumber()).toFixed(9));
+
     this.prevHashReversed = util.reverseByteOrder(Buffer.from(rpcData.previousblockhash, 'hex')).toString('hex');
     this.transactionData = Buffer.concat(rpcData.transactions.map(function(tx) {
         return Buffer.from(tx.data, 'hex');
@@ -102,7 +103,7 @@ var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceh
             coinbase,
             this.transactionData,
             getVoteData(),
-            Buffer.from(reward === 'POS' ? [0] : [])
+            Buffer.from([])
         ]);
     };
 
