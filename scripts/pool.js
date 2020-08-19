@@ -177,11 +177,6 @@ var Pool = function(options, authorizeFn) {
                 return;
             }
 
-            // Set Coin Reward System
-            if (!options.coin.reward) {
-                options.coin.reward = 'POW';
-            }
-
             // Check if Mainnet/Testnet is Active
             options.testnet = (rpcResults.getblockchaininfo.chain === 'test') ? true : false;
             options.network = (options.testnet ? options.coin.testnet : options.coin.mainnet);
@@ -650,7 +645,6 @@ var Pool = function(options, authorizeFn) {
         }
         var infoLines = [startMessage,
                 'Network Connected:\t' + (options.testnet ? 'Testnet' : 'Mainnet'),
-                'Detected Reward Type:\t' + options.coin.reward,
                 'Current Block Height:\t' + _this.manager.currentJob.rpcData.height,
                 'Current Connect Peers:\t' + options.initStats.connections,
                 'Current Block Diff:\t' + _this.manager.currentJob.difficulty * algorithms[options.coin.algorithm].multiplier,

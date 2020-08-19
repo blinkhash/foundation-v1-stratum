@@ -89,7 +89,6 @@ var Manager = function(options) {
             rpcData,
             options.poolAddressScript,
             _this.extraNoncePlaceholder,
-            options.coin.reward,
             options.coin.txMessages,
             options.recipients,
             options.network
@@ -118,7 +117,6 @@ var Manager = function(options) {
             rpcData,
             options.poolAddressScript,
             _this.extraNoncePlaceholder,
-            options.coin.reward,
             options.coin.txMessages,
             options.recipients,
             options.network
@@ -192,12 +190,7 @@ var Manager = function(options) {
         // Check if Share is Valid Block Candidate
         if (job.target.ge(headerBigNum)) {
             blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer).toString('hex');
-            if (options.coin.algorithm === 'blake' || options.coin.algorithm === 'neoscrypt') {
-                blockHash = util.reverseBuffer(util.sha256d(headerBuffer, nTime)).toString('hex');
-            }
-            else {
-            	  blockHash = blockHasher(headerBuffer, nTime).toString('hex');
-            }
+            blockHash = blockHasher(headerBuffer, nTime).toString('hex');
         }
         else {
             if (options.emitInvalidBlockHashes) {

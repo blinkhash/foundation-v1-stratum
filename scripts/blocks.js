@@ -6,14 +6,14 @@
 
 // Import Required Modules
 var bignum = require('bignum');
-var transactions = require('./transactions.js');
 var util = require('./util.js');
 
-// Import Merkle Module
+// Import Required Modules
 var Merkle = require('./merkle.js');
+var Transactions = require('./transactions.js');
 
 // BlockTemplate Main Function
-var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceholder, reward, txMessages, recipients, network) {
+var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceholder, txMessages, recipients, network) {
 
     // Function to get Merkle Hashes
     function getMerkleHashes(steps) {
@@ -50,7 +50,6 @@ var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceh
     this.jobId = jobId;
     this.target = rpcData.target ? bignum(rpcData.target, 16) : util.bignumFromBitsHex(rpcData.bits);
     this.difficulty = parseFloat((diff1 / this.target.toNumber()).toFixed(9));
-
     this.prevHashReversed = util.reverseByteOrder(Buffer.from(rpcData.previousblockhash, 'hex')).toString('hex');
     this.transactionData = Buffer.concat(rpcData.transactions.map(function(tx) {
         return Buffer.from(tx.data, 'hex');
@@ -61,11 +60,10 @@ var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceh
     this.merkleBranch = getMerkleHashes(this.merkleTree.steps);
 
     // Structure New Block Transaction
-    this.generationTransaction = transactions.createGeneration(
+    this.generation = new Transactions(
         rpcData,
         poolAddressScript,
         extraNoncePlaceholder,
-        reward,
         txMessages,
         recipients,
         network
@@ -74,10 +72,10 @@ var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceh
     // Serialize Block Coinbase
     this.serializeCoinbase = function(extraNonce1, extraNonce2) {
         return Buffer.concat([
-            this.generationTransaction[0],
+            this.generation[0],
             extraNonce1,
             extraNonce2,
-            this.generationTransaction[1]
+            this.generation[1]
         ]);
     };
 
@@ -124,8 +122,8 @@ var BlockTemplate = function(jobId, rpcData, poolAddressScript, extraNoncePlaceh
             this.jobParams = [
                 this.jobId,
                 this.prevHashReversed,
-                this.generationTransaction[0].toString('hex'),
-                this.generationTransaction[1].toString('hex'),
+                this.generation[0].toString('hex'),
+                this.generation[1].toString('hex'),
                 this.merkleBranch,
                 util.packInt32BE(this.rpcData.version).toString('hex'),
                 this.rpcData.bits,
