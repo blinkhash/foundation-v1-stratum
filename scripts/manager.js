@@ -83,7 +83,7 @@ var Manager = function(options) {
     var coinbaseHasher = coinbaseHash();
 
     // Update Current Managed Job
-    this.updateCurrentJob = function(rpcData) {
+    functon updateCurrentJob(rpcData) {
         var tmpBlockTemplate = new BlockTemplate(
             jobCounter.next(),
             rpcData,
@@ -96,9 +96,10 @@ var Manager = function(options) {
         _this.currentJob = tmpBlockTemplate;
         _this.emit('updatedBlock', tmpBlockTemplate, true);
         _this.validJobs[tmpBlockTemplate.jobId] = tmpBlockTemplate;
-    };
+    }
 
     // Check if New Block is Processed
+    this.updateCurrentJob = updateCurrentJob
     this.processTemplate = function(rpcData) {
 
         // If Current Job !== Previous Job
@@ -110,23 +111,13 @@ var Manager = function(options) {
                 return false;
         }
 
-        // Generate New Block Template
-        if (!isNewBlock) return false;
-        var tmpBlockTemplate = new BlockTemplate(
-            jobCounter.next(),
-            rpcData,
-            options.poolAddressScript,
-            _this.extraNoncePlaceholder,
-            options.coin.txMessages,
-            options.recipients,
-            options.network
-        );
+        // Check for New Block
+        if (!isNewBlock) {
+            return false;
+        }
 
-        // Update w/ Block Template
-        this.validJobs = {};
-        this.currentJob = tmpBlockTemplate;
-        _this.emit('newBlock', tmpBlockTemplate);
-        this.validJobs[tmpBlockTemplate.jobId] = tmpBlockTemplate;
+        // Update Current Managed Block
+        updateCurrentJob(rpcData)
         return true;
     };
 
