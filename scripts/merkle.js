@@ -146,7 +146,7 @@ var Merkle = function(data) {
         if (hashes.length === 1) {
             return hashes[0];
         }
-        var result = calcRoot(hashes);
+        var result = calculateRoot(hashes);
         return result;
     }
 

@@ -83,15 +83,12 @@ var Manager = function(options) {
     var coinbaseHasher = coinbaseHash();
 
     // Update Current Managed Job
-    functon updateCurrentJob(rpcData) {
+    function updateCurrentJob(rpcData) {
         var tmpBlockTemplate = new BlockTemplate(
             jobCounter.next(),
             rpcData,
-            options.poolAddressScript,
             _this.extraNoncePlaceholder,
-            options.coin.txMessages,
-            options.recipients,
-            options.network
+            options
         );
         _this.currentJob = tmpBlockTemplate;
         _this.emit('updatedBlock', tmpBlockTemplate, true);
@@ -162,10 +159,10 @@ var Manager = function(options) {
         // Establish Share Information
         var extraNonce1Buffer = Buffer.from(extraNonce1, 'hex');
         var extraNonce2Buffer = Buffer.from(extraNonce2, 'hex');
-        var coinbaseBuffer = job.serializeCoinbase(extraNonce1Buffer, extraNonce2Buffer);
+        var coinbaseBuffer = job.serializeCoinbase(extraNonce1Buffer, extraNonce2Buffer, options);
         var coinbaseHash = coinbaseHasher(coinbaseBuffer);
         var merkleRoot = util.reverseBuffer(job.merkleTree.withFirst(coinbaseHash)).toString('hex');
-        var headerBuffer = job.serializeHeader(merkleRoot, nTime, nonce);
+        var headerBuffer = job.serializeHeader(merkleRoot, nTime, nonce, options);
         var headerHash = hashDigest(headerBuffer, nTimeInt);
         var headerBigNum = bignum.fromBuffer(headerHash, {endian: 'little', size: 32});
 
@@ -180,7 +177,7 @@ var Manager = function(options) {
 
         // Check if Share is Valid Block Candidate
         if (job.target.ge(headerBigNum)) {
-            blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer).toString('hex');
+            blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer, options).toString('hex');
             blockHash = blockHasher(headerBuffer, nTime).toString('hex');
         }
         else {

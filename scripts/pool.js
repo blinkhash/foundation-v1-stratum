@@ -181,12 +181,8 @@ var Pool = function(options, authorizeFn) {
             options.testnet = (rpcResults.getblockchaininfo.chain === 'test') ? true : false;
             options.network = (options.testnet ? options.coin.testnet : options.coin.mainnet);
 
-            // Establish Pool Address Script
-            options.poolAddressScript = (function() {
-                return util.addressToScript(options.network, rpcResults.validateaddress.address);
-            })();
-
             // Establish Coin Protocol Version
+            options.poolAddress = rpcResults.validateaddress.address;
             options.protocolVersion = options.coin.hasGetInfo ? rpcResults.getinfo.protocolversion : rpcResults.getnetworkinfo.protocolversion;
             var difficulty = options.coin.hasGetInfo ? rpcResults.getinfo.difficulty : rpcResults.getblockchaininfo.difficulty;
             if (typeof(difficulty) == 'object') {
@@ -331,7 +327,7 @@ var Pool = function(options, authorizeFn) {
         // Establish New Block Functionality
         _this.manager.on('newBlock', function(blockTemplate) {
             if (_this.stratumServer) {
-                _this.stratumServer.broadcastMiningJobs(blockTemplate.getJobParams());
+                _this.stratumServer.broadcastMiningJobs(blockTemplate.getJobParams(options));
             }
         });
 
@@ -362,7 +358,7 @@ var Pool = function(options, authorizeFn) {
         // Establish Updated Block Functionality
         _this.manager.on('updatedBlock', function(blockTemplate) {
             if (_this.stratumServer) {
-                var job = blockTemplate.getJobParams();
+                var job = blockTemplate.getJobParams(options);
                 job[8] = false;
                 _this.stratumServer.broadcastMiningJobs(job);
             }
@@ -526,7 +522,7 @@ var Pool = function(options, authorizeFn) {
                 return options.ports[port].enabled === true;
             });
             options.initStats.stratumPorts = stratumPorts
-            _this.stratumServer.broadcastMiningJobs(_this.manager.currentJob.getJobParams());
+            _this.stratumServer.broadcastMiningJobs(_this.manager.currentJob.getJobParams(options));
             callback();
         })
 
@@ -566,7 +562,7 @@ var Pool = function(options, authorizeFn) {
                 else {
                     this.sendDifficulty(8);
                 }
-                this.sendMiningJob(_this.manager.currentJob.getJobParams());
+                this.sendMiningJob(_this.manager.currentJob.getJobParams(options));
             })
 
             // Establish Client Submission Functionality
