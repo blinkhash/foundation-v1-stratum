@@ -59,15 +59,25 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
         this.hashReserved = '0000000000000000000000000000000000000000000000000000000000000000';
     }
 
+    // Push Submissions to Array
+    this.registerSubmit = function(extraNonce1, extraNonce2, nTime, nonce) {
+        var submission = extraNonce1 + extraNonce2 + nTime + nonce;
+        if (this.submits.indexOf(submission) === -1) {
+            this.submits.push(submission);
+            return true;
+        }
+        return false;
+    };
+
+    // Establish Merkle Variables
+    this.merkleTree = new Merkle(getTransactionBuffers(rpcData.transactions));
+    this.merkleBranch = getMerkleHashes(this.merkleTree.steps);
+
     // Structure Block Transaction Data
     this.generation = createGeneration(rpcData, extraNoncePlaceholder, options)
     this.transactions = Buffer.concat(rpcData.transactions.map(function(tx) {
         return Buffer.from(tx.data, 'hex');
     }));
-
-    // Establish Merkle Variables
-    this.merkleTree = new Merkle(getTransactionBuffers(rpcData.transactions));
-    this.merkleBranch = getMerkleHashes(this.merkleTree.steps);
 
     // Serialize Block Coinbase
     this.serializeCoinbase = function(extraNonce1, extraNonce2, options) {
@@ -111,16 +121,6 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
                     Buffer.from([])
                 ]);
         }
-    };
-
-    // Push Submissions to Array
-    this.registerSubmit = function(extraNonce1, extraNonce2, nTime, nonce) {
-        var submission = extraNonce1 + extraNonce2 + nTime + nonce;
-        if (this.submits.indexOf(submission) === -1) {
-            this.submits.push(submission);
-            return true;
-        }
-        return false;
     };
 
     // Get Current Job Parameters
