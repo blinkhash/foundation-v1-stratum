@@ -24,8 +24,7 @@ var Transactions = function() {
         var reward = rpcData.coinbasevalue;
         var rewardToPool = reward;
         var txOutputBuffers = [];
-
-        // Convert Address to Script
+        var coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
         var poolAddressScript = util.addressToScript(options.network, options.poolAddress)
 
         // Handle Comments if Necessary
@@ -36,7 +35,7 @@ var Transactions = function() {
         // Handle ScriptSig [1]
         var scriptSigPart1 = Buffer.concat([
             util.serializeNumber(rpcData.height),
-            Buffer.from(rpcData.coinbaseaux.flags, 'hex'),
+            coinbaseAux,
             util.serializeNumber(Date.now() / 1000 | 0),
             Buffer.from([extraNoncePlaceholder.length])
         ]);
