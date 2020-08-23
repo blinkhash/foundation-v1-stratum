@@ -61,7 +61,6 @@ var Pool = function(options, authorizeFn) {
     // Initialize Pool Server
     this.start = function() {
         setupDifficulty();
-        setupAPI();
         setupDaemonInterface(function() {
             setupPoolData(function() {
                 setupRecipients();
@@ -87,16 +86,6 @@ var Pool = function(options, authorizeFn) {
             if (options.ports[port].difficulty)
                 _this.setDifficulty(port, options.ports[port].difficulty);
         });
-    }
-
-    // Initialize Pool API
-    function setupAPI() {
-        if (typeof(options.api) !== 'object' || typeof(options.api.start) !== 'function') {
-            return;
-        }
-        else {
-            options.api.start(_this);
-        }
     }
 
     // Initialize Pool Daemon
