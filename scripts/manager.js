@@ -38,6 +38,53 @@ var JobCounter = function() {
     };
 };
 
+// Map Equihash Solution Parameters
+const equihashParameters = {
+    "125_4": {
+        solutionLength: 106,
+        solutionSlice: 2,
+    },
+    "144_5": {
+        solutionLength: 202,
+        solutionSlice: 2,
+    },
+    "192_7": {
+        solutionLength: 806,
+        solutionSlice: 6,
+    },
+    "200_9": {
+        solutionLength: 2694,
+        solutionSlice: 6,
+    }
+}
+
+// Check if Input is Hex String
+function isHexString(s) {
+    var check = String(s).toLowerCase();
+    if(check.length % 2) {
+        return false;
+    }
+    for (i = 0; i < check.length; i=i+2) {
+        var c = check[i] + check[i+1];
+        if (!isHex(c))
+            return false;
+    }
+    return true;
+}
+
+// Check if Input is Hex
+function isHex(c) {
+    var a = parseInt(c,16);
+    var b = a.toString(16).toLowerCase();
+    if(b.length % 2) {
+        b = '0' + b;
+    }
+    if (b !== c) {
+        return false;
+    }
+    return true;
+}
+
 /**
  * Emits:
  * - newBlock(BlockTemplate) - When a new block (previously unknown to the JobManager) is added, use this event to broadcast new jobs
@@ -119,7 +166,7 @@ var Manager = function(options) {
     };
 
     // Process New Submitted Share
-    this.processShare = function(jobId, previousDifficulty, difficulty, extraNonce1, extraNonce2, nTime, nonce, ipAddress, port, workerName) {
+    this.processShare = function(jobId, previousDifficulty, difficulty, extraNonce1, extraNonce2, nTime, nonce, ipAddress, port, workerName, soln) {
 
         // Share is Invalid
         var shareError = function(error) {
@@ -136,6 +183,99 @@ var Manager = function(options) {
 
         // Handle Shares by Algorithm
         switch (options.coin.algorithm) {
+
+            // Equihash Share Handling
+            case "equihash":
+
+                // Calculate Coin Parameters
+                var N = options.coin.parameters.N;
+                var K = options.coin.parameters.K;
+                var expectedLength = equihashParameters[`${N}_${K}`].solutionLength
+                var solutionSlice = equihashParameters[`${N}_${K}`].solutionSlice
+
+                // Edge Cases to Check if Share is Invalid
+                var submitTime = Date.now() / 1000 | 0;
+                var job = this.validJobs[jobId];
+                if (typeof job === 'undefined' || job.jobId != jobId ) {
+                    return shareError([21, 'job not found']);
+                }
+                if (nTime.length !== 8) {
+                    return shareError([20, 'incorrect size of ntime']);
+                }
+                var nTimeInt = parseInt(util.reverseBuffer(new Buffer(nTime, 'hex')), 16);
+                if (nTimeInt < job.rpcData.curtime || nTimeInt > submitTime + 7200) {
+                    return shareError([20, 'ntime out of range']);
+                }
+                if (nonce.length !== 64) {
+                    return shareError([20, 'incorrect size of nonce']);
+                }
+                if (!isHexString(extraNonce2)) {
+                    return shareError([20, 'invalid hex in extraNonce2']);
+                }
+                if (soln.length !== expectedLength) {
+                    return shareError([20, 'Error: Incorrect size of solution (' + soln.length + '), expected ' + expectedLength]);
+                }
+                if (!job.registerSubmit(nonce, soln)) {
+                    return shareError([22, 'duplicate share']);
+                }
+
+                // Start Generating Block Hash
+                var headerBuffer = job.serializeHeader(nTime, nonce);
+                var headerSolnBuffer = new Buffer.concat([headerBuffer, new Buffer(soln, 'hex')]);
+                var headerHash = util.sha256d(headerSolnBuffer);
+                var headerBigNum = bignum.fromBuffer(headerHash, {endian: 'little', size: 32});
+
+                // Establish Share Variables
+                var blockHashInvalid;
+                var blockHash;
+                var blockHex;
+
+                // Calculate Share Difficulty
+                var shareDiff = diff1 / headerBigNum.toNumber() * shareMultiplier;
+                var blockDiffAdjusted = job.difficulty * shareMultiplier;
+
+                // Check if Valid Solution
+                if (hashDigest(headerBuffer, new Buffer(soln.slice(solutionSlice), 'hex')) !== true) {
+                    return shareError([20, 'invalid solution']);
+                }
+
+                // Check if Share is Valid Block Candidate
+                if (headerBigNum.le(job.target)) {
+                    blockHex = job.serializeBlock(headerBuffer, new Buffer(soln, 'hex')).toString('hex');
+                    blockHash = util.reverseBuffer(headerHash).toString('hex');
+                }
+                else {
+                    if (options.emitInvalidBlockHashes) {
+                        blockHashInvalid = util.reverseBuffer(util.sha256d(headerSolnBuffer)).toString('hex');
+                    }
+                    if (shareDiff / difficulty < 0.99) {
+                        if (previousDifficulty && shareDiff >= previousDifficulty) {
+                            difficulty = previousDifficulty;
+                        }
+                        else {
+                            return shareError([23, 'low difficulty share of ' + shareDiff]);
+                        }
+                    }
+                }
+
+                // Share is Valid
+                _this.emit('share', {
+                    job: jobId,
+                    ip: ipAddress,
+                    port: port,
+                    worker: workerName,
+                    height: job.rpcData.height,
+                    blockReward: job.rpcData.reward,
+                    difficulty: difficulty,
+                    shareDiff: shareDiff.toFixed(8),
+                    blockDiff: blockDiffAdjusted,
+                    blockDiffActual: job.difficulty,
+                    blockHash: blockHash,
+                    blockHashInvalid: blockHashInvalid
+                }, blockHex);
+
+                // Return Valid Share
+                return {result: true, error: null, blockHash: blockHash};
 
             // Default Share Handling
             default:

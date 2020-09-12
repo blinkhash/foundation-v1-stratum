@@ -566,7 +566,8 @@ var Pool = function(options, authorizeFn) {
                     params.nonce,
                     client.remoteAddress,
                     client.socket.localPort,
-                    params.name
+                    params.name,
+                    null,
                 );
                 resultCallback(result.error, result.result ? true : null);
             })
