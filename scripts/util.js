@@ -76,7 +76,11 @@ exports.convertBitsToBuff = function(bitsBuff) {
 
 // Get Truncated Difficulty
 exports.getTruncatedDiff = function(shift) {
-    return exports.convertBitsToBuff(exports.bufferToCompactBits(exports.shiftMax256Right(shift)));
+    return exports.convertBitsToBuff(
+        exports.bufferToCompactBits(
+            exports.shiftMax256Right(shift)
+        )
+    );
 };
 
 // Get Address Version Byte
@@ -174,14 +178,17 @@ exports.range = function(start, stop, step) {
 // Reverse Input Buffer
 exports.reverseBuffer = function(buff) {
     var reversed = Buffer.alloc(buff.length);
-    for (var i = buff.length - 1; i >= 0; i--)
+    for (var i = buff.length - 1; i >= 0; i--) {
         reversed[buff.length - i - 1] = buff[i];
+    }
     return reversed;
 };
 
 // Reverse Byte Order of Input Buffer
 exports.reverseByteOrder = function(buff) {
-    for (var i = 0; i < 8; i++) buff.writeUInt32LE(buff.readUInt32BE(i * 4), i * 4);
+    for (var i = 0; i < 8; i++) {
+        buff.writeUInt32LE(buff.readUInt32BE(i * 4), i * 4);
+    }
     return exports.reverseBuffer(buff);
 };
 
@@ -192,7 +199,9 @@ exports.reverseHex = function(hex) {
 
 // Serialize Height/Date Input
 exports.serializeNumber = function(n) {
-    if (n >= 1 && n <= 16) return Buffer.from([0x50 + n]);
+    if (n >= 1 && n <= 16) {
+        return Buffer.from([0x50 + n]);
+    }
     var l = 1;
     var buff = Buffer.alloc(9);
     while (n > 0x7f)
@@ -207,29 +216,33 @@ exports.serializeNumber = function(n) {
 
 // Serialize Strings used for Signature
 exports.serializeString = function(s) {
-    if (s.length < 253)
+    if (s.length < 253) {
         return Buffer.concat([
             Buffer.from([s.length]),
             Buffer.from(s)
         ]);
-    else if (s.length < 0x10000)
+    }
+    else if (s.length < 0x10000) {
         return Buffer.concat([
             Buffer.from([253]),
             exports.packUInt16LE(s.length),
             Buffer.from(s)
         ]);
-    else if (s.length < 0x100000000)
+    }
+    else if (s.length < 0x100000000) {
         return Buffer.concat([
             Buffer.from([254]),
             exports.packUInt32LE(s.length),
             Buffer.from(s)
         ]);
-    else
+    }
+    else {
         return Buffer.concat([
             Buffer.from([255]),
             exports.packUInt16LE(s.length),
             Buffer.from(s)
         ]);
+    }
 };
 
 // Hash Input w/ Sha256
