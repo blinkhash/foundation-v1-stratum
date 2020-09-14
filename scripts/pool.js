@@ -569,16 +569,33 @@ var Pool = function(options, authorizeFn) {
 
             // Establish Client Subscription Functionality
             client.on('subscription', function(params, resultCallback) {
-                var extraNonce = _this.manager.extraNonceCounter.next();
-                var extraNonce2Size = _this.manager.extraNonce2Size;
-                resultCallback(null, extraNonce, extraNonce2Size);
-                if (typeof(options.ports[client.socket.localPort]) !== 'undefined' && options.ports[client.socket.localPort].diff) {
-                    this.sendDifficulty(options.ports[client.socket.localPort].diff, options.coin.algorithm);
+                switch(options.coin.algorithm) {
+
+                    // Equihash Subscription Handling
+                    case "equihash":
+                        var extraNonce = _this.manager.extraNonceCounter.next();
+                        resultCallback(null, extraNonce, extraNonce);
+                        if (typeof(options.ports[client.socket.localPort]) !== 'undefined' && options.ports[client.socket.localPort].diff) {
+                            this.sendDifficulty(options.ports[client.socket.localPort].diff);
+                        }
+                        else {
+                            this.sendDifficulty(8);
+                        }
+                        this.sendMiningJob(_this.manager.currentJob.getJobParams(options));
+
+                    // Default Subscription Handling
+                    default:
+                        var extraNonce = _this.manager.extraNonceCounter.next();
+                        var extraNonce2Size = _this.manager.extraNonce2Size;
+                        resultCallback(null, extraNonce, extraNonce2Size);
+                        if (typeof(options.ports[client.socket.localPort]) !== 'undefined' && options.ports[client.socket.localPort].diff) {
+                            this.sendDifficulty(options.ports[client.socket.localPort].diff);
+                        }
+                        else {
+                            this.sendDifficulty(8);
+                        }
+                        this.sendMiningJob(_this.manager.currentJob.getJobParams(options));
                 }
-                else {
-                    this.sendDifficulty(8, options.coin.algorithm);
-                }
-                this.sendMiningJob(_this.manager.currentJob.getJobParams(options), options.coin.algorithm);
             })
 
             // Establish Client Submission Functionality

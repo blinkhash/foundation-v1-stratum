@@ -34,6 +34,7 @@ var StratumClient = function(options) {
 
     // Establish Private Stratum Variables
     var _this = this;
+    var algorithm = options.algorithm
     var banning = options.banning;
     var pendingDifficulty = null;
 
@@ -196,29 +197,56 @@ var StratumClient = function(options) {
         if (! _this._authorized) {
             _this.requestedSubscriptionBeforeAuth = true;
         }
-        _this.emit('subscription', {}, function(error, extraNonce1, extraNonce2Size) {
-            if (error) {
-                sendJson({
-                    id: message.id,
-                    result: null,
-                    error: error
+        switch(algorithm) {
+
+            // Equihash Subscription Handling
+            case 'equihash':
+                _this.emit('subscription', {}, function(error, extraNonce1, extraNonce1) {
+                    if (error) {
+                        sendJson({
+                            id: message.id,
+                            result: null,
+                            error: error
+                        });
+                        return;
+                    }
+                    _this.extraNonce1 = extraNonce1;
+                    sendJson({
+                        id: message.id,
+                        result: [
+                            null,
+                            extraNonce1,
+                        ],
+                        error: null
+                    });
                 });
-                return;
-            }
-            _this.extraNonce1 = extraNonce1;
-            sendJson({
-                id: message.id,
-                result: [
-                    [
-                        ["mining.set_difficulty", options.subscriptionId],
-                        ["mining.notify", options.subscriptionId]
-                    ],
-                    extraNonce1,
-                    extraNonce2Size
-                ],
-                error: null
-            });
-        });
+
+            // Default Subscription Handling
+            default:
+                _this.emit('subscription', {}, function(error, extraNonce1, extraNonce2Size) {
+                    if (error) {
+                        sendJson({
+                            id: message.id,
+                            result: null,
+                            error: error
+                        });
+                        return;
+                    }
+                    _this.extraNonce1 = extraNonce1;
+                    sendJson({
+                        id: message.id,
+                        result: [
+                            [
+                                ["mining.set_difficulty", options.subscriptionId],
+                                ["mining.notify", options.subscriptionId]
+                            ],
+                            extraNonce1,
+                            extraNonce2Size
+                        ],
+                        error: null
+                    });
+                });
+        }
     }
 
     // Manage Stratum Authorization
@@ -292,7 +320,7 @@ var StratumClient = function(options) {
     };
 
     // Broadcast Difficulty to Stratum Client
-    this.sendDifficulty = function(difficulty, algorithm) {
+    this.sendDifficulty = function(difficulty) {
         switch(algorithm) {
 
           // Equihash Difficulty Handling
@@ -335,7 +363,7 @@ var StratumClient = function(options) {
     };
 
     // Broadcast Mining Job to Stratum Client
-    this.sendMiningJob = function(jobParams, algorithm) {
+    this.sendMiningJob = function(jobParams) {
         var lastActivityAgo = Date.now() - _this.lastActivity;
         if (lastActivityAgo > options.connectionTimeout * 1000) {
             _this.emit('socketTimeout', 'last submitted a share was ' + (lastActivityAgo / 1000 | 0) + ' seconds ago');
@@ -343,7 +371,7 @@ var StratumClient = function(options) {
             return;
         }
         if (pendingDifficulty !== null) {
-            var result = _this.sendDifficulty(pendingDifficulty, algorithm);
+            var result = _this.sendDifficulty(pendingDifficulty);
             pendingDifficulty = null;
             if (result) {
                 _this.emit('difficultyChanged', _this.difficulty);
