@@ -260,24 +260,15 @@ var StratumClient = function(options) {
             considerBan(false);
             return;
         }
-        _this.emit('submit',
-            {
-                name: message.params[0],
-                jobId: message.params[1],
-                extraNonce2: message.params[2],
-                nTime: message.params[3].toLowerCase(),
-                nonce: message.params[4].toLowerCase(),
-            },
-            function(error, result) {
-                if (!considerBan(result)) {
-                    sendJson({
-                        id: message.id,
-                        result: result,
-                        error: error
-                    });
-                }
+        _this.emit('submit', message, function(error, result) {
+            if (!considerBan(result)) {
+                sendJson({
+                    id: message.id,
+                    result: result,
+                    error: error
+                });
             }
-        );
+        });
     }
 
     // Manage JSON Functionality
@@ -301,21 +292,50 @@ var StratumClient = function(options) {
     };
 
     // Broadcast Difficulty to Stratum Client
-    this.sendDifficulty = function(difficulty) {
-        if (difficulty === this.difficulty)
-            return false;
-        _this.previousDifficulty = _this.difficulty;
-        _this.difficulty = difficulty;
-        sendJson({
-            id: null,
-            method: "mining.set_difficulty",
-            params: [difficulty],
-        });
-        return true;
+    this.sendDifficulty = function(difficulty, algorithm) {
+        switch(algorithm) {
+
+          // Equihash Difficulty Handling
+          case "equihash":
+              if (difficulty === this.difficulty)
+                  return false;
+              _this.previousDifficulty = _this.difficulty;
+              _this.difficulty = difficulty;
+              var zeroPad;
+              var powLimit = algorithms.equihash.diff;
+              var adjPow = powLimit / difficulty;
+              if ((64 - adjPow.toString(16).length) === 0) {
+                  zeroPad = ''
+              }
+              else {
+                  zeroPad = '0';
+                  zeroPad = zeroPad.repeat((64 - (adjPow.toString(16).length)));
+              }
+              var target = (zeroPad + adjPow.toString(16)).substr(0, 64);
+              sendJson({
+                  id: null,
+                  method: "mining.set_target",
+                  params: [target],
+              });
+              return true;
+
+          // Default Difficulty Handling
+          default:
+              if (difficulty === this.difficulty)
+                  return false;
+              _this.previousDifficulty = _this.difficulty;
+              _this.difficulty = difficulty;
+              sendJson({
+                  id: null,
+                  method: "mining.set_difficulty",
+                  params: [difficulty],
+              });
+              return true;
+        }
     };
 
     // Broadcast Mining Job to Stratum Client
-    this.sendMiningJob = function(jobParams) {
+    this.sendMiningJob = function(jobParams, algorithm) {
         var lastActivityAgo = Date.now() - _this.lastActivity;
         if (lastActivityAgo > options.connectionTimeout * 1000) {
             _this.emit('socketTimeout', 'last submitted a share was ' + (lastActivityAgo / 1000 | 0) + ' seconds ago');
@@ -323,7 +343,7 @@ var StratumClient = function(options) {
             return;
         }
         if (pendingDifficulty !== null) {
-            var result = _this.sendDifficulty(pendingDifficulty);
+            var result = _this.sendDifficulty(pendingDifficulty, algorithm);
             pendingDifficulty = null;
             if (result) {
                 _this.emit('difficultyChanged', _this.difficulty);

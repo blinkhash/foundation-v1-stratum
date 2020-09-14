@@ -573,30 +573,52 @@ var Pool = function(options, authorizeFn) {
                 var extraNonce2Size = _this.manager.extraNonce2Size;
                 resultCallback(null, extraNonce, extraNonce2Size);
                 if (typeof(options.ports[client.socket.localPort]) !== 'undefined' && options.ports[client.socket.localPort].diff) {
-                    this.sendDifficulty(options.ports[client.socket.localPort].diff);
+                    this.sendDifficulty(options.ports[client.socket.localPort].diff, options.coin.algorithm);
                 }
                 else {
-                    this.sendDifficulty(8);
+                    this.sendDifficulty(8, options.coin.algorithm);
                 }
-                this.sendMiningJob(_this.manager.currentJob.getJobParams(options));
+                this.sendMiningJob(_this.manager.currentJob.getJobParams(options), options.coin.algorithm);
             })
 
             // Establish Client Submission Functionality
-            client.on('submit', function(params, resultCallback) {
-                var result =_this.manager.processShare(
-                    params.jobId,
-                    client.previousDifficulty,
-                    client.difficulty,
-                    client.extraNonce1,
-                    params.extraNonce2,
-                    params.nTime,
-                    params.nonce,
-                    client.remoteAddress,
-                    client.socket.localPort,
-                    params.name,
-                    params.soln,
-                );
-                resultCallback(result.error, result.result ? true : null);
+            client.on('submit', function(message, resultCallback) {
+                switch(options.coin.algorithm) {
+
+                    // Equihash Share Handling
+                    case "equihash":
+                        var result = _this.manager.processShare(
+                            message.params[1],
+                            client.previousDifficulty,
+                            client.difficulty,
+                            client.extraNonce1,
+                            message.params[3],
+                            message.params[2].toLowerCase(),
+                            client.extraNonce1 + message.params[3],
+                            client.remoteAddress,
+                            client.socket.localPort,
+                            message.params[0],
+                            message.params[4],
+                        }
+                        resultCallback(result.error, result.result ? true : null);
+
+                    // Default Share Handling
+                    default:
+                        var result = _this.manager.processShare(
+                            message.params[1],
+                            client.previousDifficulty,
+                            client.difficulty,
+                            client.extraNonce1,
+                            message.params[2],
+                            message.params[3].toLowerCase(),
+                            message.params[4].toLowerCase(),
+                            client.remoteAddress,
+                            client.socket.localPort,
+                            message.params[0],
+                            null
+                        );
+                        resultCallback(result.error, result.result ? true : null);
+                }
             })
 
             // Establish Client Error Messaging Functionality
