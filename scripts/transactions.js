@@ -59,7 +59,7 @@ var Transactions = function() {
         for (var i = 0; i < options.recipients.length; i++) {
             var recipientReward = Math.floor(options.recipients[i].percent * reward);
             var recipientScript = util.addressToScript(options.network, options.recipients[i].address);
-            if (r.length === 40) {
+            if (options.recipients[i].address.length === 40) {
                 recipientScript = util.miningKeyToScript(options.recipients[i].address);
             }
             rewardToPool -= recipientReward;

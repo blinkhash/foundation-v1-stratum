@@ -599,7 +599,7 @@ var Pool = function(options, authorizeFn) {
                             client.socket.localPort,
                             message.params[0],
                             message.params[4],
-                        }
+                        );
                         resultCallback(result.error, result.result ? true : null);
 
                     // Default Share Handling
