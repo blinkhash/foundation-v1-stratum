@@ -21,6 +21,7 @@ var Pool = function(options, authorizeFn) {
 
     // Establish Pool Variables
     var _this = this;
+    var lastBlockHex = "";
     var blockPollingIntervalId;
     var emitLog = function(text) { _this.emit('log', 'debug'  , text); };
     var emitWarningLog = function(text) { _this.emit('log', 'warning', text); };
@@ -210,19 +211,11 @@ var Pool = function(options, authorizeFn) {
         for (var r in options.rewardRecipients) {
             var percent = options.rewardRecipients[r];
             var rObj = {
-                percent: percent / 100
+                percent: percent / 100,
+                address: r,
             };
-            try {
-                if (r.length === 40)
-                    rObj.script = util.miningKeyToScript(r);
-                else
-                    rObj.script = util.addressToScript(options.network, r);
-                recipients.push(rObj);
-                options.feePercent += percent;
-            }
-            catch(e) {
-                emitErrorLog('Error generating transaction output script for ' + r + ' in rewardRecipients');
-            }
+            recipients.push(rObj);
+            options.feePercent += percent;
         }
         if (recipients.length === 0) {
             emitErrorLog('No rewardRecipients have been setup which means no fees will be taken');
@@ -237,7 +230,12 @@ var Pool = function(options, authorizeFn) {
                 return result.response && (result.response.hash === blockHash)
             });
             if (validResults.length >= 1) {
-                callback(true, validResults[0].response.tx[0]);
+                if (validResults[0].response.confirmations >= 0) {
+                    callback(true, validResults[0].response.tx[0]);
+                }
+                else {
+                    callback(false);
+                }
             }
             else {
                 callback(false);
@@ -247,21 +245,32 @@ var Pool = function(options, authorizeFn) {
 
     // Load Current Block Template
     function getBlockTemplate(callback) {
-        _this.daemon.cmd('getblocktemplate',
-            [{"capabilities": [ "coinbasetxn", "workid", "coinbase/append" ], "rules": [ "segwit" ]}],
-            function(result) {
-                if (result.error) {
-                    emitErrorLog('getblocktemplate call failed for daemon instance ' +
-                        result.instance.index + ' with error ' + JSON.stringify(result.error));
-                    callback(result.error);
-                }
-                else {
-                    var processedNewBlock = _this.manager.processTemplate(result.response);
-                    callback(null, result.response, processedNewBlock);
-                    callback = function() {};
-                }
-            }, true
-        );
+
+        // Derive Blockchain Configuration
+        var callConfig = {
+            "capabilities": [
+                "coinbasetxn",
+                "workid",
+                "coinbase/append"
+            ]
+        };
+        if (options.coin.segwit) {
+            callConfig.rules = ["segwit"];
+        }
+
+        // Get Current Block Template
+        _this.daemon.cmd('getblocktemplate', [callConfig], function(result) {
+            if (result.error) {
+                emitErrorLog('getblocktemplate call failed for daemon instance ' +
+                    result.instance.index + ' with error ' + JSON.stringify(result.error));
+                callback(result.error);
+            }
+            else {
+                var processedNewBlock = _this.manager.processTemplate(result.response);
+                callback(null, result.response, processedNewBlock);
+                callback = function() {};
+            }
+        }, true);
     }
 
     // Submit Block to Stratum Server
@@ -330,6 +339,12 @@ var Pool = function(options, authorizeFn) {
             if (!isValidBlock)
                 emitShare();
             else {
+                if (lastBlockHex === blockHex) {
+                    emitWarningLog('Warning, ignored duplicate submit block ' + blockHex);
+                }
+                else {
+                    lastBlockHex = blockHex;
+                }
                 submitBlock(blockHex, function() {
                     checkBlockAccepted(shareData.blockHash, function(isAccepted, tx) {
                         isValidBlock = isAccepted;
@@ -356,6 +371,18 @@ var Pool = function(options, authorizeFn) {
 
     // Wait Until Blockchain is Fully Synced
     function syncBlockchain(syncedCallback) {
+
+        // Derive Blockchain Configuration
+        var callConfig = {
+            "capabilities": [
+                "coinbasetxn",
+                "workid",
+                "coinbase/append"
+            ]
+        };
+        if (options.coin.segwit) {
+            callConfig.rules = ["segwit"];
+        }
 
         // Check for Blockchain to be Fully Synced
         var checkSynced = function(displayNotSynced) {
@@ -567,7 +594,7 @@ var Pool = function(options, authorizeFn) {
                     client.remoteAddress,
                     client.socket.localPort,
                     params.name,
-                    null,
+                    params.soln,
                 );
                 resultCallback(result.error, result.result ? true : null);
             })
@@ -638,8 +665,9 @@ var Pool = function(options, authorizeFn) {
                 'Stratum Port(s):\t' + _this.options.initStats.stratumPorts.join(', '),
                 'Pool Fee Percent:\t' + _this.options.feePercent + '%'
         ];
-        if (typeof options.blockRefreshInterval === "number" && options.blockRefreshInterval > 0)
+        if (typeof options.blockRefreshInterval === "number" && options.blockRefreshInterval > 0) {
             infoLines.push('Block Polling Every:\t' + options.blockRefreshInterval + ' ms');
+        }
         emitSpecialLog(infoLines.join('\n\t\t\t\t\t\t'));
     }
 };

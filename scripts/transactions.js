@@ -10,6 +10,8 @@ var util = require('./util.js');
 // Generate Combined Transactions (Bitcoin)
 var Transactions = function() {
 
+    // Manage Block Founders, Masternodes, etc.
+
     // Structure Bitcoin Protocol Transaction
     this.bitcoin = function(rpcData, extraNoncePlaceholder, options) {
 
@@ -56,11 +58,15 @@ var Transactions = function() {
         // Handle Block Transactions
         for (var i = 0; i < options.recipients.length; i++) {
             var recipientReward = Math.floor(options.recipients[i].percent * reward);
+            var recipientScript = util.addressToScript(options.network, options.recipients[i].address);
+            if (r.length === 40) {
+                recipientScript = util.miningKeyToScript(options.recipients[i].address);
+            }
             rewardToPool -= recipientReward;
             txOutputBuffers.push(Buffer.concat([
                 util.packInt64LE(recipientReward),
-                util.varIntBuffer(options.recipients[i].script.length),
-                options.recipients[i].script
+                util.varIntBuffer(recipientScript.length),
+                recipientScript,
             ]));
         }
 

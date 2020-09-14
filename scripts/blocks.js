@@ -44,9 +44,11 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
 
     // Create Generation Transaction
     function createGeneration(rpcData, extraNoncePlaceholder, options) {
+        var transactions = new Transactions();
         switch (options.coin.algorithm) {
+            case 'equihash':
+                return transactions.zcash(rpcData, options);
             default:
-                var transactions = new Transactions();
                 return transactions.bitcoin(rpcData, extraNoncePlaceholder, options);
         }
     }
