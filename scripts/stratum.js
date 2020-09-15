@@ -149,7 +149,7 @@ var StratumClient = function(options) {
 
     // Handle Stratum Messages
     function handleMessage(message) {
-        switch(message.method) {
+        switch (message.method) {
 
             // Manage Stratum Subscription
             case 'mining.subscribe':
@@ -197,7 +197,7 @@ var StratumClient = function(options) {
         if (! _this._authorized) {
             _this.requestedSubscriptionBeforeAuth = true;
         }
-        switch(algorithm) {
+        switch (algorithm) {
 
             // Equihash Subscription Handling
             case 'equihash':
@@ -321,7 +321,7 @@ var StratumClient = function(options) {
 
     // Broadcast Difficulty to Stratum Client
     this.sendDifficulty = function(difficulty) {
-        switch(algorithm) {
+        switch (algorithm) {
 
           // Equihash Difficulty Handling
           case "equihash":

@@ -12,6 +12,12 @@ var Transactions = function() {
 
     // Manage Block Founders, Masternodes, etc.
 
+    // Structure ZCash Protocol Transaction
+    this.zcash = function(rpcData, options) {
+
+        // return [txHex, txHash]
+    }
+
     // Structure Bitcoin Protocol Transaction
     this.bitcoin = function(rpcData, extraNoncePlaceholder, options) {
 
@@ -103,7 +109,7 @@ var Transactions = function() {
         ]);
 
         // Return Generated Transaction
-        return [p1, p2];
+        return [[p1, p2], null];
     }
 };
 

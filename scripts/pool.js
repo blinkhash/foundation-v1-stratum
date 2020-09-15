@@ -569,7 +569,7 @@ var Pool = function(options, authorizeFn) {
 
             // Establish Client Subscription Functionality
             client.on('subscription', function(params, resultCallback) {
-                switch(options.coin.algorithm) {
+                switch (options.coin.algorithm) {
 
                     // Equihash Subscription Handling
                     case "equihash":
@@ -600,7 +600,7 @@ var Pool = function(options, authorizeFn) {
 
             // Establish Client Submission Functionality
             client.on('submit', function(message, resultCallback) {
-                switch(options.coin.algorithm) {
+                switch (options.coin.algorithm) {
 
                     // Equihash Share Handling
                     case "equihash":
@@ -610,7 +610,7 @@ var Pool = function(options, authorizeFn) {
                             client.difficulty,
                             client.extraNonce1,
                             message.params[3],
-                            message.params[2].toLowerCase(),
+                            message.params[2],
                             client.extraNonce1 + message.params[3],
                             client.remoteAddress,
                             client.socket.localPort,
@@ -627,8 +627,8 @@ var Pool = function(options, authorizeFn) {
                             client.difficulty,
                             client.extraNonce1,
                             message.params[2],
-                            message.params[3].toLowerCase(),
-                            message.params[4].toLowerCase(),
+                            message.params[3],
+                            message.params[4],
                             client.remoteAddress,
                             client.socket.localPort,
                             message.params[0],

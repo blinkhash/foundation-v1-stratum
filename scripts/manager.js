@@ -119,7 +119,7 @@ var Manager = function(options) {
 
     // Determine Coinbase Hash Function
     function coinbaseHash() {
-        switch(options.coin.algorithm) {
+        switch (options.coin.algorithm) {
             default:
                 return util.sha256d;
         }
@@ -188,8 +188,8 @@ var Manager = function(options) {
             case "equihash":
 
                 // Calculate Coin Parameters
-                var N = options.coin.parameters.N;
-                var K = options.coin.parameters.K;
+                var N = options.coin.parameters.N || 200;
+                var K = options.coin.parameters.K || 9;
                 var expectedLength = equihashParameters[`${N}_${K}`].solutionLength
                 var solutionSlice = equihashParameters[`${N}_${K}`].solutionSlice
 
@@ -215,12 +215,12 @@ var Manager = function(options) {
                 if (soln.length !== expectedLength) {
                     return shareError([20, 'Error: Incorrect size of solution (' + soln.length + '), expected ' + expectedLength]);
                 }
-                if (!job.registerSubmit(nonce, soln)) {
+                if (!job.registerSubmit([nonce, soln])) {
                     return shareError([22, 'duplicate share']);
                 }
 
                 // Start Generating Block Hash
-                var headerBuffer = job.serializeHeader(nTime, nonce);
+                var headerBuffer = job.serializeHeader(job.merkle, nTime, nonce, options);
                 var headerSolnBuffer = new Buffer.concat([headerBuffer, new Buffer(soln, 'hex')]);
                 var headerHash = util.sha256d(headerSolnBuffer);
                 var headerBigNum = bignum.fromBuffer(headerHash, {endian: 'little', size: 32});
@@ -298,7 +298,7 @@ var Manager = function(options) {
                 if (nonce.length !== 8) {
                     return shareError([20, 'incorrect size of nonce']);
                 }
-                if (!job.registerSubmit(extraNonce1, extraNonce2, nTime, nonce)) {
+                if (!job.registerSubmit([extraNonce1, extraNonce2, nTime, nonce])) {
                     return shareError([22, 'duplicate share']);
                 }
 

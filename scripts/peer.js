@@ -164,7 +164,7 @@ var Peer = function(options) {
             payload = payload.slice(2);
         }
         while (count--) {
-            switch(payload.readUInt32LE(0)) {
+            switch (payload.readUInt32LE(0)) {
                 case invCodes.error:
                     break;
                 case invCodes.tx:
