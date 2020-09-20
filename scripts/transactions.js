@@ -5,17 +5,90 @@
  */
 
 // Import Required Modules
+var bitcoin = require('blinkhash-utxo-lib')
 var util = require('./util.js');
+
+// Compile Script w/ Opcodes
+function scriptCompile(addrHash) {
+    return bitcoin.script.compile([
+        bitcoin.opcodes.OP_DUP,
+        bitcoin.opcodes.OP_HASH160,
+        addrHash,
+        bitcoin.opcodes.OP_EQUALVERIFY,
+        bitcoin.opcodes.OP_CHECKSIG
+    ])
+}
 
 // Generate Combined Transactions (Bitcoin)
 var Transactions = function() {
 
-    // Manage Block Founders, Masternodes, etc.
-
     // Structure ZCash Protocol Transaction
     this.zcash = function(rpcData, options) {
 
-        // return [txHex, txHash]
+        // Establish Transactions Variables [1]
+        var feePercent = 0;
+        var network = options.coin.network;
+        var txBuilder = new bitcoin.TransactionBuilder(network)
+
+        // Establish Transactions Variables [2]
+        var reward = rpcData.miner * 1e8;
+        var rewardToPool = reward;
+        var poolIdentifier = options.identifier || "https://github.com/blinkhash/blinkhash-server"
+        var poolAddressScript = util.addressToScript(options.network, options.poolAddress)
+
+        // Set Transaction Version
+        if (options.coin.sapling === true || (typeof options.coin.sapling === 'number' && options.coin.sapling <= rpcData.height)) {
+            txb.setVersion(bitcoin.Transaction.ZCASH_SAPLING_VERSION);
+        } else if (options.coin.overwinter === true || (typeof options.coin.overwinter === 'number' && options.coin.overwinter <= rpcData.height)) {
+            txb.setVersion(bitcoin.Transaction.ZCASH_OVERWINTER_VERSION);
+        }
+
+        // Serialize Block Height [1]
+        let height = Math.ceil((rpcData.height << 1).toString(2).length / 8)
+        let lengthDiff = blockHeightSerial.length / 2 - height
+        for (let i = 0; i < lengthDiff; i++) {
+            blockHeightSerial = `${blockHeightSerial}00`
+        }
+
+        // Serialize Block Height [2]
+        let length = `0${height}`
+        let serializedBlockHeight = new Buffer.concat([
+            new Buffer(length, 'hex'),
+            util.reverseBuffer(new Buffer(blockHeightSerial, 'hex')),
+            new Buffer('00', 'hex')
+        ])
+
+        // Add Serialized Block Height to Transaction
+        txb.addInput(new Buffer('0000000000000000000000000000000000000000000000000000000000000000', 'hex'),
+            4294967295,
+            4294967295,
+            new Buffer.concat([
+                serializedBlockHeight,
+                Buffer.from(Buffer.from(poolIdentifier, "utf8").toString("hex"), "hex")
+            ])
+        )
+
+        // Calculate Recipient Fees
+        for (var i = 0; i < options.recipients.length; i++) {
+            feePercent += options.recipients[i].percent;
+        }
+
+        // Handle Block Transactions
+        txb.addOutput(poolAddressScript, reward * (1 - feePercent));
+        for (var i = 0; i < options.recipients.length; i++) {
+            var recipientScript = util.addressToScript(options.network, options.recipients[i].address);
+            if (options.recipients[i].address.length === 40) {
+                recipientScript = util.miningKeyToScript(options.recipients[i].address);
+            }
+            txb.addOutput(recipientScript, reward * options.recipients[i].percent);
+        });
+
+        // Finalize Transaction
+        txHex = txb.toHex();
+        txHash = txb.getHash().toString('hex');
+
+        // Return Generated Transaction
+        return [txHex, txHash]
     }
 
     // Structure Bitcoin Protocol Transaction
@@ -26,18 +99,19 @@ var Transactions = function() {
         var txInSequence = 0;
         var txInPrevOutHash = "";
         var txInPrevOutIndex = Math.pow(2, 32) - 1;
+        var txOutputBuffers = [];
         var txVersion = options.coin.txMessages === true ? 2 : 1;
 
         // Establish Transactions Variables [2]
         var reward = rpcData.coinbasevalue;
         var rewardToPool = reward;
-        var txOutputBuffers = [];
-        var coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
+        var poolIdentifier = options.identifier || "https://github.com/blinkhash/blinkhash-server"
         var poolAddressScript = util.addressToScript(options.network, options.poolAddress)
+        var coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
 
         // Handle Comments if Necessary
         var txComment = options.coin.txMessages === true ?
-            util.serializeString('https://github.com/blinkhash/blinkhash-stratum-pool') :
+            util.serializeString(poolIdentifier) :
             Buffer.from([]);
 
         // Handle ScriptSig [1]
@@ -49,7 +123,7 @@ var Transactions = function() {
         ]);
 
         // Handle ScriptSig [2]
-        var scriptSigPart2 = util.serializeString('/blinkhash-stratum-pool/');
+        var scriptSigPart2 = util.serializeString(poolIdentifier);
 
         // Combine Transaction [1]
         var p1 = Buffer.concat([

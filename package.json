@@ -37,8 +37,8 @@
     "async": "1.5.2",
     "base58-native": "*",
     "bignum": "0.13.1",
-    "bitcoinjs-lib": "5.1.10",
     "equihash": "git://github.com/blinkhash/blinkhash-equihash.git",
+    "blinkhash-utxo-lib": "git://github.com/blinkhash/blinkhash-utxo-lib.git",
     "multi-hashing": "git://github.com/blinkhash/blinkhash-multi-hashing.git",
     "promise": "^8.1.0"
   },

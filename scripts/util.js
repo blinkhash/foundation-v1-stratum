@@ -5,10 +5,10 @@
  */
 
 // Import Required Modules
-var crypto = require('crypto');
 var base58 = require('base58-native');
 var bignum = require('bignum');
-var bitcoin = require('bitcoinjs-lib');
+var bitcoin = require('blinkhash-utxo-lib');
+var crypto = require('crypto');
 
 // Hash Address from exAddress + Key
 exports.addressFromEx = function(exAddress, ripdm160Key) {
