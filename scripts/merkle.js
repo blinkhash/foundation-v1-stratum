@@ -39,27 +39,29 @@ var Merkle = function(data) {
 
     // Calculate Merkle Steps
     function calculateSteps(data) {
-        var L = data;
         var steps = [];
-        var PreL = [null];
-        var StartL = 2;
-        var Ll = L.length;
-        if (Ll > 1) {
-            while (true) {
-                if (Ll === 1) {
-                    break;
+        if (data) {
+            var L = data;
+            var PreL = [null];
+            var StartL = 2;
+            var Ll = L.length;
+            if (Ll > 1) {
+                while (true) {
+                    if (Ll === 1) {
+                        break;
+                    }
+                    steps.push(L[1]);
+                    if (Ll % 2)
+                        L.push(L[L.length - 1]);
+                    var Ld = [];
+                    var r = util.range(StartL, Ll, 2);
+                    r.forEach(function(i) {
+                        Ld.push(concathash(L[i], L[i + 1]));
+                    });
+                    L = PreL.concat(Ld);
+                    Ll = L.length;
                 }
-                steps.push(L[1]);
-                if (Ll % 2)
-                    L.push(L[L.length - 1]);
-                var Ld = [];
-                var r = util.range(StartL, Ll, 2);
-                r.forEach(function(i) {
-                    Ld.push(concathash(L[i], L[i + 1]));
-                });
-                L = PreL.concat(Ld);
-                Ll = L.length;
-            }
+            }          
         }
         return steps;
     }

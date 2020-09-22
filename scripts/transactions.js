@@ -8,17 +8,6 @@
 var bitcoin = require('blinkhash-utxo-lib')
 var util = require('./util.js');
 
-// Compile Script w/ Opcodes
-function scriptCompile(addrHash) {
-    return bitcoin.script.compile([
-        bitcoin.opcodes.OP_DUP,
-        bitcoin.opcodes.OP_HASH160,
-        addrHash,
-        bitcoin.opcodes.OP_EQUALVERIFY,
-        bitcoin.opcodes.OP_CHECKSIG
-    ])
-}
-
 // Generate Combined Transactions (Bitcoin)
 var Transactions = function() {
 
@@ -38,12 +27,13 @@ var Transactions = function() {
 
         // Set Transaction Version
         if (options.coin.sapling === true || (typeof options.coin.sapling === 'number' && options.coin.sapling <= rpcData.height)) {
-            txb.setVersion(bitcoin.Transaction.ZCASH_SAPLING_VERSION);
+            txBuilder.setVersion(bitcoin.Transaction.ZCASH_SAPLING_VERSION);
         } else if (options.coin.overwinter === true || (typeof options.coin.overwinter === 'number' && options.coin.overwinter <= rpcData.height)) {
-            txb.setVersion(bitcoin.Transaction.ZCASH_OVERWINTER_VERSION);
+            txBuilder.setVersion(bitcoin.Transaction.ZCASH_OVERWINTER_VERSION);
         }
 
         // Serialize Block Height [1]
+        var blockHeightSerial = (rpcData.height.toString(16).length % 2 === 0 ? '' : '0') + rpcData.height.toString(16)
         let height = Math.ceil((rpcData.height << 1).toString(2).length / 8)
         let lengthDiff = blockHeightSerial.length / 2 - height
         for (let i = 0; i < lengthDiff; i++) {
@@ -59,7 +49,7 @@ var Transactions = function() {
         ])
 
         // Add Serialized Block Height to Transaction
-        txb.addInput(new Buffer('0000000000000000000000000000000000000000000000000000000000000000', 'hex'),
+        txBuilder.addInput(new Buffer('0000000000000000000000000000000000000000000000000000000000000000', 'hex'),
             4294967295,
             4294967295,
             new Buffer.concat([
@@ -74,18 +64,19 @@ var Transactions = function() {
         }
 
         // Handle Block Transactions
-        txb.addOutput(poolAddressScript, reward * (1 - feePercent));
+        txBuilder.addOutput(poolAddressScript, reward * (1 - feePercent));
         for (var i = 0; i < options.recipients.length; i++) {
             var recipientScript = util.addressToScript(options.network, options.recipients[i].address);
             if (options.recipients[i].address.length === 40) {
                 recipientScript = util.miningKeyToScript(options.recipients[i].address);
             }
-            txb.addOutput(recipientScript, reward * options.recipients[i].percent);
-        });
+            txBuilder.addOutput(recipientScript, reward * options.recipients[i].percent);
+        }
 
         // Finalize Transaction
-        txHex = txb.toHex();
-        txHash = txb.getHash().toString('hex');
+        var generation = txBuilder.build()
+        var txHex = generation.toHex();
+        var txHash = generation.getHash().toString('hex');
 
         // Return Generated Transaction
         return [txHex, txHash]

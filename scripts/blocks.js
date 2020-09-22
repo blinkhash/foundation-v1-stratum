@@ -60,22 +60,22 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     }
 
     // Create Merkle Data
-    function createMerkle(genTransaction, options) {
+    function createMerkle(rpcData, genTransaction, options) {
         switch (options.coin.algorithm) {
 
             // Equihash Merkle Creation
             case 'equihash':
-                return new Merkle(null).getRoot(this.rpcData, genTransaction[1]);
+                return new Merkle(null).getRoot(rpcData, genTransaction[1]);
 
             // Default Merkle Creation
             default:
-                return new Merkle(getTransactionBuffers(this.rpcData.transactions));
+                return new Merkle(getTransactionBuffers(rpcData.transactions));
         }
     }
 
     // Establish Generation/Merkle
     this.generation = createGeneration(this.rpcData, extraNoncePlaceholder, options);
-    this.merkle = createMerkle(this.generation, options);
+    this.merkle = createMerkle(this.rpcData, this.generation, options);
 
     // Structure Block Transaction Data
     this.transactions = Buffer.concat(rpcData.transactions.map(function(tx) {
@@ -203,7 +203,7 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
                         this.jobId,
                         util.packUInt32LE(this.rpcData.version).toString('hex'),
                         this.prevHashReversed,
-                        util.reverseBuffer(new Buffer(this.merkle, 'hex')).toString('hex');
+                        util.reverseBuffer(new Buffer(this.merkle, 'hex')).toString('hex'),
                         this.hashReserved,
                         util.packUInt32LE(this.rpcData.curtime).toString('hex'),
                         util.reverseBuffer(new Buffer(this.rpcData.bits, 'hex')).toString('hex'),
@@ -220,7 +220,7 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
                         this.prevHashReversed,
                         this.generation[0][0].toString('hex'),
                         this.generation[0][1].toString('hex'),
-                        getMerkleHashes(this.merkle.steps);,
+                        getMerkleHashes(this.merkle.steps),
                         util.packInt32BE(this.rpcData.version).toString('hex'),
                         this.rpcData.bits,
                         util.packUInt32BE(this.rpcData.curtime).toString('hex'),
