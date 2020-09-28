@@ -11,6 +11,15 @@ var util = require('./util.js');
 // Generate Combined Transactions (Bitcoin)
 var Transactions = function() {
 
+    // Convert Address to Usable Script
+    function compileScript(address, network) {
+        var outputScript = util.addressToScript(network, address);
+        if (address.length === 40) {
+            outputScript = util.miningKeyToScript(address);
+        }
+        return outputScript
+    }
+
     // Structure ZCash Protocol Transaction
     this.zcash = function(rpcData, options) {
 
@@ -63,13 +72,83 @@ var Transactions = function() {
             feePercent += options.recipients[i].percent;
         }
 
+        // Handle Pool/Secondary Transactions
+        switch (options.rewards.rewardType) {
+
+            // Founder Rewards Configuration [1]
+            case "rewards1":
+
+                // Calculate Indices/Rewards
+                var treasuryIndex = parseInt(Math.floor(((rpcData.height - options.rewards.treasury.startHeight) / options.rewards.treasury.interval) % options.rewards.treasury.recipients.length))
+                var secureNodesIndex = parseInt(Math.floor(((rpcData.height - options.rewards.secureNodes.startHeight) / options.rewards.secureNodes.interval) % options.rewards.secureNodes.recipients.length))
+                var superNodesIndex = parseInt(Math.floor(((rpcData.height - options.rewards.superNodes.startHeight) / options.rewards.superNodes.interval) % options.rewards.superNodes.recipients.length))
+                var secondaryReward = (options.rewards.treasury.reward + options.rewards.secureNodes.reward + options.rewards.superNodes.reward) / 100
+                var poolReward = Math.floor(reward * (1 - (secondaryReward + feePercent)));
+
+                // Generate Address Scripts
+                var treasuryScript = compileScript(options.rewards.treasury.recipients[treasuryIndex], options.network);
+                var secureNodesScript = compileScript(options.rewards.secureNodes.recipients[secureNodesIndex], options.network);
+                var superNodesScript = compileScript(options.rewards.superNodes.recipients[superNodesIndex], options.network);
+
+                // Add Transaction Data to Block
+                txBuilder.addOutput(poolAddressScript, poolReward);
+                if ((rpcData.height >= options.rewards.treasury.startHeight) && (rpcData.height <= options.rewards.treasury.endHeight)) {
+                    txBuilder.addOutput(treasuryScript, options.rewards.treasury.reward / 100);
+                }
+                if ((rpcData.height >= options.rewards.secureNodes.startHeight) && (rpcData.height <= options.rewards.secureNodes.endHeight)) {
+                    txBuilder.addOutput(secureNodesScript, options.rewards.secureNodes.reward / 100);
+                }
+                if ((rpcData.height >= options.rewards.superNodes.startHeight) && (rpcData.height <= options.rewards.superNodes.endHeight)) {
+                    txBuilder.addOutput(superNodesScript, options.rewards.superNodes.reward / 100);
+                }
+                break;
+
+            // Founder Rewards Configuration [2]
+            case "rewards2":
+
+                // Calculate Indices/Rewards
+                var treasuryIndex = parseInt(Math.floor(((rpcData.height - options.rewards.treasury.startHeight) / options.rewards.treasury.interval) % options.rewards.treasury.recipients.length))
+                var secondaryReward = (options.rewards.treasury.reward) / 100
+                var poolReward = Math.floor(reward * (1 - (secondaryReward + feePercent)));
+
+                // Generate Address Scripts
+                var treasuryScript = compileScript(options.rewards.treasury.recipients[treasuryIndex], options.network);
+
+                // Add Transaction Data to Block
+                txBuilder.addOutput(poolAddressScript, poolReward);
+                if ((rpcData.height >= options.rewards.treasury.startHeight) && (rpcData.height <= options.rewards.treasury.endHeight)) {
+                    txBuilder.addOutput(treasuryScript, options.rewards.treasury.reward / 100);
+                }
+                break;
+
+            // Founder Rewards Configuration [3]
+            case "rewards3":
+
+                // Calculate Indices/Rewards
+                var foundersIndex = parseInt(Math.floor(((rpcData.height - options.rewards.founders.startHeight) / options.rewards.founders.interval) % options.rewards.founders.recipients.length))
+                var secondaryReward = (options.rewards.founders.reward) / 100
+                var poolReward = Math.floor(reward * (1 - (secondaryReward + feePercent)));
+
+                // Generate Address Scripts
+                var foundersScript = compileScript(options.rewards.founders.recipients[foundersIndex], options.network);
+
+                // Add Transaction Data to Block
+                txBuilder.addOutput(poolAddressScript, poolReward);
+                if ((rpcData.height >= options.rewards.founders.startHeight) && (rpcData.height <= options.rewards.founders.endHeight)) {
+                    txBuilder.addOutput(foundersScript, options.rewards.founders.reward / 100);
+                }
+                break;
+
+            // No Founder Rewards
+            default:
+                var poolReward = reward * (1 - feePercent);
+                txBuilder.addOutput(poolAddressScript, poolReward);
+                break;
+        }
+
         // Handle Block Transactions
-        txBuilder.addOutput(poolAddressScript, reward * (1 - feePercent));
         for (var i = 0; i < options.recipients.length; i++) {
-            var recipientScript = util.addressToScript(options.network, options.recipients[i].address);
-            if (options.recipients[i].address.length === 40) {
-                recipientScript = util.miningKeyToScript(options.recipients[i].address);
-            }
+            var recipientScript = compileScript(options.recipients[i].address, options.network);
             txBuilder.addOutput(recipientScript, reward * options.recipients[i].percent);
         }
 
@@ -126,13 +205,50 @@ var Transactions = function() {
             scriptSigPart1
         ]);
 
+        // Handle Masternodes
+        if (rpcData.masternode && rpcData.superblock) {
+            if (rpcData.masternode.payee) {
+                var payeeReward = rpcData.masternode.amount;
+                var payeeScript = compileScript(rpcData.masternode.payee);
+                reward -= payeeReward;
+                rewardToPool -= payeeReward;
+                txOutputBuffers.push(Buffer.concat([
+                    util.packInt64LE(payeeReward),
+                    util.varIntBuffer(payeeScript.length),
+                    payeeScript,
+                ]));
+            }
+            else if (rpcData.superblock.length > 0) {
+                for (var i in rpcData.superblock) {
+                    var payeeReward = rpcData.superblock[i].amount;
+                    var payeeScript = compileScript(rpcData.superblock[i].payee);
+                    reward -= payeeReward;
+                    rewardToPool -= payeeReward;
+                    txOutputBuffers.push(Buffer.concat([
+                        util.packInt64LE(payeeReward),
+                        util.varIntBuffer(payeeScript.length),
+                        payeeScript,
+                    ]));
+                }
+            }
+        }
+
+        // Handle Other Given Payees
+        if (rpcData.payee) {
+            var payeeReward = rpcData.payee_amount || Math.ceil(reward / 5);
+            var payeeScript = compileScript(rpcData.payee);
+            txOutputBuffers.push(Buffer.concat([
+                util.packInt64LE(payeeReward),
+                util.varIntBuffer(payeeScript.length),
+                payeeScript,
+            ]));
+        }
+
         // Handle Block Transactions
         for (var i = 0; i < options.recipients.length; i++) {
             var recipientReward = Math.floor(options.recipients[i].percent * reward);
-            var recipientScript = util.addressToScript(options.network, options.recipients[i].address);
-            if (options.recipients[i].address.length === 40) {
-                recipientScript = util.miningKeyToScript(options.recipients[i].address);
-            }
+            var recipientScript = compileScript(options.recipients[i].address, options.network);
+            reward -= payeeReward;
             rewardToPool -= recipientReward;
             txOutputBuffers.push(Buffer.concat([
                 util.packInt64LE(recipientReward),
