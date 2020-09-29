@@ -76,7 +76,7 @@ var Transactions = function() {
         switch (options.rewards.rewardType) {
 
             // Founder Rewards Configuration [1]
-            case "rewards1":
+            case "equihash-rewards1":
 
                 // Calculate Indices/Rewards
                 var treasuryIndex = parseInt(Math.floor(((rpcData.height - options.rewards.treasury.startHeight) / options.rewards.treasury.interval) % options.rewards.treasury.recipients.length))
@@ -104,7 +104,7 @@ var Transactions = function() {
                 break;
 
             // Founder Rewards Configuration [2]
-            case "rewards2":
+            case "equihash-rewards2":
 
                 // Calculate Indices/Rewards
                 var treasuryIndex = parseInt(Math.floor(((rpcData.height - options.rewards.treasury.startHeight) / options.rewards.treasury.interval) % options.rewards.treasury.recipients.length))
@@ -122,7 +122,7 @@ var Transactions = function() {
                 break;
 
             // Founder Rewards Configuration [3]
-            case "rewards3":
+            case "equihash-rewards3":
 
                 // Calculate Indices/Rewards
                 var foundersIndex = parseInt(Math.floor(((rpcData.height - options.rewards.founders.startHeight) / options.rewards.founders.interval) % options.rewards.founders.recipients.length))
@@ -237,11 +237,21 @@ var Transactions = function() {
         if (rpcData.payee) {
             var payeeReward = rpcData.payee_amount || Math.ceil(reward / 5);
             var payeeScript = compileScript(rpcData.payee);
+            reward -= payeeReward;
+            rewardToPool -= payeeReward;
             txOutputBuffers.push(Buffer.concat([
                 util.packInt64LE(payeeReward),
                 util.varIntBuffer(payeeScript.length),
                 payeeScript,
             ]));
+        }
+
+        // Handle Pool/Secondary Transactions
+        switch (options.rewards.rewardType) {
+          
+            // No Founder Rewards
+            default:
+                break;
         }
 
         // Handle Block Transactions
