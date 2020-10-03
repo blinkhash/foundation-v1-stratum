@@ -56,12 +56,12 @@ var Merkle = function(data) {
                     var Ld = [];
                     var r = util.range(StartL, Ll, 2);
                     r.forEach(function(i) {
-                        Ld.push(concathash(L[i], L[i + 1]));
+                        Ld.push(concatHash(L[i], L[i + 1]));
                     });
                     L = PreL.concat(Ld);
                     Ll = L.length;
                 }
-            }          
+            }
         }
         return steps;
     }
