@@ -468,12 +468,18 @@ var Pool = function(options, authorizeFn) {
             emitLog('Block template polling has been disabled');
             return;
         }
+        var pollingFlag = false;
         var pollingInterval = options.blockRefreshInterval;
         blockPollingIntervalId = setInterval(function() {
-            getBlockTemplate(function(error, result, foundNewBlock) {
-                if (foundNewBlock)
-                    emitLog('Block notification via RPC polling');
-            });
+            if (pollingFlag === false) {
+                pollingFlag = true;
+                getBlockTemplate(function(error, result, foundNewBlock) {
+                    if (foundNewBlock) {
+                        emitLog('Block notification via RPC polling');
+                    }
+                    pollingFlag = false;
+                });      
+            }
         }, pollingInterval);
     }
 
