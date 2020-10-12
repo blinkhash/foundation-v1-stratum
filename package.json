@@ -36,9 +36,10 @@
   "dependencies": {
     "async": "1.5.2",
     "base58-native": "*",
+    "bchaddrjs": "^0.4.9",
     "bignum": "0.13.1",
-    "equihash": "git://github.com/blinkhash/blinkhash-equihash.git",
     "blinkhash-utxo-lib": "git://github.com/blinkhash/blinkhash-utxo-lib.git",
+    "equihash": "git://github.com/blinkhash/blinkhash-equihash.git",
     "multi-hashing": "git://github.com/blinkhash/blinkhash-multi-hashing.git",
     "promise": "^8.1.0"
   },

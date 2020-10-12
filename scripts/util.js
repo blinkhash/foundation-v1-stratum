@@ -6,6 +6,7 @@
 
 // Import Required Modules
 var base58 = require('base58-native');
+var bchaddr = require('bchaddrjs');
 var bignum = require('bignum');
 var bitcoin = require('blinkhash-utxo-lib');
 var crypto = require('crypto');
@@ -26,7 +27,10 @@ exports.addressFromEx = function(exAddress, ripdm160Key) {
 
 // Convert Address to Script
 exports.addressToScript = function(network, addr) {
-    if (typeof network !== 'undefined' && network !== null) {
+    if (network.network === 'bch' && bchaddr.isCashAddress(addr)) {
+        addr = bchaddr.toLegacyAddress(addr)
+    }
+    if (typeof network !== 'undefined' && network != null) {
         return bitcoin.address.toOutputScript(addr, network);
     }
     else {

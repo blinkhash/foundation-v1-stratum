@@ -370,7 +370,7 @@ var StratumClient = function(options) {
             _this.socket.destroy();
             return;
         }
-        if (pendingDifficulty !== null) {
+        if (pendingDifficulty != null) {
             var result = _this.sendDifficulty(pendingDifficulty);
             pendingDifficulty = null;
             if (result) {

@@ -478,7 +478,7 @@ var Pool = function(options, authorizeFn) {
                         emitLog('Block notification via RPC polling');
                     }
                     pollingFlag = false;
-                });      
+                });
             }
         }, pollingInterval);
     }
