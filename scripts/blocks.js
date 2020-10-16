@@ -44,6 +44,20 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
         return [null].concat(txHashes);
     }
 
+    // Function to get Masternode Vote Data
+    function getVoteData() {
+        if (!rpcData.masternode_payments) {
+            return Buffer.from([]);
+        }
+        return Buffer.concat(
+            [util.varIntBuffer(rpcData.votes.length)].concat(
+                rpcData.votes.map(function (vt) {
+                    return Buffer.from(vt, 'hex');
+                })
+            )
+        );
+    }
+
     // Create Generation Transaction
     function createGeneration(rpcData, extraNoncePlaceholder, options) {
         var transactions = new Transactions();
@@ -186,6 +200,7 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
                     util.varIntBuffer(this.rpcData.transactions.length + 1),
                     secondary,
                     this.transactions,
+                    getVoteData(),
                     Buffer.from([])
                 ]);
                 return buffer;

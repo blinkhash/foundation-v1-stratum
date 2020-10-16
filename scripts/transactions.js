@@ -167,10 +167,25 @@ var Transactions = function() {
         // Establish Transactions Variables [1]
         var txLockTime = 0;
         var txInSequence = 0;
+        var txType = 0;
+        var txExtraPayload;
         var txInPrevOutHash = "";
         var txInPrevOutIndex = Math.pow(2, 32) - 1;
         var txOutputBuffers = [];
         var txVersion = options.coin.txMessages === true ? 2 : 1;
+        if (rpcData.coinbasetxn && rpcData.coinbasetxn.data) {
+            txVersion = parseInt(util.reverseHex(rpcData.coinbasetxn.data.slice(0, 8)), 16);
+        }
+
+        // Support Coinbase v3 Block Template
+        if (rpcData.coinbase_payload && rpcData.coinbase_payload.length > 0) {
+            txVersion = 3;
+            txType = 5;
+            txExtraPayload = new Buffer(rpcData.coinbase_payload, 'hex');
+        }
+        if (!(rpcData.coinbasetxn && rpcData.coinbasetxn.data)) {
+            txVersion = txVersion + (txType << 16);
+        }
 
         // Establish Transactions Variables [2]
         var reward = rpcData.coinbasevalue;
@@ -206,10 +221,10 @@ var Transactions = function() {
         ]);
 
         // Handle Masternodes
-        if (rpcData.masternode && rpcData.superblock) {
+        if (rpcData.masternode) {
             if (rpcData.masternode.payee) {
                 var payeeReward = rpcData.masternode.amount;
-                var payeeScript = compileScript(rpcData.masternode.payee);
+                var payeeScript = compileScript(rpcData.masternode.payee, options.network);
                 reward -= payeeReward;
                 rewardToPool -= payeeReward;
                 txOutputBuffers.push(Buffer.concat([
@@ -218,10 +233,16 @@ var Transactions = function() {
                     payeeScript,
                 ]));
             }
-            else if (rpcData.superblock.length > 0) {
-                for (var i in rpcData.superblock) {
-                    var payeeReward = rpcData.superblock[i].amount;
-                    var payeeScript = compileScript(rpcData.superblock[i].payee);
+            else if (rpcData.masternode.length > 0) {
+                for (var i in rpcData.masternode) {
+                    var payeeReward = rpcData.masternode[i].amount;
+                    var payeeScript;
+                    if (rpcData.masternode[i].script) {
+                        payeeScript = Buffer.from(rpcData.masternode[i].script, 'hex')
+                    }
+                    else {
+                        compileScript(rpcData.masternode[i].payee, options.network);
+                    }
                     reward -= payeeReward;
                     rewardToPool -= payeeReward;
                     txOutputBuffers.push(Buffer.concat([
@@ -233,10 +254,31 @@ var Transactions = function() {
             }
         }
 
+        // Handle Superblocks
+        if (rpcData.superblock && rpcData.superblock.length > 0) {
+            for (var i in rpcData.superblock) {
+                var payeeReward = rpcData.superblock[i].amount;
+                var payeeScript;
+                if (rpcData.superblock[i].script) {
+                    payeeScript = Buffer.from(rpcData.superblock[i].script, 'hex')
+                }
+                else {
+                    compileScript(rpcData.superblock[i].payee, options.network);
+                }
+                reward -= payeeReward;
+                rewardToPool -= payeeReward;
+                txOutputBuffers.push(Buffer.concat([
+                    util.packInt64LE(payeeReward),
+                    util.varIntBuffer(payeeScript.length),
+                    payeeScript
+                ]));
+            }
+        }
+
         // Handle Other Given Payees
         if (rpcData.payee) {
             var payeeReward = rpcData.payee_amount || Math.ceil(reward / 5);
-            var payeeScript = compileScript(rpcData.payee);
+            var payeeScript = compileScript(rpcData.payee, options.network);
             reward -= payeeReward;
             rewardToPool -= payeeReward;
             txOutputBuffers.push(Buffer.concat([
@@ -248,7 +290,7 @@ var Transactions = function() {
 
         // Handle Pool/Secondary Transactions
         switch (options.rewards.rewardType) {
-          
+
             // No Founder Rewards
             default:
                 break;
@@ -299,6 +341,15 @@ var Transactions = function() {
             txComment
         ]);
 
+        // Check for Extra Transaction Payload
+        if (txExtraPayload !== undefined) {
+            var p2 = Buffer.concat([
+                p2,
+                util.varIntBuffer(txExtraPayload.length),
+                txExtraPayload
+            ]);
+        }
+        
         // Return Generated Transaction
         return [[p1, p2], null];
     }
