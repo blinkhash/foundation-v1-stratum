@@ -110,6 +110,10 @@ var Manager = function(options) {
     // Determine Block Hash Function
     function blockHash() {
         switch (options.coin.algorithm) {
+            case "x11":
+                return function () {
+                    return util.reverseBuffer(hashDigest.apply(this, arguments));
+                };
             default:
                 return function (d) {
                     return util.reverseBuffer(util.sha256d(d));
