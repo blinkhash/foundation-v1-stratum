@@ -142,7 +142,7 @@ var StratumClient = function(options) {
 
         // Manage Stratum Error Functionality
         socket.on('error', function(e) {
-            if (err.code !== 'ECONNRESET')
+            if (e.code !== 'ECONNRESET')
                 _this.emit('socketError', err);
         });
     }
