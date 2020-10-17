@@ -29,7 +29,7 @@ var Transactions = function() {
         var txBuilder = new bitcoin.TransactionBuilder(network)
 
         // Establish Transactions Variables [2]
-        var reward = rpcData.miner * 1e8;
+        var reward = rpcData[options.coin.rewardType];
         var rewardToPool = reward;
         var poolIdentifier = options.identifier || "https://github.com/blinkhash/blinkhash-server"
         var poolAddressScript = util.addressToScript(options.network, options.poolAddress)
@@ -188,7 +188,7 @@ var Transactions = function() {
         }
 
         // Establish Transactions Variables [2]
-        var reward = rpcData.coinbasevalue;
+        var reward = rpcData[options.coin.rewardType];
         var rewardToPool = reward;
         var poolIdentifier = options.identifier || "https://github.com/blinkhash/blinkhash-server"
         var poolAddressScript = util.addressToScript(options.network, options.poolAddress)
@@ -349,7 +349,7 @@ var Transactions = function() {
                 txExtraPayload
             ]);
         }
-        
+
         // Return Generated Transaction
         return [[p1, p2], null];
     }
