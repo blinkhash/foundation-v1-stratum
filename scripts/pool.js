@@ -168,7 +168,12 @@ var Pool = function(options, authorizeFn) {
             }
 
             // Check if Mainnet/Testnet is Active
-            options.testnet = (rpcResults.getblockchaininfo.chain === 'test') ? true : false;
+            if (options.coin.hasGetInfo) {
+                options.testnet = (rpcResults.getinfo.testnet === true) ? true : false;
+            }
+            else {
+                options.testnet = (rpcResults.getblockchaininfo.chain === 'test') ? true : false;
+            }
             options.network = (options.testnet ? options.coin.testnet : options.coin.mainnet);
 
             // Establish Coin Protocol Version
