@@ -36,52 +36,6 @@ var algorithms = {
         }
     },
 
-    // Scrypt-OG Algorithm
-    'scrypt-og': {
-        multiplier: Math.pow(2, 16),
-        hash: function(coinConfig){
-            var nValue = coinConfig.nValue || 64;
-            var rValue = coinConfig.rValue || 1;
-            return function(data){
-                return multiHashing.scrypt(data,nValue,rValue);
-            }
-        }
-    },
-
-    // Scrypt-Jane Algorithm
-    'scrypt-jane': {
-        multiplier: Math.pow(2, 16),
-        hash: function(coinConfig){
-            var nTimestamp = coinConfig.chainStartTime || 1367991200;
-            var nMin = coinConfig.nMin || 4;
-            var nMax = coinConfig.nMax || 30;
-            return function(data, nTime){
-                return multiHashing.scryptjane(data, nTime, nTimestamp, nMin, nMax);
-            }
-        }
-    },
-
-    // Scrypt-N Algorithm
-    'scrypt-n': {
-        multiplier: Math.pow(2, 16),
-        hash: function(coinConfig){
-            var timeTable = coinConfig.timeTable || {
-                "2048": 1389306217, "4096": 1456415081, "8192": 1506746729, "16384": 1557078377, "32768": 1657741673,
-                "65536": 1859068265, "131072": 2060394857, "262144": 1722307603, "524288": 1769642992
-            };
-            var nFactor = (function(){
-                var n = Object.keys(timeTable).sort().reverse().filter(function(nKey){
-                    return Date.now() / 1000 > timeTable[nKey];
-                })[0];
-                var nInt = parseInt(n);
-                return Math.log(nInt) / Math.log(2);
-            })();
-            return function(data) {
-                return multiHashing.scryptn(data, nFactor);
-            }
-        }
-    },
-
     // Sha-1 Algorithm
     'sha1': {
         hash: function(){
