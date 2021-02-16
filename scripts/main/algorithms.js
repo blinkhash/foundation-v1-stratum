@@ -9,9 +9,6 @@ var ev = require('equihash');
 var multiHashing = require('multi-hashing');
 var util = require('./util.js');
 
-// Global Difficulty
-var diff1 = global.diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
-
 // Algorithms Main Function
 var algorithms = {
 

@@ -10,6 +10,9 @@ var crypto = require('crypto');
 var bignum = require('bignum');
 var util = require('./util.js');
 
+// Max Difficulty
+var diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
+
 // Import BlockTemplate Module
 var BlockTemplate = require('./blocks.js');
 

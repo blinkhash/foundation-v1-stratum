@@ -12,6 +12,9 @@ var util = require('./util.js');
 var Merkle = require('./merkle.js');
 var Transactions = require('./transactions.js');
 
+// Max Difficulty
+var diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
+
 // BlockTemplate Main Function
 var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
 
@@ -27,14 +30,14 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     this.difficulty = parseFloat((diff1 / this.target.toNumber()).toFixed(9));
 
     // Function to get Merkle Hashes
-    function getMerkleHashes(steps) {
+    this.getMerkleHashes = function(steps) {
         return steps.map(function(step) {
             return step.toString('hex');
         });
     }
 
     // Function to get Transaction Buffers
-    function getTransactionBuffers(txs) {
+    this.getTransactionBuffers = function(txs) {
         var txHashes = txs.map(function(tx) {
             if (tx.txid !== undefined) {
                 return util.uint256BufferFromHash(tx.txid);
@@ -45,7 +48,7 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     }
 
     // Function to get Masternode Vote Data
-    function getVoteData() {
+    this.getVoteData = function() {
         if (!rpcData.masternode_payments) {
             return Buffer.from([]);
         }
@@ -59,7 +62,7 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     }
 
     // Create Generation Transaction
-    function createGeneration(rpcData, extraNoncePlaceholder, options) {
+    this.createGeneration = function(rpcData, extraNoncePlaceholder, options) {
         var transactions = new Transactions();
         switch (options.coin.algorithm) {
 
@@ -74,7 +77,7 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     }
 
     // Create Merkle Data
-    function createMerkle(rpcData, genTransaction, options) {
+    this.createMerkle = function(rpcData, genTransaction, options) {
         switch (options.coin.algorithm) {
 
             // Equihash Merkle Creation
@@ -83,13 +86,13 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
 
             // Default Merkle Creation
             default:
-                return new Merkle(getTransactionBuffers(rpcData.transactions));
+                return new Merkle(this.getTransactionBuffers(rpcData.transactions));
         }
     }
 
     // Establish Generation/Merkle
-    this.generation = createGeneration(this.rpcData, extraNoncePlaceholder, options);
-    this.merkle = createMerkle(this.rpcData, this.generation, options);
+    this.generation = this.createGeneration(this.rpcData, extraNoncePlaceholder, options);
+    this.merkle = this.createMerkle(this.rpcData, this.generation, options);
 
     // Structure Block Transaction Data
     this.transactions = Buffer.concat(rpcData.transactions.map(function(tx) {
@@ -235,7 +238,7 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
                         this.prevHashReversed,
                         this.generation[0][0].toString('hex'),
                         this.generation[0][1].toString('hex'),
-                        getMerkleHashes(this.merkle.steps),
+                        this.getMerkleHashes(this.merkle.steps),
                         util.packInt32BE(this.rpcData.version).toString('hex'),
                         this.rpcData.bits,
                         util.packUInt32BE(this.rpcData.curtime).toString('hex'),

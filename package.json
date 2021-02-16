@@ -21,7 +21,7 @@
     "name": "Matthew Little"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "contributors": [
     {
