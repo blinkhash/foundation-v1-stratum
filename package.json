@@ -20,6 +20,9 @@
   "author": {
     "name": "Matthew Little"
   },
+  "scripts": {
+    "test": "jest"
+  },
   "contributors": [
     {
       "name": "vekexasia"

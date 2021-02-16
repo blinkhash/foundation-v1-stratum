@@ -16,7 +16,7 @@ var diff1 = global.diff1 = 0x00000000ffff000000000000000000000000000000000000000
 var algorithms = {
 
     // Sha256 Algorithm
-    'sha256': {
+    'sha256d': {
         hash: function(){
             return function(){
                 return util.sha256d.apply(this, arguments);
@@ -32,15 +32,6 @@ var algorithms = {
             var rValue = coinConfig.rValue || 1;
             return function(data){
                 return multiHashing.scrypt(data,nValue,rValue);
-            }
-        }
-    },
-
-    // Sha-1 Algorithm
-    'sha1': {
-        hash: function(){
-            return function(){
-                return multiHashing.sha1.apply(this, arguments);
             }
         }
     },
@@ -181,24 +172,6 @@ var algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.fugue.apply(this, arguments);
-            }
-        }
-    },
-
-    // Shavite-3 Algorithm
-    'shavite3': {
-        hash: function(){
-            return function(){
-                return multiHashing.shavite3.apply(this, arguments);
-            }
-        }
-    },
-
-    // Hefty-1 Algorithm
-    'hefty1': {
-        hash: function(){
-            return function(){
-                return multiHashing.hefty1.apply(this, arguments);
             }
         }
     },
