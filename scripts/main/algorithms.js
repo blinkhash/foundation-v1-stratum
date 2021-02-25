@@ -195,18 +195,15 @@ var algorithms = {
                     personalization: 'ZcashPoW'
                 }
             }
-            var N = parameters.N || 200;
-            var K = parameters.K || 9;
-            var personalization = parameters.personalization || 'ZcashPoW';
             return function() {
                 return ev.verify.apply(
                     this,
                     [
                         arguments[0],
                         arguments[1],
-                        personalization,
-                        N,
-                        K
+                        parameters.personalization,
+                        parameters.N,
+                        parameters.K,
                     ]
                 )
             }

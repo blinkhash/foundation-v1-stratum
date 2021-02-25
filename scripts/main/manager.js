@@ -10,6 +10,9 @@ var crypto = require('crypto');
 var bignum = require('bignum');
 var util = require('./util.js');
 
+// Import Required Modules
+var Algorithms = require('./algorithms.js');
+
 // Max Difficulty
 var diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
 
@@ -100,8 +103,8 @@ var Manager = function(options) {
     // Establish Private Manager Variables
     var _this = this;
     var jobCounter = new JobCounter();
-    var shareMultiplier = algorithms[options.coin.algorithm].multiplier;
-    var hashDigest = algorithms[options.coin.algorithm].hash(options.coin);
+    var shareMultiplier = Algorithms[options.coin.algorithm].multiplier;
+    var hashDigest = Algorithms[options.coin.algorithm].hash(options.coin);
 
     // Establish Public Manager Variables
     this.currentJob;
@@ -133,8 +136,8 @@ var Manager = function(options) {
     }
 
     // Establish Main Hash Functions
-    var blockHasher = blockHash();
-    var coinbaseHasher = coinbaseHash();
+    this.blockHasher = blockHash();
+    this.coinbaseHasher = coinbaseHash();
 
     // Update Current Managed Job
     function updateCurrentJob(rpcData) {
@@ -313,7 +316,7 @@ var Manager = function(options) {
                 var extraNonce1Buffer = Buffer.from(extraNonce1, 'hex');
                 var extraNonce2Buffer = Buffer.from(extraNonce2, 'hex');
                 var coinbaseBuffer = job.serializeCoinbase(extraNonce1Buffer, extraNonce2Buffer, options);
-                var coinbaseHash = coinbaseHasher(coinbaseBuffer);
+                var coinbaseHash = this.coinbaseHasher(coinbaseBuffer);
                 var merkleRoot = util.reverseBuffer(job.merkle.withFirst(coinbaseHash)).toString('hex');
                 var headerBuffer = job.serializeHeader(merkleRoot, nTime, nonce, options);
                 var headerHash = hashDigest(headerBuffer, nTimeInt);
@@ -331,7 +334,7 @@ var Manager = function(options) {
                 // Check if Share is Valid Block Candidate
                 if (job.target.ge(headerBigNum)) {
                     blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer, options).toString('hex');
-                    blockHash = blockHasher(headerBuffer, nTime).toString('hex');
+                    blockHash = this.blockHasher(headerBuffer, nTime).toString('hex');
                 }
                 else {
                     if (options.emitInvalidBlockHashes) {

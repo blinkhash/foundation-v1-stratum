@@ -26,7 +26,7 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     this.jobId = jobId;
 
     // Calculate Block Target/Difficulty
-    this.target = rpcData.target ? bignum(rpcData.target, 16) : util.bignumFromBitsHex(rpcData.bits);
+    this.target = this.rpcData.target ? bignum(this.rpcData.target, 16) : util.bignumFromBitsHex(this.rpcData.bits);
     this.difficulty = parseFloat((diff1 / this.target.toNumber()).toFixed(9));
 
     // Function to get Merkle Hashes
@@ -49,12 +49,12 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
 
     // Function to get Masternode Vote Data
     this.getVoteData = function() {
-        if (!rpcData.masternode_payments) {
+        if (!this.rpcData.masternode_payments) {
             return Buffer.from([]);
         }
         return Buffer.concat(
-            [util.varIntBuffer(rpcData.votes.length)].concat(
-                rpcData.votes.map(function (vt) {
+            [util.varIntBuffer(this.rpcData.votes.length)].concat(
+                this.rpcData.votes.map(function (vt) {
                     return Buffer.from(vt, 'hex');
                 })
             )
@@ -95,27 +95,17 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     this.merkle = this.createMerkle(this.rpcData, this.generation, options);
 
     // Structure Block Transaction Data
-    this.transactions = Buffer.concat(rpcData.transactions.map(function(tx) {
+    this.transactions = Buffer.concat(this.rpcData.transactions.map(function(tx) {
         return Buffer.from(tx.data, 'hex');
     }));
 
     // Structure Block Historical Hashes
-    this.prevHashReversed = util.reverseByteOrder(Buffer.from(rpcData.previousblockhash, 'hex')).toString('hex');
-    if (rpcData.finalsaplingroothash) {
-        this.hashReserved = util.reverseBuffer(new Buffer(rpcData.finalsaplingroothash, 'hex')).toString('hex');
+    this.prevHashReversed = util.reverseByteOrder(Buffer.from(this.rpcData.previousblockhash, 'hex')).toString('hex');
+    if (this.rpcData.finalsaplingroothash) {
+        this.hashReserved = util.reverseBuffer(new Buffer(this.rpcData.finalsaplingroothash, 'hex')).toString('hex');
     } else {
         this.hashReserved = '0000000000000000000000000000000000000000000000000000000000000000';
     }
-
-    // Push Submissions to Array
-    this.registerSubmit = function(header) {
-        var submission = header.join("").toLowerCase();
-        if (submits.indexOf(submission) === -1) {
-            submits.push(submission);
-            return true;
-        }
-        return false;
-    };
 
     // Serialize Block Coinbase
     this.serializeCoinbase = function(extraNonce1, extraNonce2, options) {
@@ -203,11 +193,21 @@ var BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
                     util.varIntBuffer(this.rpcData.transactions.length + 1),
                     secondary,
                     this.transactions,
-                    getVoteData(),
+                    this.getVoteData(),
                     Buffer.from([])
                 ]);
                 return buffer;
         }
+    };
+
+    // Push Submissions to Array
+    this.registerSubmit = function(header) {
+        var submission = header.join("").toLowerCase();
+        if (submits.indexOf(submission) === -1) {
+            submits.push(submission);
+            return true;
+        }
+        return false;
     };
 
     // Get Current Job Parameters
