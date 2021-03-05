@@ -5,21 +5,21 @@
  */
 
 // Import Required Modules
-var net = require('net');
-var crypto = require('crypto');
-var events = require('events');
-var util = require('./util.js');
+let net = require('net');
+let crypto = require('crypto');
+let events = require('events');
+let util = require('./util.js');
 
 // Generate String Buffer from Parameter Length
-var fixedLenStringBuffer = function(s, len) {
-    var buff = Buffer.alloc(len);
+let fixedLenStringBuffer = function(s, len) {
+    let buff = Buffer.alloc(len);
     buff.fill(0);
     buff.write(s);
     return buff;
 };
 
 // Generate Command String Buffer
-var commandStringBuffer = function (s) {
+let commandStringBuffer = function (s) {
     return fixedLenStringBuffer(s, 12);
 };
 
@@ -30,13 +30,13 @@ var commandStringBuffer = function (s) {
    - callback returns 1) data buffer and 2) lopped/over-read data */
 
 // Read Bytes Functionality
-var readFlowingBytes = function (stream, amount, preRead, callback) {
-    var buff = preRead ? preRead : Buffer.from([]);
-    var readData = function (data) {
+let readFlowingBytes = function (stream, amount, preRead, callback) {
+    let buff = preRead ? preRead : Buffer.from([]);
+    let readData = function (data) {
         buff = Buffer.concat([buff, data]);
         if (buff.length >= amount) {
-            var returnData = buff.slice(0, amount);
-            var lopped = buff.length > amount ? buff.slice(amount) : null;
+            let returnData = buff.slice(0, amount);
+            let lopped = buff.length > amount ? buff.slice(amount) : null;
             callback(returnData, lopped);
         }
         else
@@ -46,32 +46,32 @@ var readFlowingBytes = function (stream, amount, preRead, callback) {
 };
 
 // Peer Main Function
-var Peer = function(options) {
+let Peer = function(options) {
 
     // Establish Peer Variables
-    var _this = this;
-    var client;
-    var magic = Buffer.from(options.testnet ? options.coin.peerMagicTestnet : options.coin.peerMagic, 'hex');
-    var magicInt = magic.readUInt32LE(0);
-    var verack = false;
-    var validConnectionConfig = true;
+    let _this = this;
+    let client;
+    let magic = Buffer.from(options.testnet ? options.coin.peerMagicTestnet : options.coin.peerMagic, 'hex');
+    let magicInt = magic.readUInt32LE(0);
+    let verack = false;
+    let validConnectionConfig = true;
 
     // Bitcoin Inventory Codes
-    var invCodes = {
+    let invCodes = {
         error: 0,
         tx: 1,
         block: 2
     };
 
     // Establish Network Variables
-    var networkServices = Buffer.from('0100000000000000', 'hex'); //NODE_NETWORK services (value 1 packed as uint64)
-    var emptyNetAddress = Buffer.from('010000000000000000000000000000000000ffff000000000000', 'hex');
-    var userAgent = util.varStringBuffer('/node-stratum/');
-    var blockStartHeight = Buffer.from('00000000', 'hex'); //block start_height, can be empty
-    var relayTransactions = options.p2p.disableTransactions === true ? Buffer.from([false]) : Buffer.from([]);
+    let networkServices = Buffer.from('0100000000000000', 'hex'); //NODE_NETWORK services (value 1 packed as uint64)
+    let emptyNetAddress = Buffer.from('010000000000000000000000000000000000ffff000000000000', 'hex');
+    let userAgent = util.varStringBuffer('/node-stratum/');
+    let blockStartHeight = Buffer.from('00000000', 'hex'); //block start_height, can be empty
+    let relayTransactions = options.p2p.disableTransactions === true ? Buffer.from([false]) : Buffer.from([]);
 
     // Establish Peer Commands
-    var commands = {
+    let commands = {
         version: commandStringBuffer('version'),
         inv: commandStringBuffer('inv'),
         verack: commandStringBuffer('verack'),
@@ -121,9 +121,9 @@ var Peer = function(options) {
 
     // Establish Peer Message Parser
     function setupMessageParser(client) {
-        var beginReadingMessage = function (preRead) {
+        let beginReadingMessage = function (preRead) {
             readFlowingBytes(client, 24, preRead, function (header, lopped) {
-                var msgMagic = header.readUInt32LE(0);
+                let msgMagic = header.readUInt32LE(0);
                 if (msgMagic !== magicInt) {
                     _this.emit('error', 'bad magic number from peer');
                     while (header.readUInt32LE(0) !== magicInt && header.length >= 4) {
@@ -137,9 +137,9 @@ var Peer = function(options) {
                     }
                     return;
                 }
-                var msgCommand = header.slice(4, 16).toString();
-                var msgLength = header.readUInt32LE(16);
-                var msgChecksum = header.readUInt32LE(20);
+                let msgCommand = header.slice(4, 16).toString();
+                let msgLength = header.readUInt32LE(16);
+                let msgChecksum = header.readUInt32LE(20);
                 readFlowingBytes(client, msgLength, lopped, function (payload, lopped) {
                     if (util.sha256d(payload).readUInt32LE(0) !== msgChecksum) {
                         _this.emit('error', 'bad payload - failed checksum');
@@ -156,7 +156,7 @@ var Peer = function(options) {
 
     // Handle Peer Inventory
     function handleInventory(payload) {
-        var count = payload.readUInt8(0);
+        let count = payload.readUInt8(0);
         payload = payload.slice(1);
         if (count >= 0xfd)
         {
@@ -168,10 +168,10 @@ var Peer = function(options) {
                 case invCodes.error:
                     break;
                 case invCodes.tx:
-                    var tx = payload.slice(4, 36).toString('hex');
+                    let tx = payload.slice(4, 36).toString('hex');
                     break;
                 case invCodes.block:
-                    var block = payload.slice(4, 36).toString('hex');
+                    let block = payload.slice(4, 36).toString('hex');
                     _this.emit('blockFound', block);
                     break;
             }
@@ -203,7 +203,7 @@ var Peer = function(options) {
 
     // Broadcast/Send Peer Messages
     function sendMessage(command, payload) {
-        var message = Buffer.concat([
+        let message = Buffer.concat([
             magic,
             command,
             util.packUInt32LE(payload.length),
@@ -216,7 +216,7 @@ var Peer = function(options) {
 
     // Broadcast/Send Peer Version
     function sendVersion() {
-        var payload = Buffer.concat([
+        let payload = Buffer.concat([
             util.packUInt32LE(options.protocolVersion),
             networkServices,
             util.packInt64LE(Date.now() / 1000 | 0),
@@ -231,7 +231,7 @@ var Peer = function(options) {
     }
 
     // Initialize Peer Connection
-    var connection = initializePeer();
+    let connection = initializePeer();
 };
 
 // Export Peer

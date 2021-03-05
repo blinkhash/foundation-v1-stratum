@@ -5,12 +5,11 @@
  */
 
 // Import Required Modules
-var ev = require('equihash');
-var multiHashing = require('multi-hashing');
-var util = require('./util.js');
+let multiHashing = require('multi-hashing');
+let util = require('./util.js');
 
 // Algorithms Main Function
-var algorithms = {
+let algorithms = {
 
     // Sha256 Algorithm
     'sha256d': {
@@ -25,8 +24,8 @@ var algorithms = {
     'scrypt': {
         multiplier: Math.pow(2, 16),
         hash: function(coinConfig){
-            var nValue = coinConfig.nValue || 1024;
-            var rValue = coinConfig.rValue || 1;
+            let nValue = coinConfig.nValue || 1024;
+            let rValue = coinConfig.rValue || 1;
             return function(data){
                 return multiHashing.scrypt(data,nValue,rValue);
             }
@@ -181,38 +180,10 @@ var algorithms = {
             }
         }
     },
-
-    // Equihash Algorithm
-    'equihash': {
-        multiplier: 1,
-        diff: parseInt('0x0007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'),
-        hash: function(coinConfig) {
-            var parameters = coinConfig.parameters
-            if (!parameters) {
-                parameters = {
-                    N: 200,
-                    K: 9,
-                    personalization: 'ZcashPoW'
-                }
-            }
-            return function() {
-                return ev.verify.apply(
-                    this,
-                    [
-                        arguments[0],
-                        arguments[1],
-                        parameters.personalization,
-                        parameters.N,
-                        parameters.K,
-                    ]
-                )
-            }
-        }
-    }
 };
 
 // Set Default Multiplier
-for (var algo in algorithms){
+for (let algo in algorithms){
     if (!algorithms[algo].multiplier) {
         algorithms[algo].multiplier = 1;
     }

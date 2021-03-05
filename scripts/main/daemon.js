@@ -5,10 +5,10 @@
  */
 
 // Import Required Modules
-var http = require('http');
-var cp = require('child_process');
-var events = require('events');
-var async = require('async');
+let http = require('http');
+let cp = require('child_process');
+let events = require('events');
+let async = require('async');
 
 /**
  * The Daemon interface interacts with the coin Daemon by using the RPC interface.
@@ -20,10 +20,10 @@ var async = require('async');
 **/
 
 // DaemonInterface Main Function
-var DaemonInterface = function(daemons, logger) {
+let DaemonInterface = function(daemons, logger) {
 
     // Establish Private Daemon Variables
-    var _this = this;
+    let _this = this;
     logger = logger || function(severity, message) {
         console.log(severity + ': ' + message);
     };
@@ -31,7 +31,7 @@ var DaemonInterface = function(daemons, logger) {
     // Check if All Daemons are Online
     function isOnline(callback) {
         cmd('getpeerinfo', [], function(results) {
-            var allOnline = results.every(function(result) {
+            let allOnline = results.every(function(result) {
                 return !results.error;
             });
             callback(allOnline);
@@ -43,14 +43,14 @@ var DaemonInterface = function(daemons, logger) {
 
     // Index Daemons from Parameter
     function indexDaemons() {
-        for (var i = 0; i < daemons.length; i++) {
+        for (let i = 0; i < daemons.length; i++) {
             daemons[i]['index'] = i;
         }
         return daemons;
     }
 
     // Establish Instances
-    var instances = indexDaemons();
+    let instances = indexDaemons();
 
     // Initialize Daemons
     function initDaemons() {
@@ -65,7 +65,7 @@ var DaemonInterface = function(daemons, logger) {
     function performHttpRequest(instance, jsonData, callback) {
 
         // Establish HTTP Options
-        var options = {
+        let options = {
             hostname: (typeof(instance.host) === 'undefined' ? '127.0.0.1' : instance.host),
             port: instance.port,
             method: 'POST',
@@ -76,8 +76,8 @@ var DaemonInterface = function(daemons, logger) {
         };
 
         // Attempt to Parse JSON from Response
-        var parseJson = function(res, data) {
-            var dataJson;
+        let parseJson = function(res, data) {
+            let dataJson;
             if ((res.statusCode === 401) || (res.statusCode === 403)) {
                 logger('error', 'Unauthorized RPC access - invalid RPC username or password');
                 return;
@@ -102,8 +102,8 @@ var DaemonInterface = function(daemons, logger) {
         };
 
         // Establish HTTP Request
-        var req = http.request(options, function(res) {
-            var data = '';
+        let req = http.request(options, function(res) {
+            let data = '';
             res.setEncoding('utf8');
             res.on('data', function(chunk) {
                 data += chunk;
@@ -127,15 +127,15 @@ var DaemonInterface = function(daemons, logger) {
 
     // Batch RPC Commands
     function batchCmd(cmdArray, callback) {
-        var requestJson = [];
-        for (var i = 0; i < cmdArray.length; i++) {
+        let requestJson = [];
+        for (let i = 0; i < cmdArray.length; i++) {
             requestJson.push({
                 method: cmdArray[i][0],
                 params: cmdArray[i][1],
                 id: Date.now() + Math.floor(Math.random() * 10) + i
             });
         }
-        var serializedRequest = JSON.stringify(requestJson);
+        let serializedRequest = JSON.stringify(requestJson);
         performHttpRequest(instances[0], serializedRequest, function(error, result) {
             callback(error, result);
         });
@@ -143,10 +143,10 @@ var DaemonInterface = function(daemons, logger) {
 
     // Single RPC Command
     function cmd(method, params, callback, streamResults, returnRawData) {
-        var results = [];
+        let results = [];
         async.each(instances, function(instance, eachCallback) {
-            var itemFinished = function(error, result, data) {
-                var returnObj = {
+            let itemFinished = function(error, result, data) {
+                let returnObj = {
                     error: error,
                     response: (result || {}).result,
                     instance: instance
@@ -157,7 +157,7 @@ var DaemonInterface = function(daemons, logger) {
                 eachCallback();
                 itemFinished = function(){};
             };
-            var requestJson = JSON.stringify({
+            let requestJson = JSON.stringify({
                 method: method,
                 params: params,
                 id: Date.now() + Math.floor(Math.random() * 10)
