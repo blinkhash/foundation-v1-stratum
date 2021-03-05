@@ -210,6 +210,14 @@ describe('Test Bitcoin-type block implementation', () => {
 
 describe('Test miscellaneous features of block implementation', () => {
 
+    test('Test if target is not defined', () => {
+        const rpcTarget = Object.assign(rpcData);
+        delete rpcTarget.target;
+        const blockTarget = new BlockTemplate(jobId.toString(16), rpcTarget, extraNonce, options);
+        expect(block.target.toNumber().toFixed(9)).toBe("1.1042625655198232e+71");
+        expect(block.difficulty.toFixed(9)).toBe("0.000244141");
+    });
+
     test('Test if txid is defined in the transaction', () => {
         const rpcTxid = Object.assign(rpcData);
         rpcTxid.transactions[0].txid = rpcTxid.transactions[0].hash
@@ -219,7 +227,24 @@ describe('Test miscellaneous features of block implementation', () => {
         expect(merkleBuffers[1]).toStrictEqual(Buffer.from("17a35a38e70cd01488e0d5ece6ded04a9bc8125865471d36b9d5c47a08a5907c", "hex"))
     });
 
-    test('Test masternode voting data', () => {
+    test('Test if block jobParams already exists', () => {
+        const jobParams = [
+            block.jobId,
+            block.prevHashReversed,
+            block.generation[0][0].toString('hex'),
+            block.generation[0][1].toString('hex'),
+            block.getMerkleHashes(block.merkle.steps),
+            util.packInt32BE(block.rpcData.version).toString('hex'),
+            block.rpcData.bits,
+            util.packInt32BE(block.rpcData.curtime).toString('hex'),
+            true
+        ]
+        block.jobParams = jobParams;
+        const currentParams = block.getJobParams(options);
+        expect(currentParams).toStrictEqual(jobParams);
+    });
+
+    test('Test if masternode voting data exists', () => {
         const rpcMasternodes = Object.assign(rpcData);
         rpcMasternodes.masternode_payments = true;
         rpcMasternodes.votes = ["17a35a38e70cd01488e0d5ece6ded04a9bc8125865471d36b9d5c47a08a5907c"]
