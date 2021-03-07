@@ -94,6 +94,8 @@ let Difficulty = function(port, difficultyOptions, showLogs) {
             let sinceLast = ts - lastTs;
             timeBuffer.append(sinceLast);
             lastTs = ts;
+            let avg = timeBuffer.avg();
+            let ddiff = options.targetTime / avg;
             if ((ts - lastRtc) < options.retargetTime && timeBuffer.size() > 0) {
                 if (logging) {
                     console.log("No difficulty update required")
@@ -101,8 +103,6 @@ let Difficulty = function(port, difficultyOptions, showLogs) {
                 return;
             }
             lastRtc = ts;
-            let avg = timeBuffer.avg();
-            let ddiff = options.targetTime / avg;
             if (avg > tMax && client.difficulty > options.minDiff) {
                 if (options.x2mode) {
                     ddiff = 0.5;
@@ -111,19 +111,18 @@ let Difficulty = function(port, difficultyOptions, showLogs) {
                     ddiff = options.minDiff / client.difficulty;
                 }
                 if (logging) {
-                    console.log("Increasing current difficulty")
+                    console.log("Decreasing current difficulty")
                 }
             }
-            else if (avg < tMin) {
+            else if (avg < tMin && client.difficulty < options.maxDiff) {
                 if (options.x2mode) {
                     ddiff = 2;
                 }
-                let diffMax = options.maxDiff;
-                if (ddiff * client.difficulty > diffMax) {
-                    ddiff = diffMax / client.difficulty;
+                if (ddiff * client.difficulty > options.maxDiff) {
+                    ddiff = options.maxDiff / client.difficulty;
                 }
                 if (logging) {
-                    console.log("Decreasing current difficulty")
+                    console.log("Increasing current difficulty")
                 }
             }
             else {
