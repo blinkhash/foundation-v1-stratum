@@ -37,7 +37,7 @@ describe('Test daemon functionality', () => {
         expect(indexedDaemons[0].index).toBe(0);
     });
 
-    test('Test initialization of daemons', (done) => {
+    test('Test initialization of daemons [1]', (done) => {
         const scope = nock('http://127.0.0.1:9332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
@@ -51,7 +51,21 @@ describe('Test daemon functionality', () => {
         });
     });
 
-    test('Test online status of mock daemons (online)', (done) => {
+    test('Test initialization of daemons [2]', (done) => {
+        const scope = nock('http://127.0.0.1:9332')
+            .post('/', body => body.method === "getpeerinfo")
+            .reply(200, JSON.stringify({
+                id: "nocktest",
+                error: true,
+                result: null,
+            }));
+        daemon.initDaemons((response) => {
+            expect(response).toBe(false);
+            done();
+        });
+    });
+
+    test('Test online status of mock daemons [1]', (done) => {
         const scope = nock('http://127.0.0.1:9332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
@@ -65,7 +79,7 @@ describe('Test daemon functionality', () => {
         });;
     });
 
-    test('Test online status of mock daemons (offline)', (done) => {
+    test('Test online status of mock daemons [2]', (done) => {
         const scope = nock('http://127.0.0.1:9332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
@@ -77,6 +91,35 @@ describe('Test daemon functionality', () => {
             expect(response).toBe(false);
             done();
         });;
+    });
+
+    test('Test raw data handling of mock daemons', (done) => {
+        const scope = nock('http://127.0.0.1:9332')
+            .post('/', body => body.method === "getinfo")
+            .reply(200, JSON.stringify({
+                id: "nocktest",
+                error: null,
+                result: null,
+            }));
+        daemon.cmd('getinfo', [], function(results) {
+            const response = '{"id":"nocktest","error":null,"result":null}';
+            expect(results[0].data).toBe(response);
+            done();
+        }, false, true);
+    });
+
+    test('Test streaming data handling of mock daemons', (done) => {
+        const scope = nock('http://127.0.0.1:9332')
+            .post('/', body => body.method === "getinfo")
+            .reply(200, JSON.stringify({
+                id: "nocktest",
+                error: null,
+                result: null,
+            }));
+        daemon.cmd('getinfo', [], function(results) {
+            expect(results.error).toBe(null);
+            done();
+        }, true, false);
     });
 
     test('Test error handling of mock daemons [1]', (done) => {
@@ -99,6 +142,26 @@ describe('Test daemon functionality', () => {
         daemon.performHttpRequest(daemon.instances[0], request, function(results) {
             output = 'error: Could not parse RPC data from daemon instance 0\nRequest Data: {"method":"getinfo","params":[],"id":1615071070849}\nReponse Data: this is an example of bad data {/13';
             expect(consoleSpy).toHaveBeenCalledWith(output);
+            done();
+        });
+    });
+
+    test('Test error handling of mock daemons [3]', (done) => {
+        const scope = nock('http://127.0.0.1:9332')
+            .post('/', body => body.method === "getinfo")
+            .replyWithError({ code: 'ECONNREFUSED' });
+        daemon.cmd('getinfo', [], function(results) {
+            expect(results[0].error.type).toBe('offline');
+            done();
+        });
+    });
+
+    test('Test error handling of mock daemons [4]', (done) => {
+        const scope = nock('http://127.0.0.1:9332')
+            .post('/', body => body.method === "getinfo")
+            .replyWithError({ code: 'ALTERNATE' });
+        daemon.cmd('getinfo', [], function(results) {
+            expect(results[0].error.type).toBe('request error');
             done();
         });
     });

@@ -33,7 +33,7 @@ let DaemonInterface = function(daemons, logger) {
 
         // Establish HTTP Options
         let options = {
-            hostname: (typeof(instance.host) === 'undefined' ? '127.0.0.1' : instance.host),
+            hostname: instance.host,
             port: instance.port,
             method: 'POST',
             auth: instance.user + ':' + instance.password,
@@ -60,13 +60,11 @@ let DaemonInterface = function(daemons, logger) {
                 callback()
                 return;
             }
-            if (dataJson) {
-                callback(dataJson.error, dataJson, data);
-            }
+            callback(dataJson.error, dataJson, data);
         };
 
         // Establish HTTP Request
-        let req = http.request(options, function(res) {
+        req = http.request(options, function(res) {
             let data = '';
             res.setEncoding('utf8');
             res.on('data', function(chunk) {
