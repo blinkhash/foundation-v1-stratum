@@ -128,7 +128,7 @@ describe('Test Bitcoin-type block implementation', () => {
         expect(block.prevHashReversed).toBe("bc7727e2ee0395305fc6e36b29a60b37be7d49b6bd4c808b83ef65839719aefb");
     });
 
-    test('Test coinbase serialization', () => {
+    test('Test coinbase serialization [1]', () => {
         const extraNonce1 = Buffer.from("01", "hex");
         const extraNonce2 = Buffer.from("00", "hex");
         const coinbase = block.serializeCoinbase(extraNonce1, extraNonce2, options)

@@ -119,7 +119,7 @@ let Pool = function(options, authorizeFn) {
         });
 
         // Initialize Daemon
-        _this.daemon.init();
+        _this.daemon.initDaemons(function(status) {});
     }
 
     // Initialize Pool Data
@@ -293,27 +293,24 @@ let Pool = function(options, authorizeFn) {
         }
 
         // Establish Submission Functionality
-        _this.daemon.cmd(rpcCommand,
-            rpcArgs,
-            function(results) {
-                for (let i = 0; i < results.length; i++) {
-                    let result = results[i];
-                    if (result.error) {
-                        emitErrorLog('RPC error with daemon instance ' +
-                                result.instance.index + ' when submitting block with ' + rpcCommand + ' ' +
-                                JSON.stringify(result.error)
-                        );
-                        return;
-                    }
-                    else if (result.response === 'rejected') {
-                        emitErrorLog('Daemon instance ' + result.instance.index + ' rejected a supposedly valid block');
-                        return;
-                    }
+        _this.daemon.cmd(rpcCommand, rpcArgs, function(results) {
+            for (let i = 0; i < results.length; i++) {
+                let result = results[i];
+                if (result.error) {
+                    emitErrorLog('RPC error with daemon instance ' +
+                            result.instance.index + ' when submitting block with ' + rpcCommand + ' ' +
+                            JSON.stringify(result.error)
+                    );
+                    return;
                 }
-                emitLog('Submitted Block using ' + rpcCommand + ' successfully to daemon instance(s)');
-                callback();
+                else if (result.response === 'rejected') {
+                    emitErrorLog('Daemon instance ' + result.instance.index + ' rejected a supposedly valid block');
+                    return;
+                }
             }
-        );
+            emitLog('Submitted Block using ' + rpcCommand + ' successfully to daemon instance(s)');
+            callback();
+        });
     }
 
     // Initialize Pool Job Manager

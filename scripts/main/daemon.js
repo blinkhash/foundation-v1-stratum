@@ -28,39 +28,6 @@ let DaemonInterface = function(daemons, logger) {
         console.log(severity + ': ' + message);
     };
 
-    // Check if All Daemons are Online
-    function isOnline(callback) {
-        cmd('getpeerinfo', [], function(results) {
-            let allOnline = results.every(function(result) {
-                return !results.error;
-            });
-            callback(allOnline);
-            if (!allOnline) {
-                _this.emit('connectionFailed', results);
-            }
-        });
-    }
-
-    // Index Daemons from Parameter
-    function indexDaemons() {
-        for (let i = 0; i < daemons.length; i++) {
-            daemons[i]['index'] = i;
-        }
-        return daemons;
-    }
-
-    // Establish Instances
-    let instances = indexDaemons();
-
-    // Initialize Daemons
-    function initDaemons() {
-        isOnline(function(online) {
-            if (online) {
-                _this.emit('online');
-            }
-        });
-    }
-
     // Configure Daemon HTTP Requests
     function performHttpRequest(instance, jsonData, callback) {
 
@@ -80,21 +47,18 @@ let DaemonInterface = function(daemons, logger) {
             let dataJson;
             if ((res.statusCode === 401) || (res.statusCode === 403)) {
                 logger('error', 'Unauthorized RPC access - invalid RPC username or password');
+                callback()
                 return;
             }
             try {
                 dataJson = JSON.parse(data);
             }
             catch(e) {
-                if (data.indexOf(':-nan') !== -1) {
-                    data = data.replace(/:-nan,/g, ":0");
-                    parseJson(res, data);
-                    return;
-                }
-                logger('error', 'Could not parse RPC data from daemon instance  ' + instance.index
+                logger('error', 'Could not parse RPC data from daemon instance ' + instance.index
                     + '\nRequest Data: ' + jsonData
                     + '\nReponse Data: ' + data);
-
+                callback()
+                return;
             }
             if (dataJson) {
                 callback(dataJson.error, dataJson, data);
@@ -125,26 +89,60 @@ let DaemonInterface = function(daemons, logger) {
         req.end(jsonData);
     }
 
-    // Batch RPC Commands
-    function batchCmd(cmdArray, callback) {
-        let requestJson = [];
-        for (let i = 0; i < cmdArray.length; i++) {
-            requestJson.push({
-                method: cmdArray[i][0],
-                params: cmdArray[i][1],
-                id: Date.now() + Math.floor(Math.random() * 10) + i
+    // Index Daemons from Parameter
+    this.indexDaemons = function(daemons) {
+        daemons.forEach((daemon, idx) => {
+            daemon.index = idx;
+        })
+        return daemons
+    }
+
+    // Establish Indexed Daemons
+    this.instances = this.indexDaemons(daemons);
+
+    // Check if All Daemons are Online
+    this.isOnline = function(callback) {
+        this.cmd('getpeerinfo', [], function(results) {
+            let allOnline = results.every(function(result) {
+                return !result.error;
             });
-        }
+            callback(allOnline);
+            if (!allOnline) {
+                _this.emit('connectionFailed', results);
+            }
+        });
+    }
+
+    // Initialize Daemons
+    this.initDaemons = function(callback) {
+        this.isOnline(function(online) {
+            if (online) {
+                _this.emit('online');
+            }
+            callback(online);
+        });
+    }
+
+    // Batch RPC Commands
+    this.batchCmd = function(cmdArray, callback) {
+        let requestJson = [];
+        cmdArray.forEach((command, idx) => {
+          requestJson.push({
+              method: command[0],
+              params: command[1],
+              id: Date.now() + Math.floor(Math.random() * 10) + idx
+          });
+        });
         let serializedRequest = JSON.stringify(requestJson);
-        performHttpRequest(instances[0], serializedRequest, function(error, result) {
+        performHttpRequest(this.instances[0], serializedRequest, function(error, result) {
             callback(error, result);
         });
     }
 
     // Single RPC Command
-    function cmd(method, params, callback, streamResults, returnRawData) {
+    this.cmd = function(method, params, callback, streamResults, returnRawData) {
         let results = [];
-        async.each(instances, function(instance, eachCallback) {
+        async.each(this.instances, function(instance, eachCallback) {
             let itemFinished = function(error, result, data) {
                 let returnObj = {
                     error: error,
@@ -155,7 +153,7 @@ let DaemonInterface = function(daemons, logger) {
                 if (streamResults) callback(returnObj);
                 else results.push(returnObj);
                 eachCallback();
-                itemFinished = function(){};
+                itemFinished = function() {};
             };
             let requestJson = JSON.stringify({
                 method: method,
@@ -172,11 +170,9 @@ let DaemonInterface = function(daemons, logger) {
         });
     }
 
-    // Establish Public Daemon Variables
-    this.init = initDaemons;
-    this.isOnline = isOnline;
-    this.cmd = cmd;
-    this.batchCmd = batchCmd;
+    // Establish External Capabilities
+    this.performHttpRequest = performHttpRequest;
+    this.logger = logger;
 }
 
 exports.interface = DaemonInterface;
