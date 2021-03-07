@@ -9,12 +9,12 @@ let net = require('net');
 let events = require('events');
 
 // Load Hashing Algorithms
-require('./algorithms.js');
+require('./main/algorithms.js');
 
 // Establish Main Pool Exports
-let Pool = require('./pool.js');
-exports.daemon = require('./daemon.js');
-exports.difficulty = require('./difficulty.js');
+let Pool = require('./main/pool.js');
+exports.daemon = require('./main/daemon.js');
+exports.difficulty = require('./main/difficulty.js');
 exports.createPool = function(poolOptions, authorizeFn) {
     let newPool = new Pool(poolOptions, authorizeFn);
     return newPool;
