@@ -26,10 +26,11 @@ const daemon = new Daemon.interface(daemons);
 describe('Test daemon functionality', () => {
 
     test('Test if logger is working properly', () => {
-        const consoleSpy = jest.spyOn(console, 'log');
+        const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
         daemon.logger("debug", "Test Message");
         expect(typeof daemon.logger).toBe("function");
         expect(consoleSpy).toHaveBeenCalledWith('debug: Test Message');
+        console.log.mockClear();
     });
 
     test('Test indexing of daemons', () => {
@@ -123,18 +124,19 @@ describe('Test daemon functionality', () => {
     });
 
     test('Test error handling of mock daemons [1]', (done) => {
-        const consoleSpy = jest.spyOn(console, 'log');
+        const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
         const scope = nock('http://127.0.0.1:9332')
             .post('/', body => body.method === "getinfo")
             .reply(401, {});
         daemon.cmd('getinfo', [], function(results) {
             expect(consoleSpy).toHaveBeenCalledWith('error: Unauthorized RPC access - invalid RPC username or password');
+            console.log.mockClear();
             done();
         });
     });
 
     test('Test error handling of mock daemons [2]', (done) => {
-        const consoleSpy = jest.spyOn(console, 'log');
+        const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
         const scope = nock('http://127.0.0.1:9332')
             .post('/', body => body.method === "getinfo")
             .reply(200, 'this is an example of bad data {/13');
@@ -142,6 +144,7 @@ describe('Test daemon functionality', () => {
         daemon.performHttpRequest(daemon.instances[0], request, function(results) {
             output = 'error: Could not parse RPC data from daemon instance 0\nRequest Data: {"method":"getinfo","params":[],"id":1615071070849}\nReponse Data: this is an example of bad data {/13';
             expect(consoleSpy).toHaveBeenCalledWith(output);
+            console.log.mockClear();
             done();
         });
     });

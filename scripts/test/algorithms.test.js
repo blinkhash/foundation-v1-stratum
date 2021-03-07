@@ -9,7 +9,7 @@ const Algorithms = require('../main/algorithms');
 
 ////////////////////////////////////////////////////////////////////////////////
 
-describe('Test all algorithms implemented', () => {
+describe('Test algorithm functionality', () => {
 
     // Deterministic
     test('Test implemented sha256d algorithm', () => {

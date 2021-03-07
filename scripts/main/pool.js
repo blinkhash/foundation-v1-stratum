@@ -52,7 +52,7 @@ let Pool = function(options, authorizeFn) {
         if (typeof(_this.difficulty[port]) != 'undefined' ) {
             _this.difficulty[port].removeAllListeners();
         }
-        let difficultyInstance = new Difficulty(port, difficultyConfig);
+        let difficultyInstance = new Difficulty(port, difficultyConfig, false);
         _this.difficulty[port] = difficultyInstance;
         _this.difficulty[port].on('newDifficulty', function(client, newDiff) {
             client.enqueueNextDifficulty(newDiff);

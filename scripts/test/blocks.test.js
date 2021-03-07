@@ -80,7 +80,7 @@ const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options
 
 ////////////////////////////////////////////////////////////////////////////////
 
-describe('Test Bitcoin-type block implementation', () => {
+describe('Test block functionality', () => {
 
     test('Test current bignum implementation', () => {
         expect(block.target.toNumber().toFixed(9)).toBe("1.1042625655198232e+71");

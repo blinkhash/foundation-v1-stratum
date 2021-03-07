@@ -11,20 +11,6 @@ let bignum = require('bignum');
 let bitcoin = require('blinkhash-utxo-lib');
 let crypto = require('crypto');
 
-// Hash Address from exAddress + Key
-exports.addressFromEx = function(exAddress, ripdm160Key) {
-    try {
-        let versionByte = exports.getVersionByte(exAddress);
-        let addrBase = Buffer.concat([versionByte, Buffer.from(ripdm160Key, 'hex')]);
-        let checksum = exports.sha256d(addrBase).slice(0, 4);
-        let address = Buffer.concat([addrBase, checksum]);
-        return base58.encode(address);
-    }
-    catch(e) {
-        return null;
-    }
-};
-
 // Convert Address to Script
 exports.addressToScript = function(network, addr) {
     if (typeof network !== "undefined") {
@@ -58,46 +44,6 @@ exports.bignumFromBitsBuffer = function(bitsBuff) {
 exports.bignumFromBitsHex = function(bitsString) {
     let bitsBuff = Buffer.from(bitsString, 'hex');
     return exports.bignumFromBitsBuffer(bitsBuff);
-};
-
-// Convert Buffer to Compact Bits
-exports.bufferToCompactBits = function(startingBuff) {
-    let bigNum = bignum.fromBuffer(startingBuff);
-    let buff = bigNum.toBuffer();
-    buff = buff.readUInt8(0) > 0x7f ? Buffer.concat([Buffer.from([0x00]), buff]) : buff;
-    buff = Buffer.concat([Buffer.from([buff.length]), buff]);
-    let compact = buff.slice(0, 4);
-    return compact;
-};
-
-// Convert Bits to Buffer
-exports.convertBitsToBuff = function(bitsBuff) {
-    let target = exports.bignumFromBitsBuffer(bitsBuff);
-    let resultBuff = target.toBuffer();
-    let buff256 = Buffer.alloc(32);
-    buff256.fill(0);
-    resultBuff.copy(buff256, buff256.length - resultBuff.length);
-    return buff256;
-};
-
-// Get Truncated Difficulty
-exports.getTruncatedDiff = function(shift) {
-    return exports.convertBitsToBuff(
-        exports.bufferToCompactBits(
-            exports.shiftMax256Right(shift)
-        )
-    );
-};
-
-// Get Address Version Byte
-exports.getVersionByte = function(addr) {
-    let versionByte = base58.decode(addr).slice(0, 1);
-    return versionByte;
-};
-
-// Generate Hex String from Input Buffer
-exports.hexFromReversedBuffer = function(buffer) {
-    return exports.reverseBuffer(buffer).toString('hex');
 };
 
 // Convert Mining Key to Script
@@ -147,19 +93,6 @@ exports.packInt64LE = function(num) {
     buff.writeUInt32LE(num % Math.pow(2, 32), 0);
     buff.writeUInt32LE(Math.floor(num / Math.pow(2, 32)), 4);
     return buff;
-};
-
-// Convert Pubkey to Script
-exports.pubkeyToScript = function(key) {
-    if (key.length !== 66) {
-        console.error('Invalid pubkey: ' + key);
-        throw new Error();
-    }
-    let pubkey = Buffer.alloc(35);
-    pubkey[0] = 0x21;
-    pubkey[34] = 0xac;
-    Buffer.from(key, 'hex').copy(pubkey, 1);
-    return pubkey;
 };
 
 // Range Function
@@ -261,23 +194,6 @@ exports.sha256 = function(buffer) {
 // Hash Input w/ Sha256d
 exports.sha256d = function(buffer) {
     return exports.sha256(exports.sha256(buffer));
-};
-
-// Bitwise Right-Shift Max UInt256
-exports.shiftMax256Right = function(shiftRight) {
-    let arr256 = Array.apply(null, new Array(256)).map(Number.prototype.valueOf, 1);
-    let arrLeft = Array.apply(null, new Array(shiftRight)).map(Number.prototype.valueOf, 0);
-    arr256 = arrLeft.concat(arr256).slice(0, 256);
-    let octets = [];
-    for (let i = 0; i < 32; i++) {
-        octets[i] = 0;
-        let bits = arr256.slice(i * 8, i * 8 + 8);
-        for (let f = 0; f < bits.length; f++) {
-            let multiplier = Math.pow(2, f);
-            octets[i] += bits[f] * multiplier;
-        }
-    }
-    return Buffer.from(octets);
 };
 
 // Generate Reverse Buffer from Input Hash

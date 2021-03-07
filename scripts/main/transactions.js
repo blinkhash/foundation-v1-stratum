@@ -50,7 +50,7 @@ let Transactions = function() {
         let reward = rpcData.coinbasevalue;
         let rewardToPool = reward;
         let poolIdentifier = options.identifier || "https://github.com/blinkhash/blinkhash-server"
-        let poolAddressScript = util.addressToScript(options.network, options.poolAddress)
+        let poolAddressScript = convertScript(options.poolAddress, options.network)
         let coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
 
         // Handle Comments if Necessary

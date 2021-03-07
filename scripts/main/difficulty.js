@@ -56,15 +56,15 @@ function RingBuffer(maxSize) {
 }
 
 // Difficulty Main Function
-let Difficulty = function(port, difficultyOptions) {
+let Difficulty = function(port, difficultyOptions, showLogs) {
 
     // Establish Difficulty Variables
     let _this = this;
-    let bufferSize, tMin, tMax;
+    let logging = showLogs;
     let variance = difficultyOptions.targetTime * (difficultyOptions.variancePercent / 100);
-    bufferSize = difficultyOptions.retargetTime / difficultyOptions.targetTime * 4;
-    tMin = difficultyOptions.targetTime - variance;
-    tMax = difficultyOptions.targetTime + variance;
+    let bufferSize = difficultyOptions.retargetTime / difficultyOptions.targetTime * 4;
+    let tMin = difficultyOptions.targetTime - variance;
+    let tMax = difficultyOptions.targetTime + variance;
 
     // Manage Individual Clients
     this.manageClient = function(client) {
@@ -77,9 +77,7 @@ let Difficulty = function(port, difficultyOptions) {
 
         // Establish Client Variables
         let options = difficultyOptions;
-        let lastTs;
-        let lastRtc;
-        let timeBuffer;
+        let lastTs, lastRtc, timeBuffer;
 
         // Manage Client Submission
         client.on('submit', function() {
@@ -88,12 +86,18 @@ let Difficulty = function(port, difficultyOptions) {
                 lastRtc = ts - options.retargetTime / 2;
                 lastTs = ts;
                 timeBuffer = new RingBuffer(bufferSize);
+                if (logging) {
+                    console.log("Setting difficulty on client initialization")
+                }
                 return;
             }
             let sinceLast = ts - lastTs;
             timeBuffer.append(sinceLast);
             lastTs = ts;
             if ((ts - lastRtc) < options.retargetTime && timeBuffer.size() > 0) {
+                if (logging) {
+                    console.log("No difficulty update required")
+                }
                 return;
             }
             lastRtc = ts;
@@ -106,6 +110,9 @@ let Difficulty = function(port, difficultyOptions) {
                 if (ddiff * client.difficulty < options.minDiff) {
                     ddiff = options.minDiff / client.difficulty;
                 }
+                if (logging) {
+                    console.log("Increasing current difficulty")
+                }
             }
             else if (avg < tMin) {
                 if (options.x2mode) {
@@ -115,8 +122,14 @@ let Difficulty = function(port, difficultyOptions) {
                 if (ddiff * client.difficulty > diffMax) {
                     ddiff = diffMax / client.difficulty;
                 }
+                if (logging) {
+                    console.log("Decreasing current difficulty")
+                }
             }
             else {
+                if (logging) {
+                    console.log("No difficulty update required")
+                }
                 return;
             }
             let newDiff = toFixed(client.difficulty * ddiff, 8);
