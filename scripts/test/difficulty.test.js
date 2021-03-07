@@ -30,7 +30,7 @@ const vardiff2 = {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-describe('Test difficulty functionality (logging)', () => {
+describe('Test difficulty functionality', () => {
 
     let client;
     beforeEach(() => {
