@@ -16,7 +16,13 @@ const rpcData = {
     "vbavailable": {},
     "vbrequired": 0,
     "previousblockhash": "9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2",
-    "transactions": [],
+    "transactions": [{
+        "data": "0100000001cba672d0bfdbcc441d171ef0723a191bf050932c6f8adc8a05b0cac2d1eb022f010000006c493046022100a23472410d8fd7eabf5c739bdbee5b6151ff31e10d5cb2b52abeebd5e9c06977022100c2cdde5c632eaaa1029dff2640158aaf9aab73fa021ed4a48b52b33ba416351801210212ee0e9c79a72d88db7af3fed18ae2b7ca48eaed995d9293ae0f94967a70cdf6ffffffff02905f0100000000001976a91482db4e03886ee1225fefaac3ee4f6738eb50df9188ac00f8a093000000001976a914c94f5142dd7e35f5645735788d0fe1343baf146288ac00000000",
+        "hash": "7c90a5087ac4d5b9361d47655812c89b4ad0dee6ecd5e08814d00ce7385aa317",
+        "depends": [],
+        "fee": 10000,
+        "sigops": 2
+    }],
     "coinbaseaux": {
         "flags": ""
     },
@@ -54,6 +60,7 @@ const options = {
         "wif": 0x80,
         "coin": "btc",
     },
+    "emitInvalidBlockHashes": true,
     "poolAddress": "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq",
     "recipients": [],
     "rewards": {
@@ -108,7 +115,7 @@ describe('Test manager functionality', () => {
         expect(response2).toBe(true)
     });
 
-    test('Test template updates given new blockTemplate [2]', () => {
+    test('Test template updates given new blockTemplate [3]', () => {
         const transactionData = JSON.parse(JSON.stringify(rpcData));
         const response1 = manager.processTemplate(transactionData);
         transactionData.previousblockhash = "8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2";
@@ -116,5 +123,54 @@ describe('Test manager functionality', () => {
         const response2 = manager.processTemplate(transactionData);
         expect(response1).toBe(true)
         expect(response2).toBe(false)
+    });
+
+    test('Test share submission process [1]', () => {
+        const transactionData = JSON.parse(JSON.stringify(rpcData));
+        manager.processTemplate(transactionData);
+        const extraNonce2 = "00".toString("hex");
+        const response = manager.processShare(1, 0, 0, 0, extraNonce2, 0, 0, "ip_addr", "port", "worker");
+        expect(response.error[0]).toBe(20);
+        expect(response.error[1]).toBe('incorrect size of extranonce2');
+    });
+
+    test('Test share submission process [2]', () => {
+        const transactionData = JSON.parse(JSON.stringify(rpcData));
+        manager.processTemplate(transactionData);
+        const extraNonce2 = "00000000".toString("hex");
+        const response = manager.processShare(0, 0, 0, 0, extraNonce2, 0, 0, "ip_addr", "port", "worker");
+        expect(response.error[0]).toBe(21);
+        expect(response.error[1]).toBe('job not found');
+    });
+
+    test('Test share submission process [3]', () => {
+        const transactionData = JSON.parse(JSON.stringify(rpcData));
+        manager.processTemplate(transactionData);
+        const extraNonce2 = "00000000".toString("hex");
+        const time = "00".toString("hex");
+        const response = manager.processShare(1, 0, 0, 0, extraNonce2, time, 0, "ip_addr", "port", "worker");
+        expect(response.error[0]).toBe(20);
+        expect(response.error[1]).toBe('incorrect size of ntime');
+    });
+
+    test('Test share submission process [4]', () => {
+        const transactionData = JSON.parse(JSON.stringify(rpcData));
+        manager.processTemplate(transactionData);
+        const extraNonce2 = "00000000".toString("hex");
+        const time = "7036c54f".toString("hex");
+        const response = manager.processShare(1, 0, 0, 0, extraNonce2, time, 0, "ip_addr", "port", "worker");
+        expect(response.error[0]).toBe(20);
+        expect(response.error[1]).toBe('ntime out of range');
+    });
+
+    test('Test share submission process [5]', () => {
+        const transactionData = JSON.parse(JSON.stringify(rpcData));
+        manager.processTemplate(transactionData);
+        const extraNonce2 = "00000000".toString("hex");
+        const time = "6036c54f".toString("hex");
+        const nonce = "00".toString("hex");
+        const response = manager.processShare(1, 0, 0, 0, extraNonce2, time, nonce, "ip_addr", "port", "worker");
+        expect(response.error[0]).toBe(20);
+        expect(response.error[1]).toBe('incorrect size of nonce');
     });
 });

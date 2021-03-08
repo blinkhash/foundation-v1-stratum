@@ -149,31 +149,31 @@ describe('Test block functionality', () => {
     });
 
     test('Test header serialization [1]', () => {
-        const merkleRoot = "0b8dcdd18969a859444b18f927f69202f5a8c4379b3ed5b3f7c1bd1f57e916d0";
+        const merkleRoot = "3130b519a5914d1eea42022f592802c2d6b3e08b71f101aca985ff0b1031d0af";
         const time = "6036c54f".toString("hex");
         const nonce = "fe1a0000".toString("hex");
         const headerBuffer = block.serializeHeader(merkleRoot, time, nonce, options);
-        expect(headerBuffer).toStrictEqual(Buffer.from("00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997d016e9571fbdc1f7b3d53e9b37c4a8f50292f627f9184b4459a86989d1cd8d0b4fc53660f0ff0f1e00001afe", "hex"));
+        expect(headerBuffer).toStrictEqual(Buffer.from("00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b530314fc53660f0ff0f1e00001afe", "hex"));
     });
 
     test('Test header serialization [2]', () => {
-        const headerBuffer = Buffer.from("00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997d016e9571fbdc1f7b3d53e9b37c4a8f50292f627f9184b4459a86989d1cd8d0b4fc53660f0ff0f1e00001afe", "hex");
+        const headerBuffer = Buffer.from("00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b530314fc53660f0ff0f1e00001afe", "hex");
         const hashDigest = Algorithms[options.coin.algorithm].hash(options.coin);
         const headerHash = hashDigest(headerBuffer, 1614202191);
-        expect(headerHash).toStrictEqual(Buffer.from("305f1bdb4450b86a1a1f97d12f0bf7bb41b7729d0d00f468d3029b3f2f849da3", "hex"));
+        expect(headerHash).toStrictEqual(Buffer.from("3748391bfdaaa2a44424028a12fa508f94bb9ca879b2430a41cfa6e171040000", "hex"));
     });
 
     test('Test block serialization [1]', () => {
-        const headerBuffer = Buffer.from("00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997d016e9571fbdc1f7b3d53e9b37c4a8f50292f627f9184b4459a86989d1cd8d0b4fc53660f0ff0f1e00001afe", "hex");
+        const headerBuffer = Buffer.from("00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b530314fc53660f0ff0f1e00001afe", "hex");
         const coinbase = Buffer.from("01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff020101ffffffff0100f2052a010000001976a914614ca2f0f4baccdd63f45a0e0e0ff7ffb88041fb88ac00000000", "hex");
         const blockHex = block.serializeBlock(headerBuffer, coinbase, options);
-        expect(blockHex).toStrictEqual(Buffer.from("00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997d016e9571fbdc1f7b3d53e9b37c4a8f50292f627f9184b4459a86989d1cd8d0b4fc53660f0ff0f1e00001afe0201000000010000000000000000000000000000000000000000000000000000000000000000ffffffff020101ffffffff0100f2052a010000001976a914614ca2f0f4baccdd63f45a0e0e0ff7ffb88041fb88ac000000000100000001cba672d0bfdbcc441d171ef0723a191bf050932c6f8adc8a05b0cac2d1eb022f010000006c493046022100a23472410d8fd7eabf5c739bdbee5b6151ff31e10d5cb2b52abeebd5e9c06977022100c2cdde5c632eaaa1029dff2640158aaf9aab73fa021ed4a48b52b33ba416351801210212ee0e9c79a72d88db7af3fed18ae2b7ca48eaed995d9293ae0f94967a70cdf6ffffffff02905f0100000000001976a91482db4e03886ee1225fefaac3ee4f6738eb50df9188ac00f8a093000000001976a914c94f5142dd7e35f5645735788d0fe1343baf146288ac00000000", "hex"));
+        expect(blockHex).toStrictEqual(Buffer.from("00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b530314fc53660f0ff0f1e00001afe0201000000010000000000000000000000000000000000000000000000000000000000000000ffffffff020101ffffffff0100f2052a010000001976a914614ca2f0f4baccdd63f45a0e0e0ff7ffb88041fb88ac000000000100000001cba672d0bfdbcc441d171ef0723a191bf050932c6f8adc8a05b0cac2d1eb022f010000006c493046022100a23472410d8fd7eabf5c739bdbee5b6151ff31e10d5cb2b52abeebd5e9c06977022100c2cdde5c632eaaa1029dff2640158aaf9aab73fa021ed4a48b52b33ba416351801210212ee0e9c79a72d88db7af3fed18ae2b7ca48eaed995d9293ae0f94967a70cdf6ffffffff02905f0100000000001976a91482db4e03886ee1225fefaac3ee4f6738eb50df9188ac00f8a093000000001976a914c94f5142dd7e35f5645735788d0fe1343baf146288ac00000000", "hex"));
     });
 
     test('Test block serialization [2]', () => {
-        const headerBuffer = Buffer.from("00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997d016e9571fbdc1f7b3d53e9b37c4a8f50292f627f9184b4459a86989d1cd8d0b4fc53660f0ff0f1e00001afe", "hex");
+        const headerBuffer = Buffer.from("00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b530314fc53660f0ff0f1e00001afe", "hex");
         const blockHash = manager.blockHasher(headerBuffer, 1614202191);
-        expect(blockHash).toStrictEqual(Buffer.from("5312ae0a9775107fec6017e7d9d3b3607e672f70b2221ae5d080baae20589e89", "hex"))
+        expect(blockHash).toStrictEqual(Buffer.from("1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769", "hex"))
     });
 
     test('Test block submission', () => {

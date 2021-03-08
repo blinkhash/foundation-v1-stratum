@@ -220,7 +220,13 @@ let Manager = function(options) {
         }, blockHex);
 
         // Return Valid Share
-        return { result: true, error: null, blockHash: blockHash, blockHex: blockHex };
+        return {
+            result: true,
+            error: null,
+            blockHash: blockHash,
+            blockHashInvalid: blockHashInvalid,
+            blockHex: blockHex,
+        };
     };
 };
 
