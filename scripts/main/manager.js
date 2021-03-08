@@ -22,54 +22,28 @@ let BlockTemplate = require('./blocks.js');
 // Generate Unique ExtraNonce for each Subscriber
 let ExtraNonceCounter = function(configInstanceId) {
     let instanceId = configInstanceId || crypto.randomBytes(4).readUInt32LE(0);
-    let counter = instanceId << 27;
+    this.counter = instanceId << 27;
     this.size = 4;
     this.next = function() {
-        let extraNonce = util.packUInt32BE(Math.abs(counter++));
+        let extraNonce = util.packUInt32BE(Math.abs(this.counter++));
         return extraNonce.toString('hex');
     };
 };
 
 // Generate Unique Job for each BlockTemplate
 let JobCounter = function() {
-    let counter = 0;
+    this.counter = 0;
     this.next = function() {
-        counter++;
-        if (counter % 0xffff === 0)
-            counter = 1;
+        this.counter++;
+        if (this.counter % 0xffff === 0) {
+            this.counter = 1;
+        }
         return this.cur();
     };
     this.cur = function() {
-        return counter.toString(16);
+        return this.counter.toString(16);
     };
 };
-
-// Check if Input is Hex String
-function isHexString(s) {
-    let check = String(s).toLowerCase();
-    if(check.length % 2) {
-        return false;
-    }
-    for (i = 0; i < check.length; i=i+2) {
-        let c = check[i] + check[i+1];
-        if (!isHex(c))
-            return false;
-    }
-    return true;
-}
-
-// Check if Input is Hex
-function isHex(c) {
-    let a = parseInt(c,16);
-    let b = a.toString(16).toLowerCase();
-    if(b.length % 2) {
-        b = '0' + b;
-    }
-    if (b !== c) {
-        return false;
-    }
-    return true;
-}
 
 /**
  * Emits:
@@ -82,13 +56,13 @@ let Manager = function(options) {
 
     // Establish Private Manager Variables
     let _this = this;
-    let jobCounter = new JobCounter();
     let shareMultiplier = Algorithms[options.coin.algorithm].multiplier;
     let hashDigest = Algorithms[options.coin.algorithm].hash(options.coin);
 
     // Establish Public Manager Variables
     this.currentJob;
     this.validJobs = {};
+    this.jobCounter = new JobCounter();
     this.extraNonceCounter = new ExtraNonceCounter(options.instanceId);
     this.extraNoncePlaceholder = Buffer.from('f000000ff111111f', 'hex');
     this.extraNonce2Size = this.extraNoncePlaceholder.length - this.extraNonceCounter.size;
@@ -116,10 +90,10 @@ let Manager = function(options) {
     this.coinbaseHasher = coinbaseHash();
 
     // Update Current Managed Job
-    function updateCurrentJob(rpcData) {
+    this.updateCurrentJob = function(rpcData) {
         let tmpBlockTemplate = new BlockTemplate(
-            jobCounter.next(),
-            rpcData,
+            this.jobCounter.next(),
+            Object.assign({}, rpcData),
             _this.extraNoncePlaceholder,
             options
         );
@@ -129,7 +103,6 @@ let Manager = function(options) {
     }
 
     // Check if New Block is Processed
-    this.updateCurrentJob = updateCurrentJob
     this.processTemplate = function(rpcData) {
 
         // If Current Job !== Previous Job
@@ -147,12 +120,12 @@ let Manager = function(options) {
         }
 
         // Update Current Managed Block
-        updateCurrentJob(rpcData)
+        this.updateCurrentJob(rpcData)
         return true;
     };
 
     // Process New Submitted Share
-    this.processShare = function(jobId, previousDifficulty, difficulty, extraNonce1, extraNonce2, nTime, nonce, ipAddress, port, workerName, soln) {
+    this.processShare = function(jobId, previousDifficulty, difficulty, extraNonce1, extraNonce2, nTime, nonce, ipAddress, port, workerName) {
 
         // Share is Invalid
         let shareError = function(error) {
@@ -169,7 +142,7 @@ let Manager = function(options) {
 
         // Establish Share Variables
         let submitTime, job, nTimeInt;
-        let headerBuffer, headerSolnBuffer, headerHash, headerBigNum;
+        let headerBuffer, headerHash, headerBigNum;
         let blockHashInvalid, blockHash, blockHex;
         let shareDiff, blockDiffAdjusted;
 
@@ -247,7 +220,7 @@ let Manager = function(options) {
         }, blockHex);
 
         // Return Valid Share
-        return {result: true, error: null, blockHash: blockHash};
+        return { result: true, error: null, blockHash: blockHash, blockHex: blockHex };
     };
 };
 
