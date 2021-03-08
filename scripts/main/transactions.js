@@ -11,15 +11,6 @@ let util = require('./util.js');
 // Generate Combined Transactions (Bitcoin)
 let Transactions = function() {
 
-    // Convert Address to Usable Script
-    function convertScript(address, network) {
-        let outputScript = util.addressToScript(address, network);
-        if (address.length === 40) {
-            outputScript = util.miningKeyToScript(address);
-        }
-        return outputScript
-    }
-
     // Structure Bitcoin Protocol Transaction
     this.bitcoin = function(rpcData, extraNoncePlaceholder, options) {
 
@@ -50,7 +41,7 @@ let Transactions = function() {
         let reward = rpcData.coinbasevalue;
         let rewardToPool = reward;
         let poolIdentifier = options.identifier || "https://github.com/blinkhash/blinkhash-server"
-        let poolAddressScript = convertScript(options.poolAddress, options.network)
+        let poolAddressScript = util.addressToScript(options.poolAddress, options.network)
         let coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
 
         // Handle Comments if Necessary
@@ -83,7 +74,7 @@ let Transactions = function() {
         if (rpcData.masternode) {
             if (rpcData.masternode.payee) {
                 let payeeReward = rpcData.masternode.amount;
-                let payeeScript = convertScript(rpcData.masternode.payee, options.network);
+                let payeeScript = util.addressToScript(rpcData.masternode.payee, options.network);
                 reward -= payeeReward;
                 rewardToPool -= payeeReward;
                 txOutputBuffers.push(Buffer.concat([
@@ -100,7 +91,7 @@ let Transactions = function() {
                         payeeScript = Buffer.from(rpcData.masternode[i].script, 'hex')
                     }
                     else {
-                        convertScript(rpcData.masternode[i].payee, options.network);
+                        util.addressToScript(rpcData.masternode[i].payee, options.network);
                     }
                     reward -= payeeReward;
                     rewardToPool -= payeeReward;
@@ -122,7 +113,7 @@ let Transactions = function() {
                     payeeScript = Buffer.from(rpcData.superblock[i].script, 'hex')
                 }
                 else {
-                    convertScript(rpcData.superblock[i].payee, options.network);
+                    util.addressToScript(rpcData.superblock[i].payee, options.network);
                 }
                 reward -= payeeReward;
                 rewardToPool -= payeeReward;
@@ -137,7 +128,7 @@ let Transactions = function() {
         // Handle Other Given Payees
         if (rpcData.payee) {
             let payeeReward = rpcData.payee_amount || Math.ceil(reward / 5);
-            let payeeScript = convertScript(rpcData.payee, options.network);
+            let payeeScript = util.addressToScript(rpcData.payee, options.network);
             reward -= payeeReward;
             rewardToPool -= payeeReward;
             txOutputBuffers.push(Buffer.concat([
@@ -158,7 +149,7 @@ let Transactions = function() {
         // Handle Recipient Transactions
         for (let i = 0; i < options.recipients.length; i++) {
             let recipientReward = Math.floor(options.recipients[i].percent * reward);
-            let recipientScript = convertScript(options.recipients[i].address, options.network);
+            let recipientScript = util.addressToScript(options.recipients[i].address, options.network);
             reward -= payeeReward;
             rewardToPool -= recipientReward;
             txOutputBuffers.push(Buffer.concat([

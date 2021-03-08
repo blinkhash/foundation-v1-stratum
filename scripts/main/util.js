@@ -46,12 +46,6 @@ exports.bignumFromBitsHex = function(bitsString) {
     return exports.bignumFromBitsBuffer(bitsBuff);
 };
 
-// Convert Mining Key to Script
-exports.miningKeyToScript = function(key) {
-    let keyBuffer = Buffer.from(key, 'hex');
-    return Buffer.concat([Buffer.from([0x76, 0xa9, 0x14]), keyBuffer, Buffer.from([0x88, 0xac])]);
-};
-
 // Alloc/Write UInt16LE
 exports.packUInt16LE = function(num) {
     let buff = Buffer.alloc(2);
