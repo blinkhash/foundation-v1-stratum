@@ -143,9 +143,12 @@ let Manager = function(options) {
         // Establish Share Variables
         let submitTime, job, nTimeInt;
         let headerBuffer, headerHash, headerBigNum;
-        let blockHashInvalid, blockHash, blockHex;
         let shareDiff, blockDiffAdjusted;
 
+        let blockHash = null;
+        let blockHashInvalid = null;
+        let blockHex = null;
+        
         // Edge Cases to Check if Share is Invalid
         submitTime = Date.now() / 1000 | 0;
         job = this.validJobs[jobId];

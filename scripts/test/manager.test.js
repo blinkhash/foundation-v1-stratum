@@ -173,4 +173,59 @@ describe('Test manager functionality', () => {
         expect(response.error[0]).toBe(20);
         expect(response.error[1]).toBe('incorrect size of nonce');
     });
+
+    test('Test share submission process [6]', () => {
+        const transactionData = JSON.parse(JSON.stringify(rpcData));
+        manager.processTemplate(transactionData);
+        const previousDifficulty = 0.0000001
+        const difficulty = 0.0000001
+        const extraNonce1 = "00000001".toString("hex");
+        const extraNonce2 = "00000000".toString("hex");
+        const time = "6036c54f".toString("hex");
+        const nonce = "fe1a0000".toString("hex");
+        const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, "ip_addr", "port", "worker");
+        expect(typeof response.blockHashInvalid).toBe("string");
+    });
+
+    test('Test share submission process [7]', () => {
+        const transactionData = JSON.parse(JSON.stringify(rpcData));
+        manager.processTemplate(transactionData);
+        const previousDifficulty = 0.0000001
+        const difficulty = 0.0000001
+        const extraNonce1 = "00000001".toString("hex");
+        const extraNonce2 = "00000000".toString("hex");
+        const time = "6036c54f".toString("hex");
+        const nonce = "fe1a0000".toString("hex");
+        const response1 = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, "ip_addr", "port", "worker");
+        const response2 = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, "ip_addr", "port", "worker");
+        expect(response2.error[0]).toBe(22);
+        expect(response2.error[1]).toBe('duplicate share');
+    });
+
+    test('Test share submission process [8]', () => {
+        const transactionData = JSON.parse(JSON.stringify(rpcData));
+        manager.processTemplate(transactionData);
+        const previousDifficulty = 1
+        const difficulty = 1
+        const extraNonce1 = "00000001".toString("hex");
+        const extraNonce2 = "00000000".toString("hex");
+        const time = "6036c54f".toString("hex");
+        const nonce = "fe1a0000".toString("hex");
+        const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, "ip_addr", "port", "worker");
+        expect(response.error[0]).toBe(23);
+        expect(response.error[1].slice(0, 23)).toBe('low difficulty share of');
+    });
+
+    test('Test share submission process [9]', () => {
+        const transactionData = JSON.parse(JSON.stringify(rpcData));
+        manager.processTemplate(transactionData);
+        const previousDifficulty = 0.0000001;
+        const difficulty = 1;
+        const extraNonce1 = "00000001".toString("hex");
+        const extraNonce2 = "00000000".toString("hex");
+        const time = "6036c54f".toString("hex");
+        const nonce = "fe1a0000".toString("hex");
+        const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, "ip_addr", "port", "worker");
+        expect(typeof response.blockHashInvalid).toBe("string");
+    });
 });
