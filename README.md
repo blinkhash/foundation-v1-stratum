@@ -1,36 +1,8 @@
-<p align="center">
-    <img src="resources/blinkhash-logo-text3.png" height="110"></img>
-</p>
-
----
-
 ## Introduction
 
 This portal is a high performance Stratum server written entirely in Node.js. One instance of this software can startup and manage multiple coin pools, each with their own daemon and Stratum ports. This server itself was built to be efficient, transparent, and easy to setup, while still maintaining greater scalability than many of the other open-source Stratum servers. This repository itself, however, is simply a module. It will do nothing on its own. Unless you're a Node.js developer who would like to learn more regarding stratum authentication and raw share data, this module will not be of use to you. For a complete backend server that implements this module, see https://github.com/blinkhash/blinkhash-server. It handles payments, database integration, multi-coin/pool support, and more.
 
----
-
-## Specifications
-
-#### Features
-
-* Daemon RPC interface
-* Stratum TCP socket server
-* Block template / job manager
-* P2P to get block notifications as peer node
-* Optimized generation transaction building
-* Connecting to multiple daemons for redundancy
-* Process share submissions
-* Session managing for purging DDoS/flood initiated zombie workers
-* Auto ban IPs that are flooding with invalid shares
-* __POW__ (proof-of-work) & __POS__ (proof-of-stake) support
-* Transaction messages support
-* Vardiff (variable difficulty / share limiter)
-* When started with a coin daemon that hasn't finished syncing to the network it shows the blockchain download progress and initializes once synced
-
----
-
-## Setup
+## Getting Started
 
 #### Requirements
 
@@ -66,23 +38,6 @@ cd blinkhash-server/node_modules/stratum-pool
 npm update
 ```
 
----
-
-## Credits
-
-* [Nick Sarris / Blinkhash](https://github.com/blinkhash) - developer behind Blinkhash Mining Pool/NOMP updates
-* [vekexasia](//github.com/vekexasia) - co-developer & great tester
-* [LucasJones](//github.com/LucasJones) - got p2p block notify working and implemented additional hashing algos
-* [TheSeven](//github.com/TheSeven) - answering an absurd amount of my questions, found the block 1-16 problem, provided example code for peer node functionality
-* [pronooob](https://dogehouse.org) - knowledgeable & helpful
-* [Slush0](//github.com/slush0/stratum-mining) - stratum protocol, documentation and original python code
-* [viperaus](//github.com/viperaus/stratum-mining) - scrypt adaptions to python code
-* [ahmedbodi](//github.com/ahmedbodi/stratum-mining) - more algo adaptions to python code
-* [steveshit](//github.com/steveshit) - ported X11 hashing algo from python to node module
-
----
-
 ## License
 
-Released under the GNU General Public License v2
-http://www.gnu.org/licenses/gpl-2.0.html
+Released under the GNU General Public License v2. See http://www.gnu.org/licenses/gpl-2.0.html for more information
