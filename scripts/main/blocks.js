@@ -85,10 +85,10 @@ let BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     // Serialize Block Coinbase
     this.serializeCoinbase = function(extraNonce1, extraNonce2, options) {
         return Buffer.concat([
-          this.generation[0][0],
+          this.generation[0],
           extraNonce1,
           extraNonce2,
-          this.generation[0][1]
+          this.generation[1]
         ])
     };
 
@@ -135,8 +135,8 @@ let BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
             this.jobParams = [
                 this.jobId,
                 this.prevHashReversed,
-                this.generation[0][0].toString('hex'),
-                this.generation[0][1].toString('hex'),
+                this.generation[0].toString('hex'),
+                this.generation[1].toString('hex'),
                 this.getMerkleHashes(this.merkle.steps),
                 util.packInt32BE(this.rpcData.version).toString('hex'),
                 this.rpcData.bits,

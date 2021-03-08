@@ -63,11 +63,6 @@ describe('Test utility functionality', () => {
         expect(util.bignumFromBitsHex("1e0ffff0").toNumber().toFixed(9)).toBe("1.1042625655198232e+71");
     });
 
-    test('Test implemented miningKeyToScript', () => {
-        const script1 = util.miningKeyToScript("77bff20c60e522dfaa3350c39b030a5d004e839a");
-        expect(script1).toStrictEqual(Buffer.from("76a91477bff20c60e522dfaa3350c39b030a5d004e839a88ac", "hex"));
-    });
-
     test('Test implemented packUInt16LE', () => {
         expect(util.packUInt16LE(21243)).toStrictEqual(Buffer.from("fb52", "hex"));
         expect(util.packUInt16LE(13815)).toStrictEqual(Buffer.from("f735", "hex"));

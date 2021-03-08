@@ -23,17 +23,19 @@ let Transactions = function() {
         let txInPrevOutIndex = Math.pow(2, 32) - 1;
         let txOutputBuffers = [];
         let txVersion = options.coin.txMessages === true ? 2 : 1;
-        if (rpcData.coinbasetxn && rpcData.coinbasetxn.data) {
-            txVersion = parseInt(util.reverseHex(rpcData.coinbasetxn.data.slice(0, 8)), 16);
-        }
 
         // Support Coinbase v3 Block Template
         if (rpcData.coinbase_payload && rpcData.coinbase_payload.length > 0) {
             txVersion = 3;
             txType = 5;
-            txExtraPayload = new Buffer(rpcData.coinbase_payload, 'hex');
+            txExtraPayload = Buffer.from(rpcData.coinbase_payload, 'hex');
         }
-        if (!(rpcData.coinbasetxn && rpcData.coinbasetxn.data)) {
+
+        // Handle Version w/ CoinbaseTxn
+        if (rpcData.coinbasetxn && rpcData.coinbasetxn.data) {
+            txVersion = parseInt(util.reverseHex(rpcData.coinbasetxn.data.slice(0, 8)), 16);
+        }
+        else {
             txVersion = txVersion + (txType << 16);
         }
 
@@ -91,7 +93,7 @@ let Transactions = function() {
                         payeeScript = Buffer.from(rpcData.masternode[i].script, 'hex')
                     }
                     else {
-                        util.addressToScript(rpcData.masternode[i].payee, options.network);
+                        payeeScript = util.addressToScript(rpcData.masternode[i].payee, options.network);
                     }
                     reward -= payeeReward;
                     rewardToPool -= payeeReward;
@@ -113,7 +115,7 @@ let Transactions = function() {
                     payeeScript = Buffer.from(rpcData.superblock[i].script, 'hex')
                 }
                 else {
-                    util.addressToScript(rpcData.superblock[i].payee, options.network);
+                    payeeScript = util.addressToScript(rpcData.superblock[i].payee, options.network);
                 }
                 reward -= payeeReward;
                 rewardToPool -= payeeReward;
@@ -150,7 +152,7 @@ let Transactions = function() {
         for (let i = 0; i < options.recipients.length; i++) {
             let recipientReward = Math.floor(options.recipients[i].percent * reward);
             let recipientScript = util.addressToScript(options.recipients[i].address, options.network);
-            reward -= payeeReward;
+            reward -= recipientReward;
             rewardToPool -= recipientReward;
             txOutputBuffers.push(Buffer.concat([
                 util.packUInt64LE(recipientReward),
@@ -193,7 +195,7 @@ let Transactions = function() {
 
         // Check for Extra Transaction Payload
         if (txExtraPayload !== undefined) {
-            let p2 = Buffer.concat([
+            p2 = Buffer.concat([
                 p2,
                 util.varIntBuffer(txExtraPayload.length),
                 txExtraPayload
@@ -201,7 +203,7 @@ let Transactions = function() {
         }
 
         // Return Generated Transaction
-        return [[p1, p2], null];
+        return [p1, p2];
     }
 };
 
