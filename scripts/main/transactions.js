@@ -13,7 +13,7 @@ let Transactions = function() {
 
     // Convert Address to Usable Script
     function convertScript(address, network) {
-        let outputScript = util.addressToScript(network, address);
+        let outputScript = util.addressToScript(address, network);
         if (address.length === 40) {
             outputScript = util.miningKeyToScript(address);
         }
@@ -87,7 +87,7 @@ let Transactions = function() {
                 reward -= payeeReward;
                 rewardToPool -= payeeReward;
                 txOutputBuffers.push(Buffer.concat([
-                    util.packInt64LE(payeeReward),
+                    util.packUInt64LE(payeeReward),
                     util.varIntBuffer(payeeScript.length),
                     payeeScript,
                 ]));
@@ -105,7 +105,7 @@ let Transactions = function() {
                     reward -= payeeReward;
                     rewardToPool -= payeeReward;
                     txOutputBuffers.push(Buffer.concat([
-                        util.packInt64LE(payeeReward),
+                        util.packUInt64LE(payeeReward),
                         util.varIntBuffer(payeeScript.length),
                         payeeScript,
                     ]));
@@ -127,7 +127,7 @@ let Transactions = function() {
                 reward -= payeeReward;
                 rewardToPool -= payeeReward;
                 txOutputBuffers.push(Buffer.concat([
-                    util.packInt64LE(payeeReward),
+                    util.packUInt64LE(payeeReward),
                     util.varIntBuffer(payeeScript.length),
                     payeeScript
                 ]));
@@ -141,7 +141,7 @@ let Transactions = function() {
             reward -= payeeReward;
             rewardToPool -= payeeReward;
             txOutputBuffers.push(Buffer.concat([
-                util.packInt64LE(payeeReward),
+                util.packUInt64LE(payeeReward),
                 util.varIntBuffer(payeeScript.length),
                 payeeScript,
             ]));
@@ -162,7 +162,7 @@ let Transactions = function() {
             reward -= payeeReward;
             rewardToPool -= recipientReward;
             txOutputBuffers.push(Buffer.concat([
-                util.packInt64LE(recipientReward),
+                util.packUInt64LE(recipientReward),
                 util.varIntBuffer(recipientScript.length),
                 recipientScript,
             ]));
@@ -170,7 +170,7 @@ let Transactions = function() {
 
         // Handle Pool Transaction
         txOutputBuffers.unshift(Buffer.concat([
-            util.packInt64LE(rewardToPool),
+            util.packUInt64LE(rewardToPool),
             util.varIntBuffer(poolAddressScript.length),
             poolAddressScript
         ]));
@@ -179,7 +179,7 @@ let Transactions = function() {
         if (rpcData.default_witness_commitment !== undefined) {
             witness_commitment = Buffer.from(rpcData.default_witness_commitment, 'hex');
             txOutputBuffers.unshift(Buffer.concat([
-                util.packInt64LE(0),
+                util.packUInt64LE(0),
                 util.varIntBuffer(witness_commitment.length),
                 witness_commitment
             ]));

@@ -17,7 +17,7 @@ let SubscriptionCounter = function() {
         next: function() {
             count++;
             if (Number.MAX_VALUE === count) count = 0;
-            return padding + util.packInt64LE(count).toString('hex');
+            return padding + util.packUInt64LE(count).toString('hex');
         }
     };
 };

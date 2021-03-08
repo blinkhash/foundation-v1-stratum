@@ -219,7 +219,7 @@ let Peer = function(options) {
         let payload = Buffer.concat([
             util.packUInt32LE(options.protocolVersion),
             networkServices,
-            util.packInt64LE(Date.now() / 1000 | 0),
+            util.packUInt64LE(Date.now() / 1000 | 0),
             emptyNetAddress,
             emptyNetAddress,
             crypto.pseudoRandomBytes(8),

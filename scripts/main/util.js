@@ -12,14 +12,14 @@ let bitcoin = require('blinkhash-utxo-lib');
 let crypto = require('crypto');
 
 // Convert Address to Script
-exports.addressToScript = function(network, addr) {
-    if (typeof network !== "undefined") {
-        if (network.coin === 'bch' && bchaddr.isCashAddress(addr)) {
-            addr = bchaddr.toLegacyAddress(addr)
-        }
-        else {
-            return bitcoin.address.toOutputScript(addr, network);
-        }
+exports.addressToScript = function(addr, network) {
+    network = network || {};
+    if (network.coin === 'bch' && bchaddr.isCashAddress(addr)) {
+        addr = bchaddr.toLegacyAddress(addr)
+        return bitcoin.address.toOutputScript(addr, network);
+    }
+    else if (typeof network.coin !== "undefined") {
+        return bitcoin.address.toOutputScript(addr, network);
     }
     else {
         return Buffer.concat([Buffer.from([0x76, 0xa9, 0x14]), bitcoin.address.fromBase58Check(addr).hash, Buffer.from([0x88, 0xac])]);
@@ -59,6 +59,13 @@ exports.packUInt16LE = function(num) {
     return buff;
 };
 
+// Alloc/Write UInt16LE
+exports.packUInt16BE = function(num) {
+    let buff = Buffer.alloc(2);
+    buff.writeUInt16BE(num, 0);
+    return buff;
+};
+
 // Alloc/Write UInt32LE
 exports.packUInt32LE = function(num) {
     let buff = Buffer.alloc(4);
@@ -70,6 +77,22 @@ exports.packUInt32LE = function(num) {
 exports.packUInt32BE = function(num) {
     let buff = Buffer.alloc(4);
     buff.writeUInt32BE(num, 0);
+    return buff;
+};
+
+// Alloc/Write Int64LE
+exports.packUInt64LE = function(num) {
+    let buff = Buffer.alloc(8);
+    buff.writeUInt32LE(num % Math.pow(2, 32), 0);
+    buff.writeUInt32LE(Math.floor(num / Math.pow(2, 32)), 4);
+    return buff;
+};
+
+// Alloc/Write Int64LE
+exports.packUInt64BE = function(num) {
+    let buff = Buffer.alloc(8);
+    buff.writeUInt32BE(Math.floor(num / Math.pow(2, 32)), 0);
+    buff.writeUInt32BE(num % Math.pow(2, 32), 4);
     return buff;
 };
 
@@ -87,22 +110,14 @@ exports.packInt32BE = function(num) {
     return buff;
 };
 
-// Alloc/Write Int64LE
-exports.packInt64LE = function(num) {
-    let buff = Buffer.alloc(8);
-    buff.writeUInt32LE(num % Math.pow(2, 32), 0);
-    buff.writeUInt32LE(Math.floor(num / Math.pow(2, 32)), 4);
-    return buff;
-};
-
 // Range Function
 exports.range = function(start, stop, step) {
+    if (typeof step === 'undefined') {
+        step = 1;
+    }
     if (typeof stop === 'undefined') {
         stop = start;
         start = 0;
-    }
-    if (typeof step === 'undefined') {
-        step = 1;
     }
     if ((step > 0 && start >= stop) || (step < 0 && start <= stop)) {
         return [];
@@ -215,19 +230,19 @@ exports.varIntBuffer = function(n) {
     else if (n <= 0xffff) {
         let buff = Buffer.alloc(3);
         buff[0] = 0xfd;
-        buff.writeUInt16LE(n, 1);
+        exports.packUInt16LE(n).copy(buff, 1);
         return buff;
     }
     else if (n <= 0xffffffff) {
         let buff = Buffer.alloc(5);
         buff[0] = 0xfe;
-        buff.writeUInt32LE(n, 1);
+        exports.packUInt32LE(n).copy(buff, 1);
         return buff;
     }
-    else{
+    else {
         let buff = Buffer.alloc(9);
         buff[0] = 0xff;
-        exports.packUInt16LE(n).copy(buff, 1);
+        exports.packUInt64LE(n).copy(buff, 1);
         return buff;
     }
 };
