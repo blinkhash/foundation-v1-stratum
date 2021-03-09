@@ -11,7 +11,7 @@ let events = require('events');
 let util = require('./util.js');
 
 // Generate String Buffer from Parameter Length
-let fixedLenStringBuffer = function(s, len) {
+function fixedLenStringBuffer(s, len) {
     let buff = Buffer.alloc(len);
     buff.fill(0);
     buff.write(s);
@@ -19,7 +19,7 @@ let fixedLenStringBuffer = function(s, len) {
 };
 
 // Generate Command String Buffer
-let commandStringBuffer = function (s) {
+function commandStringBuffer(s) {
     return fixedLenStringBuffer(s, 12);
 };
 
@@ -30,7 +30,7 @@ let commandStringBuffer = function (s) {
    - callback returns 1) data buffer and 2) lopped/over-read data */
 
 // Read Bytes Functionality
-let readFlowingBytes = function (stream, amount, preRead, callback) {
+function readFlowingBytes(stream, amount, preRead, callback) {
     let buff = preRead ? preRead : Buffer.from([]);
     let readData = function (data) {
         buff = Buffer.concat([buff, data]);
@@ -51,10 +51,10 @@ let Peer = function(options) {
     // Establish Peer Variables
     let _this = this;
     let client;
+    let verack = options.verack;
+    let validConnectionConfig = options.validConnectionConfig;
     let magic = Buffer.from(options.testnet ? options.coin.peerMagicTestnet : options.coin.peerMagic, 'hex');
     let magicInt = magic.readUInt32LE(0);
-    let verack = false;
-    let validConnectionConfig = true;
 
     // Bitcoin Inventory Codes
     let invCodes = {
@@ -64,10 +64,10 @@ let Peer = function(options) {
     };
 
     // Establish Network Variables
-    let networkServices = Buffer.from('0100000000000000', 'hex'); //NODE_NETWORK services (value 1 packed as uint64)
+    let networkServices = Buffer.from('0100000000000000', 'hex'); // NODE_NETWORK services (value 1 packed as uint64)
     let emptyNetAddress = Buffer.from('010000000000000000000000000000000000ffff000000000000', 'hex');
     let userAgent = util.varStringBuffer('/node-stratum/');
-    let blockStartHeight = Buffer.from('00000000', 'hex'); //block start_height, can be empty
+    let blockStartHeight = Buffer.from('00000000', 'hex'); // block start_height, can be empty
     let relayTransactions = options.p2p.disableTransactions === true ? Buffer.from([false]) : Buffer.from([]);
 
     // Establish Peer Commands
@@ -81,7 +81,8 @@ let Peer = function(options) {
 
     // Initialize Peer Connection
     function initializePeer() {
-        connectPeer();
+        const client = connectPeer();
+        return client;
     }
 
     // Establish Peer Connection
@@ -100,9 +101,9 @@ let Peer = function(options) {
                 verack = false;
                 connectPeer();
             }
-            else if (validConnectionConfig)
+            else if (validConnectionConfig) {
                 _this.emit('connectionRejected');
-
+            }
         });
 
         // Manage Peer Error Functionality
@@ -111,12 +112,14 @@ let Peer = function(options) {
                 validConnectionConfig = false;
                 _this.emit('connectionFailed');
             }
-            else
+            else {
                 _this.emit('socketError', e);
+            }
         });
 
         // Allow Peer to Receive/Send Messages
         setupMessageParser(client);
+        return client;
     }
 
     // Establish Peer Message Parser
@@ -158,8 +161,7 @@ let Peer = function(options) {
     function handleInventory(payload) {
         let count = payload.readUInt8(0);
         payload = payload.slice(1);
-        if (count >= 0xfd)
-        {
+        if (count >= 0xfd) {
             count = payload.readUInt16LE(0);
             payload = payload.slice(2);
         }
@@ -232,6 +234,16 @@ let Peer = function(options) {
 
     // Initialize Peer Connection
     let connection = initializePeer();
+
+    // Establish External Capabilities
+    this.initializePeer = initializePeer
+    this.connectPeer = connectPeer
+    this.setupMessageParser = setupMessageParser
+    this.handleInventory = handleInventory
+    this.handleMessage = handleMessage
+    this.sendMessage = sendMessage
+    this.sendVersion = sendVersion
+
 };
 
 // Export Peer

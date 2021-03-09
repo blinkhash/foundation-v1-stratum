@@ -501,6 +501,8 @@ let Pool = function(options, authorizeFn) {
         }
 
         // Establish Peer
+        options.verack = false;
+        options.validConnectionConfig = true
         _this.peer = new Peer(options);
 
         // Establish Connection Functionality
