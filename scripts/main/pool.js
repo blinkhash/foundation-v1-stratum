@@ -10,6 +10,7 @@ let async = require('async');
 let util = require('./util.js');
 
 // Import Required Modules
+let Algorithms = require('../main/algorithms');
 let Difficulty = require('./difficulty.js');
 let Daemon = require('./daemon.js');
 let Manager = require('./manager.js');
@@ -30,7 +31,7 @@ let Pool = function(options, authorizeFn) {
 
     // Check if Algorithm is Supported
     this.options = options;
-    if (!(options.coin.algorithm in algorithms)) {
+    if (!(options.coin.algorithm in Algorithms)) {
         emitErrorLog('The ' + options.coin.algorithm + ' hashing algorithm is not supported.');
         throw new Error();
     }
@@ -127,7 +128,7 @@ let Pool = function(options, authorizeFn) {
 
         // Define Initial RPC Calls
         let batchRPCCommand = [
-            ['validateaddress', [options.addresses.address]],
+            ['validateaddress', [options.address]],
             ['getdifficulty', []],
             ['getmininginfo', []],
             ['submitblock', []]
@@ -449,7 +450,7 @@ let Pool = function(options, authorizeFn) {
             let portWarnings = [];
             let networkDiffAdjusted = options.initStats.difficulty;
             Object.keys(options.ports).forEach(function(port) {
-                let portDiff = options.ports[port].diff;
+                let portDiff = options.ports[port].initial;
                 if (networkDiffAdjusted < portDiff)
                     portWarnings.push('port ' + port + ' w/ diff ' + portDiff);
             });
@@ -488,6 +489,10 @@ let Pool = function(options, authorizeFn) {
     // Initialize Pool Peers
     function setupPeer() {
 
+        // Establish Peer Settings
+        options.verack = false;
+        options.validConnectionConfig = true
+
         // Check for P2P Configuration
         if (!options.p2p || !options.p2p.enabled)
             return;
@@ -501,8 +506,6 @@ let Pool = function(options, authorizeFn) {
         }
 
         // Establish Peer
-        options.verack = false;
-        options.validConnectionConfig = true
         _this.peer = new Peer(options);
 
         // Establish Connection Functionality
@@ -582,8 +585,8 @@ let Pool = function(options, authorizeFn) {
                 let extraNonce = _this.manager.extraNonceCounter.next();
                 let extraNonce2Size = _this.manager.extraNonce2Size;
                 resultCallback(null, extraNonce, extraNonce2Size);
-                if (typeof(options.ports[client.socket.localPort]) !== 'undefined' && options.ports[client.socket.localPort].diff) {
-                    this.sendDifficulty(options.ports[client.socket.localPort].diff);
+                if (typeof(options.ports[client.socket.localPort]) !== 'undefined' && options.ports[client.socket.localPort].initial) {
+                    this.sendDifficulty(options.ports[client.socket.localPort].initial);
                 }
                 else {
                     this.sendDifficulty(8);
@@ -667,13 +670,13 @@ let Pool = function(options, authorizeFn) {
             return;
         }
         let infoLines = [startMessage,
-                'Network Connected:\t' + (options.testnet ? 'Testnet' : 'Mainnet'),
-                'Current Block Height:\t' + _this.manager.currentJob.rpcData.height,
-                'Current Connect Peers:\t' + options.initStats.connections,
-                'Current Block Diff:\t' + _this.manager.currentJob.difficulty * algorithms[options.coin.algorithm].multiplier,
-                'Network Difficulty:\t' + options.initStats.difficulty,
-                'Stratum Port(s):\t' + _this.options.initStats.stratumPorts.join(', '),
-                'Pool Fee Percent:\t' + _this.options.feePercent + '%'
+            'Network Connected:\t' + (options.testnet ? 'Testnet' : 'Mainnet'),
+            'Current Block Height:\t' + _this.manager.currentJob.rpcData.height,
+            'Current Connect Peers:\t' + options.initStats.connections,
+            'Current Block Diff:\t' + _this.manager.currentJob.difficulty * algorithms[options.coin.algorithm].multiplier,
+            'Network Difficulty:\t' + options.initStats.difficulty,
+            'Stratum Port(s):\t' + _this.options.initStats.stratumPorts.join(', '),
+            'Pool Fee Percent:\t' + _this.options.feePercent + '%'
         ];
         if (typeof options.blockRefreshInterval === "number" && options.blockRefreshInterval > 0) {
             infoLines.push('Block Polling Every:\t' + options.blockRefreshInterval + ' ms');
