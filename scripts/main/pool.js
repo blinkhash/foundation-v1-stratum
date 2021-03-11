@@ -114,11 +114,6 @@ let Pool = function(options, authorizeFn) {
             emitErrorLog('Failed to connect daemon(s): ' + JSON.stringify(error));
         });
 
-        // Establish Error Functionality
-        _this.daemon.on('error', function(message) {
-            emitErrorLog(message);
-        });
-
         // Initialize Daemon
         _this.daemon.initDaemons(function(status) {});
     }
@@ -129,7 +124,6 @@ let Pool = function(options, authorizeFn) {
         // Define Initial RPC Calls
         let batchRPCCommand = [
             ['validateaddress', [options.address]],
-            ['getdifficulty', []],
             ['getmininginfo', []],
             ['submitblock', []]
         ];
@@ -145,7 +139,7 @@ let Pool = function(options, authorizeFn) {
         // Manage RPC Batches
         _this.daemon.batchCmd(batchRPCCommand, function(error, results) {
             if (error || !results) {
-                emitErrorLog('Could not start pool, error with init batch RPC call: ' + JSON.stringify(error));
+                emitErrorLog('Could not start pool, error with init batch RPC call');
                 return;
             }
 
@@ -683,6 +677,21 @@ let Pool = function(options, authorizeFn) {
         }
         emitSpecialLog(infoLines.join('\n\t\t\t\t\t\t'));
     }
+
+    // Establish External Capabilities
+    this.setupDifficulty = setupDifficulty
+    this.setupDaemonInterface = setupDaemonInterface
+    this.setupPoolData = setupPoolData
+    this.setupRecipients = setupRecipients
+    this.getBlockTemplate = getBlockTemplate
+    this.submitBlock = submitBlock
+    this.setupJobManager = setupJobManager
+    this.syncBlockchain = syncBlockchain
+    this.setupFirstJob = setupFirstJob
+    this.setupBlockPolling = setupBlockPolling
+    this.setupPeer = setupPeer
+    this.startStratumServer = startStratumServer
+    this.outputPoolInfo = outputPoolInfo
 };
 
 module.exports = Pool;

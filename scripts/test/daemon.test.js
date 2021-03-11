@@ -12,7 +12,7 @@ const Daemon = require('../main/daemon');
 
 const daemons = [{
     "host": "127.0.0.1",
-    "port": "9332",
+    "port": "8332",
     "user": "blinkhash",
     "password": "blinkhash"
 }];
@@ -39,7 +39,7 @@ describe('Test daemon functionality', () => {
     });
 
     test('Test initialization of daemons [1]', (done) => {
-        const scope = nock('http://127.0.0.1:9332')
+        const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
                 id: "nocktest",
@@ -53,7 +53,7 @@ describe('Test daemon functionality', () => {
     });
 
     test('Test initialization of daemons [2]', (done) => {
-        const scope = nock('http://127.0.0.1:9332')
+        const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
                 id: "nocktest",
@@ -67,7 +67,7 @@ describe('Test daemon functionality', () => {
     });
 
     test('Test online status of mock daemons [1]', (done) => {
-        const scope = nock('http://127.0.0.1:9332')
+        const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
                 id: "nocktest",
@@ -81,7 +81,7 @@ describe('Test daemon functionality', () => {
     });
 
     test('Test online status of mock daemons [2]', (done) => {
-        const scope = nock('http://127.0.0.1:9332')
+        const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
                 id: "nocktest",
@@ -95,7 +95,7 @@ describe('Test daemon functionality', () => {
     });
 
     test('Test raw data handling of mock daemons', (done) => {
-        const scope = nock('http://127.0.0.1:9332')
+        const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getinfo")
             .reply(200, JSON.stringify({
                 id: "nocktest",
@@ -110,7 +110,7 @@ describe('Test daemon functionality', () => {
     });
 
     test('Test streaming data handling of mock daemons', (done) => {
-        const scope = nock('http://127.0.0.1:9332')
+        const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getinfo")
             .reply(200, JSON.stringify({
                 id: "nocktest",
@@ -125,7 +125,7 @@ describe('Test daemon functionality', () => {
 
     test('Test error handling of mock daemons [1]', (done) => {
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-        const scope = nock('http://127.0.0.1:9332')
+        const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getinfo")
             .reply(401, {});
         daemon.cmd('getinfo', [], function(results) {
@@ -137,7 +137,7 @@ describe('Test daemon functionality', () => {
 
     test('Test error handling of mock daemons [2]', (done) => {
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-        const scope = nock('http://127.0.0.1:9332')
+        const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getinfo")
             .reply(200, 'this is an example of bad data {/13');
         const request = JSON.stringify({ "method": "getinfo", "params": [], "id": 1615071070849 })
@@ -150,7 +150,7 @@ describe('Test daemon functionality', () => {
     });
 
     test('Test error handling of mock daemons [3]', (done) => {
-        const scope = nock('http://127.0.0.1:9332')
+        const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getinfo")
             .replyWithError({ code: 'ECONNREFUSED' });
         daemon.cmd('getinfo', [], function(results) {
@@ -160,7 +160,7 @@ describe('Test daemon functionality', () => {
     });
 
     test('Test error handling of mock daemons [4]', (done) => {
-        const scope = nock('http://127.0.0.1:9332')
+        const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getinfo")
             .replyWithError({ code: 'ALTERNATE' });
         daemon.cmd('getinfo', [], function(results) {
@@ -170,13 +170,13 @@ describe('Test daemon functionality', () => {
     });
 
     test('Test handling of batch commands to mock daemons', (done) => {
-        const scope = nock('http://127.0.0.1:9332')
+        const commands = [['getinfo', []], ['getpeerinfo', []]];
+        const scope = nock('http://127.0.0.1:8332')
             .post('/').reply(200, JSON.stringify({
                 id: "nocktest",
                 error: null,
                 result: null,
             }));
-        const commands = [['getinfo', []], ['getpeerinfo', []]];
         daemon.batchCmd(commands, function(error, results) {
             expect(results.id).toBe("nocktest");
             expect(results.error).toBe(null);

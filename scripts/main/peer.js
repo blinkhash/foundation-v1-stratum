@@ -243,7 +243,6 @@ let Peer = function(options) {
     this.handleMessage = handleMessage
     this.sendMessage = sendMessage
     this.sendVersion = sendVersion
-
 };
 
 // Export Peer

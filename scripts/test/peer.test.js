@@ -18,7 +18,7 @@ const options = {
     "p2p": {
         "enabled": true,
         "host": "127.0.0.1",
-        "port": "9332",
+        "port": "8332",
         "disableTransactions": true
     },
     "testnet": false,
@@ -32,7 +32,7 @@ describe('Test peer functionality', () => {
     beforeEach(() => socket = mitm());
     afterEach(() => socket.disable());
 
-    test('Test peer socket initialization', () => {
+    test('Test initialization of peer socket', () => {
         const peer = new Peer(options);
         client = peer.initializePeer();
         expect(typeof client).toBe("object");

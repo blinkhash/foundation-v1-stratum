@@ -59,7 +59,7 @@ let Merkle = function(data) {
         return hash;
     }
 
-    // Establish Merkle Variables
+    // Establish External Capabilities
     this.steps = calculateSteps(data);
     this.withFirst = withFirst;
 }
