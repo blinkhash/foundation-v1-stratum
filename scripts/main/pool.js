@@ -145,16 +145,14 @@ let Pool = function(options, authorizeFn) {
 
             // Check Results of Each RPC Call
             let rpcResults = {};
-            for (let i = 0; i < results.length; i++) {
-                let rpcCall = batchRPCCommand[i][0];
-                let r = results[i];
-                rpcResults[rpcCall] = r.result || r.error;
-
-                if (rpcCall !== 'submitblock' && (r.error || !r.result)) {
-                    emitErrorLog('Could not start pool, error with init RPC call: ' + rpcCall + ' - ' + JSON.stringify(r.error));
+            results.forEach((output, idx) => {
+                let rpcCall = batchRPCCommand[idx][0];
+                rpcResults[rpcCall] = output.result || output.error;
+                if (rpcCall !== 'submitblock' && (output.error || !output.result)) {
+                    emitErrorLog('Could not start pool, error with init RPC call: ' + rpcCall + ' - ' + JSON.stringify(output.error));
                     return;
                 }
-            }
+            });
 
             // Check Pool Address is Valid
             if (!rpcResults.validateaddress.isvalid) {
@@ -194,7 +192,7 @@ let Pool = function(options, authorizeFn) {
                 options.hasSubmitMethod = true;
             }
             else {
-                emitErrorLog('Could not detect block submission RPC method, ' + JSON.stringify(results));
+                emitErrorLog('Could not detect block submission RPC method');
                 return;
             }
 

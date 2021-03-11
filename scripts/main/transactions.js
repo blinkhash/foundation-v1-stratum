@@ -86,14 +86,14 @@ let Transactions = function() {
                 ]));
             }
             else if (rpcData.masternode.length > 0) {
-                for (let i in rpcData.masternode) {
-                    let payeeReward = rpcData.masternode[i].amount;
+                rpcData.masternode.forEach(payee => {
+                    let payeeReward = payee.amount;
                     let payeeScript;
-                    if (rpcData.masternode[i].script) {
-                        payeeScript = Buffer.from(rpcData.masternode[i].script, 'hex')
+                    if (payee.script) {
+                        payeeScript = Buffer.from(payee.script, 'hex')
                     }
                     else {
-                        payeeScript = util.addressToScript(rpcData.masternode[i].payee, options.network);
+                        payeeScript = util.addressToScript(payee.payee, options.network);
                     }
                     reward -= payeeReward;
                     rewardToPool -= payeeReward;
@@ -102,29 +102,29 @@ let Transactions = function() {
                         util.varIntBuffer(payeeScript.length),
                         payeeScript,
                     ]));
-                }
+                });
             }
         }
 
         // Handle Superblocks
         if (rpcData.superblock && rpcData.superblock.length > 0) {
-            for (let i in rpcData.superblock) {
-                let payeeReward = rpcData.superblock[i].amount;
+            rpcData.superblock.forEach(payee => {
+                let payeeReward = payee.amount;
                 let payeeScript;
-                if (rpcData.superblock[i].script) {
-                    payeeScript = Buffer.from(rpcData.superblock[i].script, 'hex')
+                if (payee.script) {
+                    payeeScript = Buffer.from(payee.script, 'hex')
                 }
                 else {
-                    payeeScript = util.addressToScript(rpcData.superblock[i].payee, options.network);
+                    payeeScript = util.addressToScript(payee.payee, options.network);
                 }
                 reward -= payeeReward;
                 rewardToPool -= payeeReward;
                 txOutputBuffers.push(Buffer.concat([
                     util.packUInt64LE(payeeReward),
                     util.varIntBuffer(payeeScript.length),
-                    payeeScript
+                    payeeScript,
                 ]));
-            }
+            });
         }
 
         // Handle Other Given Payees
@@ -149,9 +149,9 @@ let Transactions = function() {
         }
 
         // Handle Recipient Transactions
-        for (let i = 0; i < options.recipients.length; i++) {
-            let recipientReward = Math.floor(options.recipients[i].percent * reward);
-            let recipientScript = util.addressToScript(options.recipients[i].address, options.network);
+        options.recipients.forEach(recipient => {
+            let recipientReward = Math.floor(recipient.percent * reward);
+            let recipientScript = util.addressToScript(recipient.address, options.network);
             reward -= recipientReward;
             rewardToPool -= recipientReward;
             txOutputBuffers.push(Buffer.concat([
@@ -159,7 +159,7 @@ let Transactions = function() {
                 util.varIntBuffer(recipientScript.length),
                 recipientScript,
             ]));
-        }
+        })
 
         // Handle Pool Transaction
         txOutputBuffers.unshift(Buffer.concat([

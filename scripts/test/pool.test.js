@@ -100,7 +100,7 @@ describe('Test pool functionality', () => {
     test('Test initialization of daemon', () => {
         const optionsData = Object.assign({}, options);
         const pool = new Pool(optionsData, null);
-        pool.setupDaemonInterface(() => console.log("Callback"));
+        pool.setupDaemonInterface(() => {});
         expect(typeof pool.daemon).toBe('object');
         expect(typeof pool.daemon.indexDaemons).toBe('function');
         expect(typeof pool.daemon.isOnline).toBe('function');
@@ -181,6 +181,7 @@ describe('Test pool functionality', () => {
         pool.on('log', (type, text) => {
             expect(type).toBe("error");
             expect(text).toBe('Could not start pool, error with init batch RPC call');
+            expect(optionsData.coin.hasGetInfo).toBe(true);
             done()
         });
         pool.setupDaemonInterface(() => {
@@ -227,7 +228,15 @@ describe('Test pool functionality', () => {
                     { id: "nocktest", error: null, result: { chain: 'main', difficulty: 0 }},
                     { id: "nocktest", error: null, result: { protocolversion: 1, connections: 1 }},
                 ]));
-            pool.setupPoolData(() => done());
+            pool.setupPoolData(() => {
+                expect(optionsData.testnet).toBe(false);
+                expect(typeof optionsData.network).toBe('object');
+                expect(optionsData.poolAddress).toBe('example');
+                expect(optionsData.protocolVersion).toBe(1);
+                expect(typeof optionsData.initStats).toBe('object');
+                expect(optionsData.hasSubmitMethod).toBe(true);
+                done()
+            });
         });
     });
 
@@ -260,7 +269,6 @@ describe('Test pool functionality', () => {
     });
 
     test('Test pool batch data events [5]', (done) => {
-        console.log(options);
         const optionsData = Object.assign({}, options);
         const pool = new Pool(optionsData, null);
         let scope = nock('http://127.0.0.1:8332')
@@ -288,4 +296,130 @@ describe('Test pool functionality', () => {
         });
     });
 
+    test('Test pool batch data events [6]', (done) => {
+        const optionsData = Object.assign({}, options);
+        optionsData.coin.hasGetInfo = true;
+        const pool = new Pool(optionsData, null);
+        let scope = nock('http://127.0.0.1:8332')
+            .post('/', body => body.method === "getpeerinfo")
+            .reply(200, JSON.stringify({
+                id: "nocktest",
+                error: null,
+                result: null,
+            }));
+        pool.setupDaemonInterface(() => {
+            scope = nock('http://127.0.0.1:8332')
+                .post('/').reply(200, JSON.stringify([
+                    { id: "nocktest", error: null, result: { isvalid: true, address: "example" }},
+                    { id: "nocktest", error: null, result: { networkhashps: 0 }},
+                    { id: "nocktest", error: true, result: { code: -1 }},
+                    { id: "nocktest", error: null, result: { testnet: false, difficulty: { 'proof-of-work': 0 }, protocolversion: 1, connections: 0 }},
+                ]));
+            pool.setupPoolData(() => {
+                expect(optionsData.testnet).toBe(false);
+                expect(typeof optionsData.network).toBe('object');
+                expect(optionsData.poolAddress).toBe('example');
+                expect(optionsData.protocolVersion).toBe(1);
+                expect(typeof optionsData.initStats).toBe('object');
+                expect(optionsData.hasSubmitMethod).toBe(true);
+                done()
+            });
+        });
+    });
+
+    test('Test pool batch data events [7]', (done) => {
+        const optionsData = Object.assign({}, options);
+        optionsData.coin.hasGetInfo = false;
+        const pool = new Pool(optionsData, null);
+        let scope = nock('http://127.0.0.1:8332')
+            .post('/', body => body.method === "getpeerinfo")
+            .reply(200, JSON.stringify({
+                id: "nocktest",
+                error: null,
+                result: null,
+            }));
+        pool.setupDaemonInterface(() => {
+            scope = nock('http://127.0.0.1:8332')
+                .post('/').reply(200, JSON.stringify([
+                    { id: "nocktest", error: null, result: { isvalid: true, address: "example" }},
+                    { id: "nocktest", error: null, result: { networkhashps: 0 }},
+                    { id: "nocktest", error: true, result: { code: -1 }},
+                    { id: "nocktest", error: null, result: { chain: 'test', difficulty: { 'proof-of-work': 0 }}},
+                    { id: "nocktest", error: null, result: { protocolversion: 1, connections: 1 }},
+                ]));
+            pool.setupPoolData(() => {
+                expect(optionsData.testnet).toBe(true);
+                expect(typeof optionsData.network).toBe('object');
+                expect(optionsData.poolAddress).toBe('example');
+                expect(optionsData.protocolVersion).toBe(1);
+                expect(typeof optionsData.initStats).toBe('object');
+                expect(optionsData.hasSubmitMethod).toBe(true);
+                done()
+            });
+        });
+    });
+
+    test('Test pool batch data events [8]', (done) => {
+        const optionsData = Object.assign({}, options);
+        const pool = new Pool(optionsData, null);
+        let scope = nock('http://127.0.0.1:8332')
+            .post('/', body => body.method === "getpeerinfo")
+            .reply(200, JSON.stringify({
+                id: "nocktest",
+                error: null,
+                result: null,
+            }));
+        pool.setupDaemonInterface(() => {
+            scope = nock('http://127.0.0.1:8332')
+                .post('/').reply(200, JSON.stringify([
+                    { id: "nocktest", error: null, result: { isvalid: true, address: "example" }},
+                    { id: "nocktest", error: null, result: { networkhashps: 0 }},
+                    { id: "nocktest", error: true, result: { message: 'Method not found' }},
+                    { id: "nocktest", error: null, result: { chain: 'main', difficulty: 0 }},
+                    { id: "nocktest", error: null, result: { protocolversion: 1, connections: 1 }},
+                ]));
+            pool.setupPoolData(() => {
+                expect(optionsData.testnet).toBe(false);
+                expect(typeof optionsData.network).toBe('object');
+                expect(optionsData.poolAddress).toBe('example');
+                expect(optionsData.protocolVersion).toBe(1);
+                expect(typeof optionsData.initStats).toBe('object');
+                expect(optionsData.hasSubmitMethod).toBe(false);
+                done()
+            });
+        });
+    });
+
+    test('Test pool batch data events [9]', (done) => {
+        const optionsData = Object.assign({}, options);
+        const pool = new Pool(optionsData, null);
+        let scope = nock('http://127.0.0.1:8332')
+            .post('/', body => body.method === "getpeerinfo")
+            .reply(200, JSON.stringify({
+                id: "nocktest",
+                error: null,
+                result: null,
+            }));
+        pool.on('log', (type, text) => {
+            expect(type).toBe("error");
+            expect(text).toBe('Could not detect block submission RPC method');
+            done()
+        });
+        pool.setupDaemonInterface(() => {
+            scope = nock('http://127.0.0.1:8332')
+                .post('/').reply(200, JSON.stringify([
+                    { id: "nocktest", error: null, result: { isvalid: true, address: "example" }},
+                    { id: "nocktest", error: null, result: { networkhashps: 0 }},
+                    { id: "nocktest", error: true, result: {}},
+                    { id: "nocktest", error: null, result: { chain: 'main', difficulty: 0 }},
+                    { id: "nocktest", error: null, result: { protocolversion: 1, connections: 1 }},
+                ]));
+            pool.setupPoolData(() => {});
+        });
+    });
+
+    test('Test pool recipient setup', () => {
+        const optionsData = Object.assign({}, options);
+        const pool = new Pool(optionsData, null);
+    });
 });
