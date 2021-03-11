@@ -74,7 +74,8 @@ describe('Test manager functionality', () => {
 
     let manager;
     beforeEach(() => {
-        manager = new Manager(options);
+        const optionsData = Object.assign({}, options);
+        manager = new Manager(optionsData);
     });
 
     test('Test initial manager calculations', () => {

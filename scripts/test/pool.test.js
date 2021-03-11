@@ -75,7 +75,8 @@ nock.enableNetConnect('127.0.0.1')
 describe('Test pool functionality', () => {
 
     test('Test initialization of pool', () => {
-        const pool = new Pool(options, null);
+        const optionsData = Object.assign({}, options);
+        const pool = new Pool(optionsData, null);
         expect(typeof pool).toBe("object");
     });
 
@@ -87,7 +88,8 @@ describe('Test pool functionality', () => {
     });
 
     test('Test initialization of port difficulty', () => {
-        const pool = new Pool(options, null);
+        const optionsData = Object.assign({}, options);
+        const pool = new Pool(optionsData, null);
         pool.setupDifficulty();
         expect(typeof pool.difficulty).toBe('object');
         expect(typeof pool.difficulty['3001']).toBe('object');
@@ -96,7 +98,8 @@ describe('Test pool functionality', () => {
     });
 
     test('Test initialization of daemon', () => {
-        const pool = new Pool(options, null);
+        const optionsData = Object.assign({}, options);
+        const pool = new Pool(optionsData, null);
         pool.setupDaemonInterface(() => console.log("Callback"));
         expect(typeof pool.daemon).toBe('object');
         expect(typeof pool.daemon.indexDaemons).toBe('function');
@@ -118,7 +121,8 @@ describe('Test pool functionality', () => {
     });
 
     test('Test pool daemon events [2]', (done) => {
-        const pool = new Pool(options, null);
+        const optionsData = Object.assign({}, options);
+        const pool = new Pool(optionsData, null);
         const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(401, {});
@@ -132,7 +136,8 @@ describe('Test pool functionality', () => {
     });
 
     test('Test pool daemon events [3]', (done) => {
-        const pool = new Pool(options, null);
+        const optionsData = Object.assign({}, options);
+        const pool = new Pool(optionsData, null);
         const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
@@ -144,7 +149,8 @@ describe('Test pool functionality', () => {
     });
 
     test('Test pool daemon events [4]', (done) => {
-        const pool = new Pool(options, null);
+        const optionsData = Object.assign({}, options);
+        const pool = new Pool(optionsData, null);
         const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
@@ -183,7 +189,8 @@ describe('Test pool functionality', () => {
     });
 
     test('Test pool batch data events [2]', (done) => {
-        const pool = new Pool(options, null);
+        const optionsData = Object.assign({}, options);
+        const pool = new Pool(optionsData, null);
         let scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
@@ -202,7 +209,8 @@ describe('Test pool functionality', () => {
     });
 
     test('Test pool batch data events [3]', (done) => {
-        const pool = new Pool(options, null);
+        const optionsData = Object.assign({}, options);
+        const pool = new Pool(optionsData, null);
         let scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
@@ -220,7 +228,63 @@ describe('Test pool functionality', () => {
                     { id: "nocktest", error: null, result: { protocolversion: 1, connections: 1 }},
                 ]));
             pool.setupPoolData(() => done());
+        });
+    });
 
+    test('Test pool batch data events [4]', (done) => {
+        const optionsData = Object.assign({}, options);
+        const pool = new Pool(optionsData, null);
+        let scope = nock('http://127.0.0.1:8332')
+            .post('/', body => body.method === "getpeerinfo")
+            .reply(200, JSON.stringify({
+                id: "nocktest",
+                error: null,
+                result: null,
+            }));
+        pool.on('log', (type, text) => {
+            expect(type).toBe("error");
+            expect(text).toBe('Could not start pool, error with init RPC call: validateaddress - true');
+            done()
+        });
+        pool.setupDaemonInterface(() => {
+            scope = nock('http://127.0.0.1:8332')
+                .post('/').reply(200, JSON.stringify([
+                    { id: "nocktest", error: true, result: { isvalid: true, address: "example" }},
+                    { id: "nocktest", error: null, result: { networkhashps: 0 }},
+                    { id: "nocktest", error: true, result: { code: -1 }},
+                    { id: "nocktest", error: null, result: { chain: 'main', difficulty: 0 }},
+                    { id: "nocktest", error: null, result: { protocolversion: 1, connections: 1 }},
+                ]));
+            pool.setupPoolData(() => {});
+        });
+    });
+
+    test('Test pool batch data events [5]', (done) => {
+        console.log(options);
+        const optionsData = Object.assign({}, options);
+        const pool = new Pool(optionsData, null);
+        let scope = nock('http://127.0.0.1:8332')
+            .post('/', body => body.method === "getpeerinfo")
+            .reply(200, JSON.stringify({
+                id: "nocktest",
+                error: null,
+                result: null,
+            }));
+        pool.on('log', (type, text) => {
+            expect(type).toBe("error");
+            expect(text).toBe('Daemon reports address is not valid');
+            done()
+        });
+        pool.setupDaemonInterface(() => {
+            scope = nock('http://127.0.0.1:8332')
+                .post('/').reply(200, JSON.stringify([
+                    { id: "nocktest", error: null, result: { isvalid: false, address: "example" }},
+                    { id: "nocktest", error: null, result: { networkhashps: 0 }},
+                    { id: "nocktest", error: true, result: { code: -1 }},
+                    { id: "nocktest", error: null, result: { chain: 'main', difficulty: 0 }},
+                    { id: "nocktest", error: null, result: { protocolversion: 1, connections: 1 }},
+                ]));
+            pool.setupPoolData(() => {});
         });
     });
 
