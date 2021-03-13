@@ -67,9 +67,7 @@ const options = {
     },
     "poolAddress": "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq",
     "recipients": [],
-    "rewards": {
-        "rewardType": ""
-    }
+    "rewards": "",
 }
 
 const jobId = 1

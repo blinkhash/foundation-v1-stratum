@@ -42,9 +42,9 @@ describe('Test daemon functionality', () => {
         const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
-                id: "nocktest",
                 error: null,
-                result: null,
+                response: null,
+                instance: "nocktest",
             }));
         daemon.initDaemons((response) => {
             expect(response).toBe(true);
@@ -56,9 +56,9 @@ describe('Test daemon functionality', () => {
         const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
-                id: "nocktest",
                 error: true,
-                result: null,
+                response: null,
+                instance: "nocktest",
             }));
         daemon.initDaemons((response) => {
             expect(response).toBe(false);
@@ -70,9 +70,9 @@ describe('Test daemon functionality', () => {
         const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
-                id: "nocktest",
                 error: null,
-                result: null,
+                response: null,
+                instance: "nocktest",
             }));
         daemon.isOnline((response) => {
             expect(response).toBe(true);
@@ -84,9 +84,9 @@ describe('Test daemon functionality', () => {
         const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
-                id: "nocktest",
                 error: true,
-                result: null,
+                response: null,
+                instance: "nocktest",
             }));
         daemon.isOnline((response) => {
             expect(response).toBe(false);
@@ -98,12 +98,12 @@ describe('Test daemon functionality', () => {
         const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getinfo")
             .reply(200, JSON.stringify({
-                id: "nocktest",
                 error: null,
-                result: null,
+                response: null,
+                instance: "nocktest",
             }));
         daemon.cmd('getinfo', [], function(results) {
-            const response = '{"id":"nocktest","error":null,"result":null}';
+            const response = '{"error":null,"response":null,"instance":"nocktest"}';
             expect(results[0].data).toBe(response);
             done();
         }, false, true);
@@ -113,9 +113,9 @@ describe('Test daemon functionality', () => {
         const scope = nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getinfo")
             .reply(200, JSON.stringify({
-                id: "nocktest",
                 error: null,
-                result: null,
+                response: null,
+                instance: "nocktest",
             }));
         daemon.cmd('getinfo', [], function(results) {
             expect(results.error).toBe(null);
@@ -172,15 +172,15 @@ describe('Test daemon functionality', () => {
     test('Test handling of batch commands to mock daemons', (done) => {
         const commands = [['getinfo', []], ['getpeerinfo', []]];
         const scope = nock('http://127.0.0.1:8332')
-            .post('/').reply(200, JSON.stringify({
-                id: "nocktest",
-                error: null,
-                result: null,
-            }));
+            .post('/').reply(200, JSON.stringify([
+                { id: "nocktest", error: null, result: null },
+                { id: "nocktest", error: null, result: null },
+            ]));
         daemon.batchCmd(commands, function(error, results) {
-            expect(results.id).toBe("nocktest");
-            expect(results.error).toBe(null);
-            expect(results.result).toBe(null);
+            expect(results.length).toBe(2);
+            expect(results[0].id).toBe("nocktest");
+            expect(results[0].error).toBe(null);
+            expect(results[0].result).toBe(null);
             done()
         });
     });

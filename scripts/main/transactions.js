@@ -141,7 +141,7 @@ let Transactions = function() {
         }
 
         // Handle Secondary Transactions
-        switch (options.rewards.rewardType) {
+        switch (options.rewards) {
 
             // No Founder Rewards
             default:
@@ -150,7 +150,7 @@ let Transactions = function() {
 
         // Handle Recipient Transactions
         options.recipients.forEach(recipient => {
-            let recipientReward = Math.floor(recipient.percent * reward);
+            let recipientReward = Math.floor(recipient.percentage * reward);
             let recipientScript = util.addressToScript(recipient.address, options.network);
             reward -= recipientReward;
             rewardToPool -= recipientReward;

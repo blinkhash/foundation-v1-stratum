@@ -45,12 +45,6 @@ let JobCounter = function() {
     };
 };
 
-/**
- * Emits:
- * - newBlock(BlockTemplate) - When a new block (previously unknown to the JobManager) is added, use this event to broadcast new jobs
- * - share(shareData, blockHex) - When a worker submits a share. It will have blockHex if a block was found
-**/
-
 // Manager Main Function
 let Manager = function(options) {
 
@@ -98,7 +92,7 @@ let Manager = function(options) {
             options
         );
         _this.currentJob = tmpBlockTemplate;
-        _this.emit('updatedBlock', tmpBlockTemplate, true);
+        _this.emit('updatedBlock', tmpBlockTemplate);
         _this.validJobs[tmpBlockTemplate.jobId] = tmpBlockTemplate;
     }
 
@@ -119,8 +113,16 @@ let Manager = function(options) {
             return false;
         }
 
-        // Update Current Managed Block
-        this.updateCurrentJob(rpcData)
+        // Update Current Template
+        let tmpBlockTemplate = new BlockTemplate(
+            this.jobCounter.next(),
+            Object.assign({}, rpcData),
+            _this.extraNoncePlaceholder,
+            options
+        );
+        _this.currentJob = tmpBlockTemplate;
+        _this.emit('newBlock', tmpBlockTemplate);
+        _this.validJobs[tmpBlockTemplate.jobId] = tmpBlockTemplate;
         return true;
     };
 

@@ -63,9 +63,7 @@ const options = {
     "emitInvalidBlockHashes": true,
     "poolAddress": "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq",
     "recipients": [],
-    "rewards": {
-        "rewardType": ""
-    }
+    "rewards": "",
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,8 +72,8 @@ describe('Test manager functionality', () => {
 
     let manager;
     beforeEach(() => {
-        const optionsData = Object.assign({}, options);
-        manager = new Manager(optionsData);
+        const optionsCopy = Object.assign({}, options);
+        manager = new Manager(optionsCopy);
     });
 
     test('Test initial manager calculations', () => {

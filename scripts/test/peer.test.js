@@ -33,17 +33,17 @@ describe('Test peer functionality', () => {
     afterEach(() => socket.disable());
 
     test('Test initialization of peer socket', () => {
-        const optionsData = Object.assign({}, options);
-        const peer = new Peer(optionsData);
+        const optionsCopy = Object.assign({}, options);
+        const peer = new Peer(optionsCopy);
         client = peer.initializePeer();
         expect(typeof client).toBe("object");
         expect(Object.keys(client._events).length).toBe(5);
     });
 
     test('Test peer socket events [1]', () => {
-        const optionsData = Object.assign({}, options);
-        optionsData.verack = true;
-        const peer = new Peer(optionsData);
+        const optionsCopy = Object.assign({}, options);
+        optionsCopy.verack = true;
+        const peer = new Peer(optionsCopy);
         peer.on('disconnected', () => output1 = "Disconnected");
         client = peer.initializePeer();
         client.emit('close');
@@ -51,9 +51,9 @@ describe('Test peer functionality', () => {
     });
 
     test('Test peer socket events [2]', () => {
-        const optionsData = Object.assign({}, options);
-        optionsData.validConnectionConfig = true;
-        const peer = new Peer(optionsData);
+        const optionsCopy = Object.assign({}, options);
+        optionsCopy.validConnectionConfig = true;
+        const peer = new Peer(optionsCopy);
         peer.on('connectionRejected', () => output1 = "Connection Rejected");
         client = peer.initializePeer();
         client.emit('close');
@@ -61,8 +61,8 @@ describe('Test peer functionality', () => {
     });
 
     test('Test peer socket events [3]', () => {
-        const optionsData = Object.assign({}, options);
-        const peer = new Peer(optionsData);
+        const optionsCopy = Object.assign({}, options);
+        const peer = new Peer(optionsCopy);
         peer.on('connectionFailed', () => output1 = "Connection Failed");
         client = peer.initializePeer();
         client.emit('error', { code: "ECONNREFUSED" });
@@ -70,8 +70,8 @@ describe('Test peer functionality', () => {
     });
 
     test('Test peer socket events [4]', () => {
-        const optionsData = Object.assign({}, options);
-        const peer = new Peer(optionsData);
+        const optionsCopy = Object.assign({}, options);
+        const peer = new Peer(optionsCopy);
         peer.on('socketError', () => output1 = "Socket Error");
         client = peer.initializePeer();
         client.emit('error', {});
@@ -79,8 +79,8 @@ describe('Test peer functionality', () => {
     });
 
     test('Test peer socket inventory', () => {
-        const optionsData = Object.assign({}, options);
-        const peer = new Peer(optionsData);
+        const optionsCopy = Object.assign({}, options);
+        const peer = new Peer(optionsCopy);
         peer.on('blockFound', () => output1 = "Block Found");
         peer.handleInventory(Buffer.from("0100000000", "hex"))
         peer.handleInventory(Buffer.from("0101000000", "hex"))
@@ -89,8 +89,8 @@ describe('Test peer functionality', () => {
     });
 
     test('Test peer socket messaging [1]', () => {
-        const optionsData = Object.assign({}, options);
-        const peer = new Peer(optionsData);
+        const optionsCopy = Object.assign({}, options);
+        const peer = new Peer(optionsCopy);
         const inv = Buffer.from("696e76000000000000000000", "hex");
         const payload = Buffer.from("0102000000", "hex");
         peer.on('peerMessage', (message) => output1 = message);
@@ -102,9 +102,9 @@ describe('Test peer functionality', () => {
     });
 
     test('Test peer socket messaging [2]', () => {
-        const optionsData = Object.assign({}, options);
-        optionsData.verack = false;
-        const peer = new Peer(optionsData);
+        const optionsCopy = Object.assign({}, options);
+        optionsCopy.verack = false;
+        const peer = new Peer(optionsCopy);
         const verack = Buffer.from("76657261636b000000000000", "hex");
         const payload = Buffer.from("0100000000", "hex");
         peer.on('peerMessage', (message) => output1 = message);
@@ -116,8 +116,8 @@ describe('Test peer functionality', () => {
     });
 
     test('Test peer socket messaging [3]', () => {
-        const optionsData = Object.assign({}, options);
-        const peer = new Peer(optionsData);
+        const optionsCopy = Object.assign({}, options);
+        const peer = new Peer(optionsCopy);
         const version = Buffer.from("76657273696f6e0000000000", "hex");
         const payload = Buffer.from("0100000000", "hex");
         peer.on('peerMessage', (message) => output1 = message);
@@ -129,8 +129,8 @@ describe('Test peer functionality', () => {
     });
 
     test('Test peer socket messaging [4]', () => {
-        const optionsData = Object.assign({}, options);
-        const peer = new Peer(optionsData);
+        const optionsCopy = Object.assign({}, options);
+        const peer = new Peer(optionsCopy);
         const other = Buffer.from("00", "hex");
         const payload = Buffer.from("0100000000", "hex");
         peer.on('peerMessage', (message) => output1 = message);
@@ -140,8 +140,8 @@ describe('Test peer functionality', () => {
     });
 
     test('Test peer version messaging [4]', () => {
-        const optionsData = Object.assign({}, options);
-        const peer = new Peer(optionsData);
+        const optionsCopy = Object.assign({}, options);
+        const peer = new Peer(optionsCopy);
         const version = Buffer.from("76657273696f6e0000000000", "hex");
         const payload = Buffer.from("0100000000", "hex");
         peer.on('sentMessage', (message) => output1 = message);

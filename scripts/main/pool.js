@@ -22,7 +22,6 @@ let Pool = function(options, authorizeFn) {
 
     // Establish Pool Variables
     let _this = this;
-    let lastBlockHex = "";
     let blockPollingIntervalId;
     let emitLog = function(text) { _this.emit('log', 'debug'  , text); };
     let emitWarningLog = function(text) { _this.emit('log', 'warning', text); };
@@ -67,7 +66,7 @@ let Pool = function(options, authorizeFn) {
             setupPoolData(function() {
                 setupRecipients();
                 setupJobManager();
-                syncBlockchain(function() {
+                setupBlockchain(function() {
                     setupFirstJob(function() {
                         setupBlockPolling();
                         setupPeer();
@@ -203,72 +202,13 @@ let Pool = function(options, authorizeFn) {
 
     // Initialize Pool Recipients
     function setupRecipients() {
-        let recipients = [];
-        options.feePercent = 0;
-        options.rewardRecipients = options.rewardRecipients || {};
-        for (let r in options.rewardRecipients) {
-            let percent = options.rewardRecipients[r];
-            let rObj = {
-                percent: percent / 100,
-                address: r,
-            };
-            recipients.push(rObj);
-            options.feePercent += percent;
-        }
-        if (recipients.length === 0) {
+        if (options.recipients.length === 0) {
             emitErrorLog('No rewardRecipients have been setup which means no fees will be taken');
         }
-        options.recipients = recipients;
-    }
-
-    // Check Whether Block was Accepted by Daemon
-    function checkBlockAccepted(blockHash, callback) {
-        _this.daemon.cmd('getblock', [blockHash], function(results) {
-            let validResults = results.filter(function(result) {
-                return result.response && (result.response.hash === blockHash)
-            });
-            if (validResults.length >= 1) {
-                if (validResults[0].response.confirmations >= 0) {
-                    callback(true, validResults[0].response.tx[0]);
-                }
-                else {
-                    callback(false);
-                }
-            }
-            else {
-                callback(false);
-            }
+        options.feePercentage = 0;
+        options.recipients.forEach(recipient => {
+            options.feePercentage += recipient.percentage
         });
-    }
-
-    // Load Current Block Template
-    function getBlockTemplate(callback) {
-
-        // Derive Blockchain Configuration
-        let callConfig = {
-            "capabilities": [
-                "coinbasetxn",
-                "workid",
-                "coinbase/append"
-            ]
-        };
-        if (options.coin.segwit) {
-            callConfig.rules = ["segwit"];
-        }
-
-        // Handle Block Templates/Subsidy
-        _this.daemon.cmd('getblocktemplate', [callConfig], function(result) {
-            if (result.error) {
-                emitErrorLog('getblocktemplate call failed for daemon instance ' +
-                    result.instance.index + ' with error ' + JSON.stringify(result.error));
-                callback(result.error);
-            }
-            else {
-                let processedNewBlock = _this.manager.processTemplate(result.response);
-                callback(null, result.response, processedNewBlock);
-                callback = function() {};
-            }
-        }, true);
     }
 
     // Submit Block to Stratum Server
@@ -306,16 +246,65 @@ let Pool = function(options, authorizeFn) {
         });
     }
 
+
+    // Check Whether Block was Accepted by Daemon
+    function checkBlockAccepted(blockHash, callback) {
+        _this.daemon.cmd('getblock', [blockHash], function(results) {
+            let validResults = results.filter(function(result) {
+                return result.response && (result.response.hash === blockHash)
+            });
+            if (validResults.length >= 1) {
+                if (validResults[0].response.confirmations >= 0) {
+                    emitLog('Block was accepted by the network with ' + validResults[0].response.confirmations + ' confirmations')
+                    callback(true, validResults[0].response.tx[0]);
+                }
+                else {
+                    emitErrorLog('Block was rejected by the network');
+                    callback(false);
+                }
+            }
+            else {
+                emitErrorLog('Block was rejected by the network');
+                callback(false);
+            }
+        });
+    }
+
+    // Load Current Block Template
+    function getBlockTemplate(callback) {
+
+        // Derive Blockchain Configuration
+        let callConfig = {
+            "capabilities": [
+                "coinbasetxn",
+                "workid",
+                "coinbase/append"
+            ]
+        };
+        if (options.coin.segwit) {
+            callConfig.rules = ["segwit"];
+        }
+
+        // Handle Block Templates/Subsidy
+        _this.daemon.cmd('getblocktemplate', [callConfig], function(result) {
+            if (result.error) {
+                emitErrorLog('getblocktemplate call failed for daemon instance ' +
+                    result.instance.index + ' with error ' + JSON.stringify(result.error));
+                callback(result.error);
+            }
+            else {
+                let processedNewBlock = _this.manager.processTemplate(result.response);
+                callback(null, result.response, processedNewBlock);
+                callback = function() {};
+            }
+        }, true);
+    }
+
     // Initialize Pool Job Manager
     function setupJobManager() {
 
         // Establish Manager
         _this.manager = new Manager(options);
-
-        // Establish Log Functionality
-        _this.manager.on('log', function(severity, message) {
-            _this.emit('log', severity, message);
-        });
 
         // Establish New Block Functionality
         _this.manager.on('newBlock', function(blockTemplate) {
@@ -328,23 +317,14 @@ let Pool = function(options, authorizeFn) {
         _this.manager.on('share', function(shareData, blockHex) {
             let isValidShare = !shareData.error;
             let isValidBlock = !!blockHex;
-            let emitShare = function() {
-                _this.emit('share', isValidShare, isValidBlock, shareData);
-            };
             if (!isValidBlock)
-                emitShare();
+                _this.emit('share', isValidShare, isValidBlock, shareData);
             else {
-                if (lastBlockHex === blockHex) {
-                    emitWarningLog('Warning, ignored duplicate submit block ' + blockHex);
-                }
-                else {
-                    lastBlockHex = blockHex;
-                }
                 submitBlock(blockHex, function() {
                     checkBlockAccepted(shareData.blockHash, function(isAccepted, tx) {
                         isValidBlock = isAccepted;
                         shareData.txHash = tx;
-                        emitShare();
+                        _this.emit('share', isValidShare, isValidBlock, shareData);
                         getBlockTemplate(function(error, result, foundNewBlock) {
                             if (foundNewBlock)
                                 emitLog('Block notification via RPC after block submission');
@@ -365,7 +345,7 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Wait Until Blockchain is Fully Synced
-    function syncBlockchain(syncedCallback) {
+    function setupBlockchain(syncedCallback) {
 
         // Derive Blockchain Configuration
         let callConfig = {
@@ -381,7 +361,7 @@ let Pool = function(options, authorizeFn) {
 
         // Check for Blockchain to be Fully Synced
         let checkSynced = function(displayNotSynced) {
-            _this.daemon.cmd('getblocktemplate', [{"capabilities": [ "coinbasetxn", "workid", "coinbase/append" ], "rules": [ "segwit" ]}], function(results) {
+            _this.daemon.cmd('getblocktemplate', [callConfig], function(results) {
                 let synced = results.every(function(r) {
                     return !r.error || r.error.code !== -10;
                 });
@@ -668,7 +648,7 @@ let Pool = function(options, authorizeFn) {
             'Current Block Diff:\t' + _this.manager.currentJob.difficulty * algorithms[options.coin.algorithm].multiplier,
             'Network Difficulty:\t' + options.initStats.difficulty,
             'Stratum Port(s):\t' + _this.options.initStats.stratumPorts.join(', '),
-            'Pool Fee Percent:\t' + _this.options.feePercent + '%'
+            'Pool Fee Percentage:\t' + (_this.options.feePercentage * 100) + '%'
         ];
         if (typeof options.blockRefreshInterval === "number" && options.blockRefreshInterval > 0) {
             infoLines.push('Block Polling Every:\t' + options.blockRefreshInterval + ' ms');
@@ -681,10 +661,8 @@ let Pool = function(options, authorizeFn) {
     this.setupDaemonInterface = setupDaemonInterface
     this.setupPoolData = setupPoolData
     this.setupRecipients = setupRecipients
-    this.getBlockTemplate = getBlockTemplate
-    this.submitBlock = submitBlock
     this.setupJobManager = setupJobManager
-    this.syncBlockchain = syncBlockchain
+    this.setupBlockchain = setupBlockchain
     this.setupFirstJob = setupFirstJob
     this.setupBlockPolling = setupBlockPolling
     this.setupPeer = setupPeer
