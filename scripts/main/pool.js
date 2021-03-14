@@ -345,7 +345,7 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Wait Until Blockchain is Fully Synced
-    function setupBlockchain(syncedCallback) {
+    function setupBlockchain(callback) {
 
         // Derive Blockchain Configuration
         let callConfig = {
@@ -366,7 +366,7 @@ let Pool = function(options, authorizeFn) {
                     return !r.error || r.error.code !== -10;
                 });
                 if (synced) {
-                    syncedCallback();
+                    callback();
                 }
                 else {
                     if (displayNotSynced) {
@@ -383,7 +383,7 @@ let Pool = function(options, authorizeFn) {
         // Check and Return Message if Not Synced
         checkSynced(function() {
             if (!process.env.forkId || process.env.forkId === '0') {
-                emitErrorLog('Daemon is still syncing with network (download blockchain) - server will be started once synced');
+                emitErrorLog('Daemon is still syncing with the network. The server will be started once synced');
             }
         });
 
@@ -391,17 +391,16 @@ let Pool = function(options, authorizeFn) {
         let generateProgress = function() {
             let cmd = options.coin.hasGetInfo ? 'getinfo' : 'getblockchaininfo';
             _this.daemon.cmd(cmd, [], function(results) {
-                let blockCount = results.sort(function(a, b) {
-                    return b.response.blocks - a.response.blocks;
-                })[0].response.blocks;
+                const blockCount = Math.max.apply(null, results
+                    .flatMap(result => result.response)
+                    .flatMap(response => response.blocks));
 
                 // Compare with Peers to Get Percentage Synced
                 _this.daemon.cmd('getpeerinfo', [], function(results) {
-                    let peers = results[0].response;
-                    let totalBlocks = peers.sort(function(a, b) {
-                        return b.startingheight - a.startingheight;
-                    })[0].startingheight;
-                    let percent = (blockCount / totalBlocks * 100).toFixed(2);
+                    const peers = results[0].response;
+                    const totalBlocks = Math.max.apply(null, peers
+                        .flatMap(response => response.startingheight));
+                    const percent = (blockCount / totalBlocks * 100).toFixed(2);
                     emitWarningLog('Downloaded ' + percent + '% of blockchain from ' + peers.length + ' peers');
                 });
             });

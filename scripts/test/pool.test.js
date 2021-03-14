@@ -47,6 +47,109 @@ const rpcData = {
     "default_witness_commitment": "6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9"
 }
 
+const blockchainData = {
+    "chain": "main",
+    "blocks": 1,
+    "headers": 1,
+    "bestblockhash": "1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769",
+    "difficulty": 0.000244140625,
+    "mediantime": 1614202191,
+    "verificationprogress": 3.580678270509504e-08,
+    "initialblockdownload": false,
+    "chainwork": "0000000000000000000000000000000000000000000000000000000000200020",
+    "size_on_disk": 472,
+    "pruned": false,
+    "softforks": [
+        {
+            "id": "bip34",
+            "version": 2,
+            "reject": {
+                "status": false
+            }
+        },
+        {
+            "id": "bip66",
+            "version": 3,
+            "reject": {
+                "status": false
+            }
+        },
+        {
+            "id": "bip65",
+            "version": 4,
+            "reject": {
+                "status": false
+            }
+        }
+    ],
+    "bip9_softforks": {
+        "csv": {
+            "status": "defined",
+            "startTime": 1485561600,
+            "timeout": 1517356801,
+            "since": 0
+        },
+        "segwit": {
+            "status": "defined",
+            "startTime": 1485561600,
+            "timeout": 1517356801,
+            "since": 0
+        }
+    },
+    "warnings": ""
+};
+
+const peerData = {
+    "id": 20,
+    "addr": "18.213.13.51:9333",
+    "addrlocal": "173.73.155.96:61108",
+    "addrbind": "192.168.1.155:61108",
+    "services": "000000000000040d",
+    "relaytxes": true,
+    "lastsend": 1615676709,
+    "lastrecv": 1615676709,
+    "bytessent": 1793,
+    "bytesrecv": 1782,
+    "conntime": 1615674308,
+    "timeoffset": 0,
+    "pingtime": 0.007751,
+    "minping": 0.00522,
+    "version": 70015,
+    "subver": "/LitecoinCore:0.18.1/",
+    "inbound": false,
+    "addnode": false,
+    "startingheight": 1,
+    "banscore": 0,
+    "synced_headers": 1,
+    "synced_blocks": 1,
+    "inflight": [],
+    "whitelisted": false,
+    "minfeefilter": 0.00001000,
+    "bytessent_per_msg": {
+        "addr": 55,
+        "feefilter": 32,
+        "getaddr": 24,
+        "getheaders": 93,
+        "ping": 672,
+        "pong": 672,
+        "sendcmpct": 66,
+        "sendheaders": 24,
+        "verack": 24,
+        "version": 131
+    },
+    "bytesrecv_per_msg": {
+        "addr": 55,
+        "feefilter": 32,
+        "headers": 106,
+        "ping": 672,
+        "pong": 672,
+        "sendcmpct": 66,
+        "sendheaders": 24,
+        "verack": 24,
+        "version": 131
+    }
+};
+
 const options = {
     "address": "",
     "coin": {
@@ -113,7 +216,7 @@ const options = {
         "percentage": 0.05,
     }],
     "rewards": "",
-}
+};
 
 nock.disableNetConnect()
 nock.enableNetConnect('127.0.0.1')
@@ -141,6 +244,30 @@ function mockSetupData(pool, callback) {
             { id: "nocktest", error: null, result: { protocolversion: 1, connections: 1 }},
         ]));
     pool.setupPoolData(() => callback());
+}
+
+function mockSetupBlockchain(pool, callback) {
+    const rpcDataCopy = Object.assign({}, rpcData);
+    const scope1 = nock('http://127.0.0.1:8332')
+        .post('/', body => body.method === "getblocktemplate")
+        .reply(200, JSON.stringify({
+            id: "nocktest",
+            error: null,
+            result: rpcDataCopy,
+        }));
+    pool.setupBlockchain(() => callback());
+}
+
+function mockSetupFirstJob(pool, callback) {
+    const rpcDataCopy = Object.assign({}, rpcData);
+    const scope = nock('http://127.0.0.1:8332')
+        .post('/', body => body.method === "getblocktemplate")
+        .reply(200, JSON.stringify({
+            id: "nocktest",
+            error: null,
+            result: rpcDataCopy,
+        }));
+    pool.setupFirstJob(() => callback());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -939,5 +1066,186 @@ describe('Test pool functionality', () => {
                 pool.manager.emit('share', shareData, blockHex);
             });
         })
+    });
+
+    test('Test pool blockchain events [1]', (done) => {
+        const optionsCopy = Object.assign({}, options);
+        const rpcDataCopy = Object.assign({}, rpcData);
+        const pool = new Pool(optionsCopy, null);
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                const scope = nock('http://127.0.0.1:8332')
+                    .post('/', body => body.method === "getblocktemplate")
+                    .reply(200, JSON.stringify({
+                        id: "nocktest",
+                        error: null,
+                        result: rpcDataCopy,
+                    }));
+                pool.setupBlockchain(() => done());
+            });
+        });
+    });
+
+    test('Test pool blockchain events [2]', (done) => {
+        const response = []
+        const optionsCopy = Object.assign({}, options);
+        const blockchainDataCopy = Object.assign({}, blockchainData);
+        const peerDataCopy = Object.assign({}, peerData);
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                expect(response[0][0]).toBe("error");
+                expect(response[0][1]).toBe("Daemon is still syncing with the network. The server will be started once synced");
+                expect(response[1][0]).toBe("warning");
+                expect(response[1][1]).toBe("Downloaded 100.00% of blockchain from 1 peers");
+                done();
+            }
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                const scope1 = nock('http://127.0.0.1:8332')
+                    .post('/', body => body.method === "getblocktemplate")
+                    .reply(200, JSON.stringify({
+                        id: "nocktest",
+                        error: { code: -10 },
+                        result: null,
+                    }));
+                const scope2 = nock('http://127.0.0.1:8332')
+                    .post('/', body => body.method === "getblockchaininfo")
+                    .reply(200, JSON.stringify({
+                        id: "nocktest",
+                        error: null,
+                        result: blockchainDataCopy,
+                    }));
+                const scope3 = nock('http://127.0.0.1:8332')
+                    .post('/', body => body.method === "getpeerinfo")
+                    .reply(200, JSON.stringify({
+                        id: "nocktest",
+                        error: null,
+                        result: [peerDataCopy],
+                    }));
+                pool.setupBlockchain(() => done());
+            });
+        });
+    });
+
+    test('Test pool job events [1]', (done) => {
+        const optionsCopy = Object.assign({}, options);
+        const rpcDataCopy = Object.assign({}, rpcData);
+        const pool = new Pool(optionsCopy, null);
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    const scope = nock('http://127.0.0.1:8332')
+                        .post('/', body => body.method === "getblocktemplate")
+                        .reply(200, JSON.stringify({
+                            id: "nocktest",
+                            error: null,
+                            result: rpcDataCopy,
+                        }));
+                    pool.setupFirstJob(() => {
+                        expect(typeof pool.manager.currentJob).toBe("object");
+                        expect(pool.manager.currentJob.rpcData.height).toBe(1);
+                        done();
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool job events [2]', (done) => {
+        const response = []
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                expect(response[0][0]).toBe("error");
+                expect(response[0][1]).toBe("getblocktemplate call failed for daemon instance 0 with error true");
+                expect(response[1][0]).toBe("error");
+                expect(response[1][1]).toBe("Error with getblocktemplate on creating first job, server cannot start");
+                done();
+            }
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    const scope = nock('http://127.0.0.1:8332')
+                        .post('/', body => body.method === "getblocktemplate")
+                        .reply(200, JSON.stringify({
+                            id: "nocktest",
+                            error: true,
+                            result: null,
+                        }));
+                    pool.setupFirstJob(() => {});
+                });
+            });
+        });
+    });
+
+    test('Test pool polling events [1]', (done) => {
+        const response = []
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("Block template polling has been disabled");
+                done();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupBlockPolling();
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool polling events [2]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const rpcDataCopy = Object.assign({}, rpcData);
+        optionsCopy.blockRefreshInterval = 600;
+        rpcDataCopy.previousblockhash = "1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769";
+        rpcDataCopy.height = 2;
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("Block notification via RPC polling");
+                done();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        const scope = nock('http://127.0.0.1:8332')
+                            .post('/', body => body.method === "getblocktemplate")
+                            .reply(200, JSON.stringify({
+                                id: "nocktest",
+                                error: null,
+                                result: rpcDataCopy,
+                            }));
+                        pool.setupBlockPolling();
+                    });
+                });
+            });
+        });
     });
 });
