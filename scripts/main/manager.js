@@ -25,7 +25,7 @@ let ExtraNonceCounter = function(configInstanceId) {
     this.counter = instanceId << 27;
     this.size = 4;
     this.next = function() {
-        let extraNonce = util.packUInt32BE(Math.abs(this.counter++));
+        let extraNonce = util.packUInt32BE(Math.abs(this.counter += 1));
         return extraNonce.toString('hex');
     };
 };
@@ -34,7 +34,7 @@ let ExtraNonceCounter = function(configInstanceId) {
 let JobCounter = function() {
     this.counter = 0;
     this.next = function() {
-        this.counter++;
+        this.counter += 1;
         if (this.counter % 0xffff === 0) {
             this.counter = 1;
         }

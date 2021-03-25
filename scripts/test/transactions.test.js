@@ -184,7 +184,7 @@ describe('Test transactions functionality', () => {
         expect(transaction[1]).toStrictEqual(Buffer.from("2d68747470733a2f2f6769746875622e636f6d2f626c696e6b686173682f626c696e6b686173682d73657276657200000000020000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900f2052a01000000160014e8df018c7e326cc253faac7e46cdc51e68542c4200000000", "hex"));
     });
 
-    test('Test bitcoin transaction builder [13]', () => {
+    test('Test bitcoin transaction builder [14]', () => {
         const transactionData = JSON.parse(JSON.stringify(rpcData));
         transactionData.payee = "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq";
         const transaction = transactions.bitcoin(transactionData, extraNonce, options);
@@ -192,7 +192,7 @@ describe('Test transactions functionality', () => {
         expect(transaction[1]).toStrictEqual(Buffer.from("2d68747470733a2f2f6769746875622e636f6d2f626c696e6b686173682f626c696e6b686173682d73657276657200000000030000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900286bee00000000160014e8df018c7e326cc253faac7e46cdc51e68542c4200ca9a3b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c4200000000", "hex"));
     });
 
-    test('Test bitcoin transaction builder [14]', () => {
+    test('Test bitcoin transaction builder [15]', () => {
         const transactionData = JSON.parse(JSON.stringify(rpcData));
         delete transactionData.default_witness_commitment;
         const transaction = transactions.bitcoin(transactionData, extraNonce, options);

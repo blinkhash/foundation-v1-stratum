@@ -134,7 +134,7 @@ exports.reverseBuffer = function(buff) {
 
 // Reverse Byte Order of Input Buffer
 exports.reverseByteOrder = function(buff) {
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 8; i += 1) {
         buff.writeUInt32LE(buff.readUInt32BE(i * 4), i * 4);
     }
     return exports.reverseBuffer(buff);

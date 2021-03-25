@@ -43,6 +43,9 @@ let Pool = function(options, authorizeFn) {
                 if (error) {
                     emitErrorLog('Block notify error getting block template for ' + options.coin.name);
                 }
+                else {
+                    emitLog('Block template for ' + options.coin.name + ' updated successfully');
+                }
             });
         }
     };
@@ -70,7 +73,7 @@ let Pool = function(options, authorizeFn) {
                     setupFirstJob(function() {
                         setupBlockPolling();
                         setupPeer();
-                        startStratumServer(function() {
+                        setupStratum(function() {
                             outputPoolInfo();
                             _this.emit('started');
                         });
@@ -227,7 +230,7 @@ let Pool = function(options, authorizeFn) {
 
         // Establish Submission Functionality
         _this.daemon.cmd(rpcCommand, rpcArgs, function(results) {
-            for (let i = 0; i < results.length; i++) {
+            for (let i = 0; i < results.length; i += 1) {
                 let result = results[i];
                 if (result.error) {
                     emitErrorLog('RPC error with daemon instance ' +
@@ -308,8 +311,9 @@ let Pool = function(options, authorizeFn) {
 
         // Establish New Block Functionality
         _this.manager.on('newBlock', function(blockTemplate) {
-            if (_this.stratumServer) {
-                _this.stratumServer.broadcastMiningJobs(blockTemplate.getJobParams(options));
+            if (_this.stratum) {
+                _this.stratum.broadcastMiningJobs(blockTemplate.getJobParams(options));
+                emitLog('Established new job for updated block template')
             }
         });
 
@@ -336,10 +340,10 @@ let Pool = function(options, authorizeFn) {
 
         // Establish Updated Block Functionality
         _this.manager.on('updatedBlock', function(blockTemplate) {
-            if (_this.stratumServer) {
+            if (_this.stratum) {
                 let job = blockTemplate.getJobParams(options);
                 job[8] = false;
-                _this.stratumServer.broadcastMiningJobs(job);
+                _this.stratum.broadcastMiningJobs(job);
             }
         });
     }
@@ -465,8 +469,10 @@ let Pool = function(options, authorizeFn) {
         options.validConnectionConfig = true
 
         // Check for P2P Configuration
-        if (!options.p2p || !options.p2p.enabled)
+        if (!options.p2p || !options.p2p.enabled) {
+            emitLog('p2p has been disabled in the configuration')
             return;
+        }
         if (options.testnet && !options.coin.peerMagicTestnet) {
             emitErrorLog('p2p cannot be enabled in testnet without peerMagicTestnet set in coin configuration');
             return;
@@ -495,12 +501,12 @@ let Pool = function(options, authorizeFn) {
 
         // Establish Socket Error Functionality
         _this.peer.on('socketError', function(e) {
-            emitErrorLog('p2p had a socket error ' + JSON.stringify(e));
+            emitErrorLog('p2p had a socket error: ' + JSON.stringify(e));
         });
 
         // Establish Error Functionality
         _this.peer.on('error', function(msg) {
-            emitWarningLog('p2p had an error ' + msg);
+            emitErrorLog('p2p had an error: ' + msg);
         });
 
         // Establish Found Block Functionality
@@ -510,36 +516,36 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Start Pool Stratum Server
-    function startStratumServer(callback) {
+    function setupStratum(callback) {
 
         // Establish Stratum Server
-        _this.stratumServer = new Stratum.server(options, authorizeFn);
+        _this.stratum = new Stratum.network(options, authorizeFn);
 
         // Establish Started Functionality
-        _this.stratumServer.on('started', function() {
+        _this.stratum.on('started', function() {
             let stratumPorts = Object.keys(options.ports);
             stratumPorts = stratumPorts.filter(function(port) {
                 return options.ports[port].enabled === true;
             });
             options.initStats.stratumPorts = stratumPorts
-            _this.stratumServer.broadcastMiningJobs(_this.manager.currentJob.getJobParams(options));
+            _this.stratum.broadcastMiningJobs(_this.manager.currentJob.getJobParams(options));
             callback();
-        })
+        });
 
         // Establish Timeout Functionality
-        _this.stratumServer.on('broadcastTimeout', function() {
+        _this.stratum.on('broadcastTimeout', function() {
             if (options.debug) {
                 emitLog('No new blocks for ' + options.jobRebroadcastTimeout + ' seconds - updating transactions & rebroadcasting work');
             }
-            _this.daemon.cmd('getblocktemplate', [], function() {});
             getBlockTemplate(function(error, rpcData, processedBlock) {
                 if (error || processedBlock) return;
                 _this.manager.updateCurrentJob(rpcData);
+                emitLog('Updated existing job for current block template')
             });
         })
 
         // Establish New Connection Functionality
-        _this.stratumServer.on('client.connected', function(client) {
+        _this.stratum.on('client.connected', function(client) {
 
             // Manage/Record Client Difficulty
             if (typeof(_this.difficulty[client.socket.localPort]) !== 'undefined') {
@@ -665,7 +671,7 @@ let Pool = function(options, authorizeFn) {
     this.setupFirstJob = setupFirstJob
     this.setupBlockPolling = setupBlockPolling
     this.setupPeer = setupPeer
-    this.startStratumServer = startStratumServer
+    this.setupStratum = setupStratum
     this.outputPoolInfo = outputPoolInfo
 };
 

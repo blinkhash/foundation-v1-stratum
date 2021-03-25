@@ -15,7 +15,7 @@ let SubscriptionCounter = function() {
     let padding = 'deadbeefcafebabe';
     return {
         next: function() {
-            count++;
+            count += 1;
             if (Number.MAX_VALUE === count) count = 0;
             return padding + util.packUInt64LE(count).toString('hex');
         }
@@ -271,7 +271,7 @@ let StratumClient = function(options) {
     // Manage JSON Functionality
     function sendJson() {
         let response = '';
-        for (let i = 0; i < arguments.length; i++) {
+        for (let i = 0; i < arguments.length; i += 1) {
             response += JSON.stringify(arguments[i]) + '\n';
         }
         options.socket.write(response);
@@ -350,51 +350,61 @@ let StratumClient = function(options) {
  **/
 
 // Stratum Client Main Function
-let StratumServer = function(options, authorizeFn) {
+let StratumNetwork = function(options, authorizeFn) {
 
-    // Establish Private Stratum Variables
+    // Establish Stratum Variables
     let _this = this;
-    let stratumClients = {};
+    this.stratumClients = {};
+    this.stratumServers = {};
+    this.bannedIPs = {}
+
     let subscriptionCounter = SubscriptionCounter();
     let rebroadcastTimeout;
-    let bannedIPs = {};
 
     // Determine Length of Client Ban
     let bannedMS = options.banning ? options.banning.time * 1000 : null;
 
-    // Check Regarding Banned Clients
-    function checkBan(client) {
-        if (options.banning && options.banning.enabled && client.remoteAddress in bannedIPs) {
-            let bannedTime = bannedIPs[client.remoteAddress];
-            let bannedTimeAgo = Date.now() - bannedTime;
-            let timeLeft = bannedMS - bannedTimeAgo;
-            if (timeLeft > 0) {
-                client.socket.destroy();
-                client.emit('kickedBannedIP', timeLeft / 1000 | 0);
-            }
-            else {
-                delete bannedIPs[client.remoteAddress];
-                client.emit('forgaveBannedIP');
-            }
-        }
-    }
-
     // Initialize Stratum Connection
-    function initializeServer() {
+    this.initializeServer = function() {
 
         // Interval to Clear Old Bans from BannedIPs
         if (options.banning && options.banning.enabled) {
             setInterval(function() {
-                for (ip in bannedIPs) {
-                    let banTime = bannedIPs[ip];
+                for (ip in _this.bannedIPs) {
+                    let banTime = _this.bannedIPs[ip];
                     if (Date.now() - banTime > options.banning.time)
-                        delete bannedIPs[ip];
+                        delete _this.bannedIPs[ip];
                 }
             }, 1000 * options.banning.purgeInterval);
         }
 
-        // Start Individual Stratum Ports
+        // Filter Individual Stratum Ports
+        let stratumPorts = Object.keys(options.ports);
+        stratumPorts = stratumPorts.filter(function(port) {
+            return options.ports[port].enabled === true;
+        });
+
+        // Start Individual Stratum Servers
         let serversStarted = 0;
+        stratumPorts.forEach(function(port) {
+            var server = net.createServer({allowHalfOpen: false}, function(socket) {
+                _this.handleNewClient(socket);
+            })
+            server.listen(parseInt(port), function() {
+                serversStarted += 1;
+                if (serversStarted == stratumPorts.length) {
+                    // Emit Starting Message
+                    _this.emit('started');
+                }
+            });
+            _this.stratumServers[port] = server;
+        });
+    }
+
+    // Stop Stratum Connection
+    this.stopServer = function() {
+
+        // Filter Individual Stratum Ports
         let stratumPorts = Object.keys(options.ports);
         stratumPorts = stratumPorts.filter(function(port) {
             return options.ports[port].enabled === true;
@@ -402,15 +412,29 @@ let StratumServer = function(options, authorizeFn) {
 
         // Start Individual Stratum Servers
         stratumPorts.forEach(function(port) {
-            net.createServer({allowHalfOpen: false}, function(socket) {
-                _this.handleNewClient(socket);
-            }).listen(parseInt(port), function() {
-                serversStarted++;
-                if (serversStarted == stratumPorts.length) {
-                    _this.emit('started');
-                }
-            });
+            var server = _this.stratumServers[port];
+            server.close();
         });
+
+        // Emit Stopping Message
+        _this.emit('stopped');
+    }
+
+    // Check Regarding Banned Clients
+    this.checkBan = function(client) {
+        if (options.banning && options.banning.enabled && client.remoteAddress in _this.bannedIPs) {
+            let bannedTime = _this.bannedIPs[client.remoteAddress];
+            let bannedTimeAgo = Date.now() - bannedTime;
+            let timeLeft = bannedMS - bannedTimeAgo;
+            if (timeLeft > 0) {
+                client.socket.destroy();
+                client.emit('kickedBannedIP', timeLeft / 1000 | 0);
+            }
+            else {
+                delete _this.bannedIPs[client.remoteAddress];
+                client.emit('forgaveBannedIP');
+            }
+        }
     }
 
     // Manage New Client Connections
@@ -427,7 +451,7 @@ let StratumServer = function(options, authorizeFn) {
             connectionTimeout: options.connectionTimeout,
             tcpProxyProtocol: options.tcpProxyProtocol
         });
-        stratumClients[subscriptionId] = client;
+        _this.stratumClients[subscriptionId] = client;
 
         // Manage Client Behaviors
         _this.emit('client.connected', client);
@@ -435,7 +459,7 @@ let StratumServer = function(options, authorizeFn) {
             _this.manuallyRemoveStratumClient(subscriptionId);
             _this.emit('client.disconnected', client);
         }).on('checkBan', function() {
-            checkBan(client);
+            _this.checkBan(client);
         }).on('triggerBan', function() {
             _this.addBannedIP(client.remoteAddress);
         }).init();
@@ -446,8 +470,8 @@ let StratumServer = function(options, authorizeFn) {
 
     // Broadcast New Jobs to Clients
     this.broadcastMiningJobs = function(jobParams) {
-        for (let clientId in stratumClients) {
-            let client = stratumClients[clientId];
+        for (let clientId in _this.stratumClients) {
+            let client = _this.stratumClients[clientId];
             client.sendMiningJob(jobParams);
         }
         clearTimeout(rebroadcastTimeout);
@@ -458,33 +482,28 @@ let StratumServer = function(options, authorizeFn) {
 
     // Add Banned IP to List of Banned IPs
     this.addBannedIP = function(ipAddress) {
-        bannedIPs[ipAddress] = Date.now();
-    };
-
-    // Return Current Connected Clients
-    this.getStratumClients = function () {
-        return stratumClients;
+        _this.bannedIPs[ipAddress] = Date.now();
     };
 
     // Manually Add Stratum Client to Stratum Server
     this.manuallyAddStratumClient = function(clientObj) {
         let subId = _this.handleNewClient(clientObj.socket);
         if (subId != null) { // not banned!
-            stratumClients[subId].manuallyAuthClient(clientObj.workerName, clientObj.workerPass);
-            stratumClients[subId].manuallySetValues(clientObj);
+            _this.stratumClients[subId].manuallyAuthClient(clientObj.workerName, clientObj.workerPass);
+            _this.stratumClients[subId].manuallySetValues(clientObj);
         }
     };
 
     // Manually Remove Stratum Client from Stratum Server
     this.manuallyRemoveStratumClient = function (subscriptionId) {
-        delete stratumClients[subscriptionId];
+        delete _this.[subscriptionId];
     };
 
     // Initialize Stratum Connection
-    let connection = initializeServer();
+    let connection = _this.initializeServer();
 };
 
 // Export Stratum Client/Server
-exports.server = StratumServer;
+exports.network = StratumNetwork;
 StratumClient.prototype.__proto__ = events.EventEmitter.prototype;
-StratumServer.prototype.__proto__ = events.EventEmitter.prototype;
+StratumNetwork.prototype.__proto__ = events.EventEmitter.prototype;

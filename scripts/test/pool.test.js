@@ -191,6 +191,8 @@ const options = {
         "user": "",
         "password": ""
     }],
+    "debug": true,
+    "jobRebroadcastTimeout": 60,
     "ports": {
         "3001": {
             "enabled": true,
@@ -224,7 +226,7 @@ nock.enableNetConnect('127.0.0.1')
 ////////////////////////////////////////////////////////////////////////////////
 
 function mockSetupDaemon(pool, callback) {
-    let scope = nock('http://127.0.0.1:8332')
+    const scope = nock('http://127.0.0.1:8332')
         .post('/', body => body.method === "getpeerinfo")
         .reply(200, JSON.stringify({
             id: "nocktest",
@@ -241,6 +243,18 @@ function mockSetupData(pool, callback) {
             { id: "nocktest", error: null, result: { networkhashps: 0 }},
             { id: "nocktest", error: true, result: { code: -1 }},
             { id: "nocktest", error: null, result: { chain: 'main', difficulty: 0 }},
+            { id: "nocktest", error: null, result: { protocolversion: 1, connections: 1 }},
+        ]));
+    pool.setupPoolData(() => callback());
+}
+
+function mockSetupTestnetData(pool, callback) {
+    const scope = nock('http://127.0.0.1:8332')
+        .post('/').reply(200, JSON.stringify([
+            { id: "nocktest", error: null, result: { isvalid: true, address: "tb1qprvwwfr5cey54e4353t9dmker7zd9w4uhvkz5p" }},
+            { id: "nocktest", error: null, result: { networkhashps: 0 }},
+            { id: "nocktest", error: true, result: { code: -1 }},
+            { id: "nocktest", error: null, result: { chain: 'test', difficulty: 0 }},
             { id: "nocktest", error: null, result: { protocolversion: 1, connections: 1 }},
         ]));
     pool.setupPoolData(() => callback());
@@ -1243,6 +1257,456 @@ describe('Test pool functionality', () => {
                                 result: rpcDataCopy,
                             }));
                         pool.setupBlockPolling();
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool peer events [1]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        optionsCopy.p2p = Object.assign({}, options.p2p);
+        optionsCopy.p2p.enabled = false;
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("p2p has been disabled in the configuration");
+                done();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool peer events [2]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        optionsCopy.coin = Object.assign({}, options.coin);
+        optionsCopy.coin.peerMagicTestnet = false;
+        optionsCopy.recipients = Object.assign([], options.recipients);
+        optionsCopy.recipients[0] = Object.assign({}, options.recipients[0]);
+        optionsCopy.recipients[0].address = "tb1qnc0z4696tusrgscws5gvc7g2hhz99m6lrssfc2"
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("error");
+                expect(response[1][1]).toBe("p2p cannot be enabled in testnet without peerMagicTestnet set in coin configuration");
+                done();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupTestnetData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool peer events [3]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        optionsCopy.coin = Object.assign({}, options.coin);
+        optionsCopy.coin.peerMagic = false;
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("error");
+                expect(response[1][1]).toBe("p2p cannot be enabled without peerMagic set in coin configuration");
+                done();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool peer events [4]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("error");
+                expect(response[1][1]).toBe("p2p connection failed - likely incorrect p2p magic value");
+                done();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.peer.emit('connectionRejected');
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool peer events [5]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("error");
+                expect(response[1][1]).toBe("p2p connection failed - likely incorrect host or port");
+                done();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.peer.emit('connectionFailed', true);
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool peer events [6]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("error");
+                expect(response[1][1]).toBe("p2p had a socket error: true");
+                done();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.peer.emit('socketError', true);
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool peer events [7]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("error");
+                expect(response[1][1]).toBe("p2p had an error: true");
+                done();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.peer.emit('error', true);
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool peer events [7]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const rpcDataCopy = Object.assign({}, rpcData);
+        rpcDataCopy.previousblockhash = "1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769";
+        rpcDataCopy.height = 2;
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 4) {
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("Block notification via p2p");
+                expect(response[3][0]).toBe("debug");
+                expect(response[3][1]).toBe("Block template for Bitcoin updated successfully");
+                done();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.peer.on('blockNotify', function(hash) {
+                            const scope = nock('http://127.0.0.1:8332')
+                                .post('/', body => body.method === "getblocktemplate")
+                                .reply(200, JSON.stringify({
+                                    id: "nocktest",
+                                    error: null,
+                                    result: rpcDataCopy,
+                                }));
+                            pool.processBlockNotify(hash, 'p2p');
+                        });
+                        pool.peer.emit('blockNotify', "example hash");
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool peer events [8]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 5) {
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("Block notification via p2p");
+                expect(response[4][0]).toBe("error");
+                expect(response[4][1]).toBe("Block notify error getting block template for Bitcoin");
+                done();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.peer.on('blockNotify', function(hash) {
+                            const scope = nock('http://127.0.0.1:8332')
+                                .post('/', body => body.method === "getblocktemplate")
+                                .reply(200, JSON.stringify({
+                                    id: "nocktest",
+                                    error: true,
+                                    result: null,
+                                }));
+                            pool.processBlockNotify(hash, 'p2p');
+                        });
+                        pool.peer.emit('blockNotify', "example hash");
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool peer events [9]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, null);
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 5) {
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("Block notification via p2p");
+                done();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.peer.emit('blockFound', "example hash");
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [1]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            pool.stratum.on('stopped', () => done());
+                            expect(typeof pool.stratum).toBe('object');
+                            expect(typeof pool.stratum.handleNewClient).toBe('function');
+                            expect(typeof pool.stratum.broadcastMiningJobs).toBe('function');
+                            expect(pool.stratum._eventsCount).toBe(4);
+                            pool.stratum.stopServer();
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [2]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("No new blocks for 60 seconds - updating transactions & rebroadcasting work");
+                pool.stratum.stopServer();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const scope = nock('http://127.0.0.1:8332')
+                                .post('/', body => body.method === "getblocktemplate")
+                                .reply(200, JSON.stringify({
+                                    id: "nocktest",
+                                    error: true,
+                                    result: null,
+                                }));
+                            pool.stratum.emit('broadcastTimeout');
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [3]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const rpcDataCopy = Object.assign({}, rpcData);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 4) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("No new blocks for 60 seconds - updating transactions & rebroadcasting work");
+                expect(response[2][0]).toBe("error");
+                expect(response[2][1]).toBe("p2p connection failed - likely incorrect host or port");
+                expect(response[3][0]).toBe("debug");
+                expect(response[3][1]).toBe("Updated existing job for current block template");
+                pool.stratum.stopServer();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const scope = nock('http://127.0.0.1:8332')
+                                .post('/', body => body.method === "getblocktemplate")
+                                .reply(200, JSON.stringify({
+                                    id: "nocktest",
+                                    error: null,
+                                    result: rpcDataCopy,
+                                }));
+                            pool.stratum.emit('broadcastTimeout');
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [4]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const rpcDataCopy = Object.assign({}, rpcData);
+        rpcDataCopy.previousblockhash = "1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769";
+        rpcDataCopy.height = 2;
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 4) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("No new blocks for 60 seconds - updating transactions & rebroadcasting work");
+                expect(response[2][0]).toBe("error");
+                expect(response[2][1]).toBe("p2p connection failed - likely incorrect host or port");
+                expect(response[3][0]).toBe("debug");
+                expect(response[3][1]).toBe("Established new job for updated block template");
+                pool.stratum.stopServer();
+            };
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const scope = nock('http://127.0.0.1:8332')
+                                .post('/', body => body.method === "getblocktemplate")
+                                .reply(200, JSON.stringify({
+                                    id: "nocktest",
+                                    error: null,
+                                    result: rpcDataCopy,
+                                }));
+                            pool.stratum.emit('broadcastTimeout');
+                        });
                     });
                 });
             });

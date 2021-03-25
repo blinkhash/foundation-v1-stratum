@@ -28,7 +28,7 @@ function RingBuffer(maxSize) {
         }
         else {
             data.push(x);
-            cursor++;
+            cursor += 1;
             if (data.length === maxSize) {
                 cursor = 0;
                 isFull = true;

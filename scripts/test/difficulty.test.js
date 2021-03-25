@@ -79,7 +79,7 @@ describe('Test difficulty functionality', () => {
         difficulty1.manageClient(client);
         difficulty2.manageClient(client);
         client.emit('submit');
-        for (let step = 0; step < 5; step++) {
+        for (let step = 0; step < 5; step += 1) {
             client.emit('submit');
             expect(consoleSpy).toHaveBeenCalledWith('No difficulty update required');
             console.log.mockClear();
