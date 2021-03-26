@@ -32,18 +32,16 @@ let SubscriptionCounter = function() {
 // Stratum Client Main Function
 let StratumClient = function(options) {
 
-    // Establish Private Stratum Variables
+    // Establish Stratum Variables
     let _this = this;
-    let algorithm = options.algorithm
-    let banning = options.banning;
-
-    // Establish Public Stratum Variables
+    this.authorized = false;
+    this.banning = options.banning;
+    this.difficulty = 0;
     this.lastActivity = Date.now();
-    this.socket = options.socket;
+    this.pendingDifficulty = null;
     this.remoteAddress = options.socket.remoteAddress;
     this.shares = {valid: 0, invalid: 0};
-    this.difficulty = 0;
-    this.pendingDifficulty = null;
+    this.socket = options.socket;
 
     // Helper Function if Banning is Disabled
     this.banningDisabled = function() {
@@ -59,9 +57,9 @@ let StratumClient = function(options) {
             _this.shares.invalid += 1;
         }
         let totalShares = _this.shares.valid + _this.shares.invalid;
-        if (totalShares >= banning.checkThreshold) {
+        if (totalShares >= _this.banning.checkThreshold) {
             let percentBad = (_this.shares.invalid / totalShares) * 100;
-            if (percentBad < banning.invalidPercent) {
+            if (percentBad < _this.banning.invalidPercent) {
                 this.shares = {valid: 0, invalid: 0};
             }
             else {
@@ -74,7 +72,7 @@ let StratumClient = function(options) {
     }
 
     // Determine Whether to Consider Banning
-    this.considerBan = (!banning || !banning.enabled) ? _this.banningDisabled : _this.banningEnabled;
+    this.considerBan = (!_this.banning || !_this.banning.enabled) ? _this.banningDisabled : _this.banningEnabled;
 
     // Manage JSON Functionality
     this.sendJson = function() {
@@ -175,9 +173,9 @@ let StratumClient = function(options) {
             // Manage Transactions
             case 'mining.get_transactions':
                 _this.sendJson({
-                    id: null,
+                    id: message.id,
                     result: [],
-                    error: true
+                    error: [20, "Not supported.", null]
                 });
                 break;
 
@@ -199,9 +197,6 @@ let StratumClient = function(options) {
 
     // Manage Stratum Subscription
     this.handleSubscribe = function(message) {
-        if (! _this._authorized) {
-            _this.requestedSubscriptionBeforeAuth = true;
-        }
         _this.emit('subscription', {}, function(error, extraNonce1, extraNonce2Size) {
             if (error) {
                 _this.sendJson({ id: message.id, result: null, error: error });
