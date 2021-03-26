@@ -42,15 +42,16 @@ let StratumClient = function(options) {
     this.socket = options.socket;
     this.remoteAddress = options.socket.remoteAddress;
     this.shares = {valid: 0, invalid: 0};
+    this.difficulty = 0;
     this.pendingDifficulty = null;
 
     // Helper Function if Banning is Disabled
-    function banningDisabled() {
+    this.banningDisabled = function() {
         return false;
     }
 
     // Helper Function if Banning is Enabled
-    function banningEnabled(shareValid) {
+    this.banningEnabled = function(shareValid) {
         if (shareValid === true) {
             _this.shares.valid += 1;
         }
@@ -73,15 +74,19 @@ let StratumClient = function(options) {
     }
 
     // Determine Whether to Consider Banning
-    let considerBan = (!banning || !banning.enabled) ? banningDisabled : banningEnabled;
+    this.considerBan = (!banning || !banning.enabled) ? _this.banningDisabled : _this.banningEnabled;
 
-    // Initialize Stratum Connection
-    function initializeClient() {
-        setupSocket();
+    // Manage JSON Functionality
+    this.sendJson = function() {
+        let response = '';
+        for (let i = 0; i < arguments.length; i += 1) {
+            response += JSON.stringify(arguments[i]) + '\n';
+        }
+        options.socket.write(response);
     }
 
     // Establish Stratum Connection
-    function setupSocket() {
+    this.setupSocket = function() {
 
         // Setup Main Socket Connection
         let dataBuffer = '';
@@ -128,7 +133,7 @@ let StratumClient = function(options) {
                         return;
                     }
                     if (messageJson) {
-                        handleMessage(messageJson);
+                        _this.handleMessage(messageJson);
                     }
                 });
                 dataBuffer = incomplete;
@@ -148,28 +153,28 @@ let StratumClient = function(options) {
     }
 
     // Handle Stratum Messages
-    function handleMessage(message) {
+    this.handleMessage = function(message) {
         switch (message.method) {
 
             // Manage Stratum Subscription
             case 'mining.subscribe':
-                handleSubscribe(message);
+                _this.handleSubscribe(message);
                 break;
 
             // Manage Stratum Authorization
             case 'mining.authorize':
-                handleAuthorize(message, true);
+                _this.handleAuthorize(message, true);
                 break;
 
             // Manage Stratum Submission
             case 'mining.submit':
                 _this.lastActivity = Date.now();
-                handleSubmit(message);
+                _this.handleSubmit(message);
                 break;
 
             // Manage Transactions
             case 'mining.get_transactions':
-                sendJson({
+                _this.sendJson({
                     id: null,
                     result: [],
                     error: true
@@ -178,7 +183,7 @@ let StratumClient = function(options) {
 
             // Manage Extranonce Capabilities
             case 'mining.extranonce.subscribe':
-                sendJson({
+                _this.sendJson({
                     id: message.id,
                     result: false,
                     error: [20, "Not supported.", null]
@@ -193,17 +198,17 @@ let StratumClient = function(options) {
     }
 
     // Manage Stratum Subscription
-    function handleSubscribe(message) {
+    this.handleSubscribe = function(message) {
         if (! _this._authorized) {
             _this.requestedSubscriptionBeforeAuth = true;
         }
         _this.emit('subscription', {}, function(error, extraNonce1, extraNonce2Size) {
             if (error) {
-                sendJson({ id: message.id, result: null, error: error });
+                _this.sendJson({ id: message.id, result: null, error: error });
                 return;
             }
             _this.extraNonce1 = extraNonce1;
-            sendJson({
+            _this.sendJson({
                 id: message.id,
                 result: [
                     [
@@ -219,13 +224,13 @@ let StratumClient = function(options) {
     }
 
     // Manage Stratum Authorization
-    function handleAuthorize(message, replyToSocket) {
+    this.handleAuthorize = function(message, replyToSocket) {
         _this.workerName = message.params[0];
         _this.workerPass = message.params[1];
         options.authorizeFn(_this.remoteAddress, options.socket.localPort, _this.workerName, _this.workerPass, function(result) {
             _this.authorized = (!result.error && result.authorized);
             if (replyToSocket) {
-                sendJson({
+                _this.sendJson({
                     id: message.id,
                     result: _this.authorized,
                     error: result.error
@@ -238,43 +243,34 @@ let StratumClient = function(options) {
     }
 
     // Manage Stratum Submission
-    function handleSubmit(message) {
+    this.handleSubmit = function(message) {
         if (!_this.authorized) {
-            sendJson({
+            _this.sendJson({
                 id: message.id,
                 result: null,
                 error: [24, "unauthorized worker", null]
             });
-            considerBan(false);
+            _this.considerBan(false);
             return;
         }
         if (!_this.extraNonce1) {
-            sendJson({
+            _this.sendJson({
                 id: message.id,
                 result: null,
                 error: [25, "not subscribed", null]
             });
-            considerBan(false);
+            _this.considerBan(false);
             return;
         }
         _this.emit('submit', message, function(error, result) {
-            if (!considerBan(result)) {
-                sendJson({
+            if (!_this.considerBan(result)) {
+                _this.sendJson({
                     id: message.id,
                     result: result,
                     error: error
                 });
             }
         });
-    }
-
-    // Manage JSON Functionality
-    function sendJson() {
-        let response = '';
-        for (let i = 0; i < arguments.length; i += 1) {
-            response += JSON.stringify(arguments[i]) + '\n';
-        }
-        options.socket.write(response);
     }
 
     // Get Label of Stratum Client
@@ -290,12 +286,12 @@ let StratumClient = function(options) {
 
     // Broadcast Difficulty to Stratum Client
     this.sendDifficulty = function(difficulty) {
-        if (difficulty === this.difficulty) {
+        if (difficulty === _this.difficulty) {
             return false;
         }
         _this.previousDifficulty = _this.difficulty;
         _this.difficulty = difficulty;
-        sendJson({
+        _this.sendJson({
             id: null,
             method: "mining.set_difficulty",
             params: [difficulty],
@@ -318,7 +314,7 @@ let StratumClient = function(options) {
                 _this.emit('difficultyChanged', _this.difficulty);
             }
         }
-        sendJson({
+        _this.sendJson({
             id: null,
             method: "mining.notify",
             params: jobParams
@@ -326,7 +322,7 @@ let StratumClient = function(options) {
     };
 
     // Initialize Stratum Connection
-    this.init = initializeClient;
+    this.init = _this.setupSocket;
 };
 
 /**

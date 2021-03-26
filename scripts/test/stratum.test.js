@@ -97,14 +97,15 @@ nock.enableNetConnect('127.0.0.1')
 
 function mockClient() {
     const socket = new events.EventEmitter();
+    socket.remoteAddress = "127.0.0.1",
     socket.destroy = () => {};
     socket.setEncoding = () => {};
     socket.setKeepAlive = (status) => {};
+    socket.write = (data) => { socket.emit("log", data) };
     const client = new events.EventEmitter();
     client.previousDifficulty = 0;
     client.difficulty = 1,
     client.extraNonce1 = 0,
-    client.remoteAddress = "127.0.0.1",
     client.socket = socket;
     client.socket.localPort = 3001;
     client.getLabel = () => { return "client [example]" };
@@ -115,9 +116,11 @@ function mockClient() {
 
 function mockSocket() {
     const socket = new events.EventEmitter();
+    socket.remoteAddress = "127.0.0.1",
     socket.destroy = () => {};
     socket.setEncoding = () => {};
     socket.setKeepAlive = (status) => {};
+    socket.write = (data) => { socket.emit("log", data) };
     return socket
 }
 
@@ -141,7 +144,7 @@ describe('Test stratum functionality', () => {
             stratum.on('stopped', () => done());
             expect(timeLeft >= 0).toBeTruthy();
             stratum.stopServer();
-        })
+        });
         stratum.addBannedIP(client.remoteAddress);
         stratum.checkBan(client);
     });
@@ -155,7 +158,7 @@ describe('Test stratum functionality', () => {
         client.on('forgaveBannedIP', () => {
             stratum.on('stopped', () => done());
             stratum.stopServer();
-        })
+        });
         stratum.addBannedIP(client.remoteAddress);
         stratum.checkBan(client);
     });
@@ -181,7 +184,7 @@ describe('Test stratum functionality', () => {
             stratum.on('stopped', () => done());
             expect(Object.keys(stratum.stratumClients).length).toBe(0);
             stratum.stopServer();
-        })
+        });
         client.emit('socketDisconnect');
     });
 
@@ -191,23 +194,108 @@ describe('Test stratum functionality', () => {
         const socket = mockSocket();
         const subscriptionId = stratum.handleNewClient(socket);
         const client = stratum.stratumClients["deadbeefcafebabe0100000000000000"];
-        client.remoteAddress = "127.0.0.1";
         stratum.on('client.banned', () => {
             stratum.on('stopped', () => done());
             expect(Object.keys(stratum.bannedIPs).length).toBe(1);
             expect(typeof stratum.bannedIPs["127.0.0.1"]).toBe("number");
             stratum.stopServer();
-        })
+        });
         client.emit('triggerBan');
     });
 
-    test('Test stratum job broadcasting', (done) => {
+    test('Test stratum job broadcasting [1]', (done) => {
+        const optionsCopy = Object.assign({}, options);
+        optionsCopy.connectionTimeout = -1;
+        const stratum = new Stratum.network(optionsCopy, () => {});
+        const socket = mockSocket();
+        const subscriptionId = stratum.handleNewClient(socket);
+        const client = stratum.stratumClients["deadbeefcafebabe0100000000000000"];
+        client.on('socketTimeout', (timeout) => {
+            stratum.on('stopped', () => done());
+            expect(timeout).toBe("last submitted a share was 0 seconds ago");
+            stratum.stopServer();
+        });
+        stratum.broadcastMiningJobs({});
+    });
+
+    test('Test stratum job broadcasting [2]', (done) => {
+        const response = [];
         const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         const subscriptionId = stratum.handleNewClient(socket);
         const client = stratum.stratumClients["deadbeefcafebabe0100000000000000"];
+        client.pendingDifficulty = 8;
+        client.socket.on('log', text => {
+            response.push(text);
+            if (response.length === 2) {
+              stratum.on('stopped', () => done());
+              expect(response[0]).toBe('{"id":null,"method":"mining.set_difficulty","params":[8]}\n');
+              expect(response[1]).toBe('{"id":null,"method":"mining.notify","params":{}}\n');
+              stratum.stopServer();
+            };
+        })
+        stratum.broadcastMiningJobs({});
+    });
+
+    test('Test stratum job broadcasting [3]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const stratum = new Stratum.network(optionsCopy, () => {});
+        const socket = mockSocket();
+        const subscriptionId = stratum.handleNewClient(socket);
+        const client = stratum.stratumClients["deadbeefcafebabe0100000000000000"];
+        client.socket.on('log', text => {
+            response.push(text);
+            if (response.length === 1) {
+              stratum.on('stopped', () => done());
+              expect(response[0]).toBe('{"id":null,"method":"mining.notify","params":{}}\n');
+              stratum.stopServer();
+            };
+        })
+        stratum.broadcastMiningJobs({});
+    });
+
+    test('Test stratum client labelling', (done) => {
+        const optionsCopy = Object.assign({}, options);
+        const stratum = new Stratum.network(optionsCopy, () => {});
+        const socket = mockSocket();
+        const subscriptionId = stratum.handleNewClient(socket);
+        const client = stratum.stratumClients["deadbeefcafebabe0100000000000000"];
+        client.workerName = "worker1";
+        expect(client.getLabel()).toBe("worker1 [127.0.0.1]");
         stratum.on('stopped', () => done());
         stratum.stopServer();
+    });
+
+    test('Test stratum client difficulty queueing', (done) => {
+        const optionsCopy = Object.assign({}, options);
+        const stratum = new Stratum.network(optionsCopy, () => {});
+        const socket = mockSocket();
+        const subscriptionId = stratum.handleNewClient(socket);
+        const client = stratum.stratumClients["deadbeefcafebabe0100000000000000"];
+        client.enqueueNextDifficulty(8)
+        expect(client.pendingDifficulty).toBe(8);
+        stratum.on('stopped', () => done());
+        stratum.stopServer();
+    });
+
+    test('Test stratum client difficulty management', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const stratum = new Stratum.network(optionsCopy, () => {});
+        const socket = mockSocket();
+        const subscriptionId = stratum.handleNewClient(socket);
+        const client = stratum.stratumClients["deadbeefcafebabe0100000000000000"];
+        client.socket.on('log', text => {
+            response.push(text);
+            if (response.length === 1) {
+              stratum.on('stopped', () => done());
+              expect(response[0]).toBe('{"id":null,"method":"mining.set_difficulty","params":[8]}\n');
+              stratum.stopServer();
+            };
+        })
+        expect(client.sendDifficulty(0)).toBe(false);
+        expect(client.sendDifficulty(8)).toBe(true);
     });
 });
