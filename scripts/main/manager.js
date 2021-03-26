@@ -5,7 +5,7 @@
  */
 
 // Import Required Modules
-let events = require('events');
+const events = require('events');
 let crypto = require('crypto');
 let bignum = require('bignum');
 let util = require('./util.js');

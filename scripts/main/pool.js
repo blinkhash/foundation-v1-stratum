@@ -5,7 +5,7 @@
  */
 
 // Import Required Modules
-let events = require('events');
+const events = require('events');
 let async = require('async');
 let util = require('./util.js');
 
@@ -23,9 +23,9 @@ let Pool = function(options, authorizeFn) {
     // Establish Pool Variables
     let _this = this;
     let blockPollingIntervalId;
-    let emitLog = function(text) { _this.emit('log', 'debug'  , text); };
+    let emitLog = function(text) { _this.emit('log', 'debug', text); };
     let emitWarningLog = function(text) { _this.emit('log', 'warning', text); };
-    let emitErrorLog = function(text) { _this.emit('log', 'error'  , text); };
+    let emitErrorLog = function(text) { _this.emit('log', 'error', text); };
     let emitSpecialLog = function(text) { _this.emit('log', 'special', text); };
 
     // Check if Algorithm is Supported
@@ -555,7 +555,7 @@ let Pool = function(options, authorizeFn) {
             // Establish Client Difficulty Functionality
             client.on('difficultyChanged', function(diff) {
                 _this.emit('difficultyUpdate', client.workerName, diff);
-            })
+            });
 
             // Establish Client Subscription Functionality
             client.on('subscription', function(params, resultCallback) {
@@ -563,13 +563,13 @@ let Pool = function(options, authorizeFn) {
                 let extraNonce2Size = _this.manager.extraNonce2Size;
                 resultCallback(null, extraNonce, extraNonce2Size);
                 if (typeof(options.ports[client.socket.localPort]) !== 'undefined' && options.ports[client.socket.localPort].initial) {
-                    this.sendDifficulty(options.ports[client.socket.localPort].initial);
+                    client.sendDifficulty(options.ports[client.socket.localPort].initial);
                 }
                 else {
-                    this.sendDifficulty(8);
+                    client.sendDifficulty(8);
                 }
-                this.sendMiningJob(_this.manager.currentJob.getJobParams(options));
-            })
+                client.sendMiningJob(_this.manager.currentJob.getJobParams(options));
+            });
 
             // Establish Client Submission Functionality
             client.on('submit', function(message, resultCallback) {
@@ -587,54 +587,60 @@ let Pool = function(options, authorizeFn) {
                     null
                 );
                 resultCallback(result.error, result.result ? true : null);
-            })
+            });
 
             // Establish Client Error Messaging Functionality
-            client.on('malformedMessage', function(message) {});
+            client.on('malformedMessage', function(message) {
+                emitWarningLog('Malformed message from ' + client.getLabel() + ': ' + JSON.stringify(message));
+            });
 
             // Establish Client Socket Error Functionality
             client.on('socketError', function(e) {
                 emitWarningLog('Socket error from ' + client.getLabel() + ': ' + JSON.stringify(e));
-            })
+            });
 
             // Establish Client Socket Timeout Functionality
             client.on('socketTimeout', function(reason) {
-                emitWarningLog('Connected timed out for ' + client.getLabel() + ': ' + reason)
-            })
+                emitWarningLog('Connection timed out for ' + client.getLabel() + ': ' + reason)
+            });
 
             // Establish Client Disconnect Functionality
-            client.on('socketDisconnect', function() {})
+            client.on('socketDisconnect', function() {
+                emitWarningLog('Socket disconnect for ' + client.getLabel());
+            })
 
             // Establish Client Banned Functionality
             client.on('kickedBannedIP', function(remainingBanTime) {
-                emitLog('Rejected incoming connection from ' + client.remoteAddress + ' banned for ' + remainingBanTime + ' more seconds');
-            })
+                emitLog('Rejected incoming connection from ' + client.remoteAddress + '. The client is banned for ' + remainingBanTime + ' seconds');
+            });
 
             // Establish Client Forgiveness Functionality
             client.on('forgaveBannedIP', function() {
                 emitLog('Forgave banned IP ' + client.remoteAddress);
-            })
+            });
 
             // Establish Client Unknown Stratum Functionality
             client.on('unknownStratumMethod', function(fullMessage) {
                 emitLog('Unknown stratum method from ' + client.getLabel() + ': ' + fullMessage.method);
-            })
+            });
 
             // Establish Client DDOS Functionality
             client.on('socketFlooded', function() {
                 emitWarningLog('Detected socket flooding from ' + client.getLabel());
-            })
+            });
 
             // Establish Client TCP Error Functionality
             client.on('tcpProxyError', function(data) {
                 emitErrorLog('Client IP detection failed, tcpProxyProtocol is enabled yet did not receive proxy protocol message, instead got data: ' + data);
-            })
+            });
 
             // Establish Client Banning Functionality
             client.on('triggerBan', function(reason) {
-                emitWarningLog('Banned triggered for ' + client.getLabel() + ': ' + reason);
+                emitWarningLog('Ban triggered for ' + client.getLabel() + ': ' + reason);
                 _this.emit('banIP', client.remoteAddress, client.workerName);
             });
+
+            _this.emit('connectionSucceeded');
         });
     }
 

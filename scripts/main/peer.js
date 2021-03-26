@@ -7,7 +7,7 @@
 // Import Required Modules
 let net = require('net');
 let crypto = require('crypto');
-let events = require('events');
+const events = require('events');
 let util = require('./util.js');
 
 // Generate String Buffer from Parameter Length

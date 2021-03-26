@@ -5,7 +5,7 @@
  */
 
 // Import Required Modules
-let events = require('events');
+const events = require('events');
 
 // Truncate Integer to Fixed Decimal Places
 function toFixed(num, len) {

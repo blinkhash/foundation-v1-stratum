@@ -6,7 +6,7 @@
 
 // Import Required Modules
 let net = require('net');
-let events = require('events');
+const events = require('events');
 
 // Load Hashing Algorithms
 require('./main/algorithms.js');

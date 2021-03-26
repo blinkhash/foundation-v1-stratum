@@ -5,7 +5,7 @@
  */
 
 // Import Required Modules
-let events = require('events');
+const events = require('events');
 
 // Import Required Modules
 const Difficulty = require('../main/difficulty');

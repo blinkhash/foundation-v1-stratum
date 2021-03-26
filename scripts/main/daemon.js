@@ -7,7 +7,7 @@
 // Import Required Modules
 let http = require('http');
 let cp = require('child_process');
-let events = require('events');
+const events = require('events');
 let async = require('async');
 
 /**

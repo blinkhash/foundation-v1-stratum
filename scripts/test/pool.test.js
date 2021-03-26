@@ -5,6 +5,7 @@
  */
 
 // Import Required Modules
+const events = require('events');
 const nock = require('nock');
 
 // Import Required Modules
@@ -152,6 +153,13 @@ const peerData = {
 
 const options = {
     "address": "",
+    "banning": {
+        "enabled": true,
+        "time": 600,
+        "invalidPercent": 50,
+        "checkThreshold": 500,
+        "purgeInterval": 300
+    },
     "coin": {
         "name": "Bitcoin",
         "symbol": "BTC",
@@ -185,6 +193,7 @@ const options = {
             "coin": "btc",
         }
     },
+    "connectionTimeout": 600,
     "daemons": [{
         "host": "127.0.0.1",
         "port": 8332,
@@ -218,6 +227,7 @@ const options = {
         "percentage": 0.05,
     }],
     "rewards": "",
+    "tcpProxyProtocol": false,
 };
 
 nock.disableNetConnect()
@@ -1706,6 +1716,624 @@ describe('Test pool functionality', () => {
                                     result: rpcDataCopy,
                                 }));
                             pool.stratum.emit('broadcastTimeout');
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [5]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("warning");
+                expect(response[1][1]).toBe("Malformed message from client [example]: \"Message\"");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('malformedMessage', "Message");
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.getLabel = () => { return "client [example]" };
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [6]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("warning");
+                expect(response[1][1]).toBe("Socket error from client [example]: \"Error\"");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('socketError', "Error");
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.getLabel = () => { return "client [example]" };
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [7]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("warning");
+                expect(response[1][1]).toBe("Connection timed out for client [example]: Timeout");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('socketTimeout', "Timeout");
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.getLabel = () => { return "client [example]" };
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [8]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("warning");
+                expect(response[1][1]).toBe("Socket disconnect for client [example]");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('socketDisconnect');
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.getLabel = () => { return "client [example]" };
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [9]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("Rejected incoming connection from 127.0.0.1. The client is banned for 100000 seconds");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('kickedBannedIP', 100000);
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.remoteAddress = "127.0.0.1";
+                            client.getLabel = () => { return "client [example]" };
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [10]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("Forgave banned IP 127.0.0.1");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('forgaveBannedIP');
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.remoteAddress = "127.0.0.1";
+                            client.getLabel = () => { return "client [example]" };
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [11]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("Unknown stratum method from client [example]: Unknown");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('unknownStratumMethod', { method: "Unknown"});
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.getLabel = () => { return "client [example]" };
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [12]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("warning");
+                expect(response[1][1]).toBe("Detected socket flooding from client [example]");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('socketFlooded');
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.getLabel = () => { return "client [example]" };
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [13]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("error");
+                expect(response[1][1]).toBe("Client IP detection failed, tcpProxyProtocol is enabled yet did not receive proxy protocol message, instead got data: Data");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('tcpProxyError', "Data");
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.getLabel = () => { return "client [example]" };
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [14]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("warning");
+                expect(response[1][1]).toBe("Ban triggered for client [example]: Socket flooding");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('triggerBan', "Socket flooding");
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.getLabel = () => { return "client [example]" };
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [15]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("Difficulty updated successfully for worker: worker1");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('difficultyUpdate', (worker, difficulty) => {
+            pool.emit('log', 'debug', 'Difficulty updated successfully for worker: ' + worker);
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('difficultyChanged', 100000);
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.workerName = "worker1"
+                            client.getLabel = () => { return "client [example]" };
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [16]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("Client successfully subscribed to stratum network");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('subscription', {}, (error, extraNonce1, extraNonce2Size) => {
+                pool.emit('log', 'debug', 'Client successfully subscribed to stratum network');
+            });
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.getLabel = () => { return "client [example]" };
+                            client.sendDifficulty = (difficulty) => {};
+                            client.sendMiningJob = (jobParams) => {};
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [17]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        optionsCopy.ports = Object.assign({}, options.ports);
+        optionsCopy.ports["3001"] = Object.assign({}, options.ports["3001"]);
+        delete optionsCopy.ports["3001"].initial;
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 1) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("debug");
+                expect(response[0][1]).toBe("Client successfully subscribed to stratum network");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('subscription', {}, (error, extraNonce1, extraNonce2Size) => {
+                pool.emit('log', 'debug', 'Client successfully subscribed to stratum network');
+            });
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.getLabel = () => { return "client [example]" };
+                            client.sendDifficulty = (difficulty) => {};
+                            client.sendMiningJob = (jobParams) => {};
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [18]', (done) => {
+        let client;
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 2) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("Client successfully subscribed to stratum network");
+                pool.stratum.stopServer();
+            };
+        });
+        pool.on('connectionSucceeded', () => {
+            client.emit('submit', {params: [0, 1, 2, 3, 4]}, (error, result) => {
+                pool.emit('log', 'debug', 'Client successfully subscribed to stratum network');
+            });
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            const socket = new events.EventEmitter();
+                            client = new events.EventEmitter();
+                            client.previousDifficulty = 0;
+                            client.difficulty = 1,
+                            client.extraNonce1 = 0,
+                            client.remoteAddress = "127.0.0.1",
+                            client.socket = socket;
+                            client.socket.localPort = 3001;
+                            client.getLabel = () => { return "client [example]" };
+                            client.sendDifficulty = (difficulty) => {};
+                            client.sendMiningJob = (jobParams) => {};
+                            pool.stratum.emit('client.connected', client);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool info outputting [1]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 3) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("Block template polling has been disabled");
+                expect(response[2][0]).toBe("special");
+                expect(response[2][1]).toBe("Stratum Pool Server Started for Bitcoin [BTC] {sha256d}\n\t\t\t\t\t\tNetwork Connected:	Mainnet\n\t\t\t\t\t\tCurrent Block Height:	1\n\t\t\t\t\t\tCurrent Connect Peers:	1\n\t\t\t\t\t\tCurrent Block Diff:	0.000244141\n\t\t\t\t\t\tNetwork Difficulty:	0\n\t\t\t\t\t\tStratum Port(s):	3001\n\t\t\t\t\t\tPool Fee Percentage:	5%");
+                pool.stratum.stopServer();
+            }
+        });
+        pool.setupDifficulty();
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupRecipients();
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupBlockPolling();
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            pool.outputPoolInfo();
                         });
                     });
                 });

@@ -6,7 +6,7 @@
 
 // Import Required Modules
 let net = require('net');
-let events = require('events');
+const events = require('events');
 let util = require('./util.js');
 
 // Increment Count for Each Subscription
@@ -325,18 +325,6 @@ let StratumClient = function(options) {
         });
     };
 
-    // Manually Authorize Stratum Client
-    this.manuallyAuthClient = function (username, password) {
-        handleAuthorize({id: 1, params: [username, password]}, false);
-    };
-
-    // Manually Copy Values from Stratum Client
-    this.manuallySetValues = function (otherClient) {
-        _this.extraNonce1 = otherClient.extraNonce1;
-        _this.previousDifficulty = otherClient.previousDifficulty;
-        _this.difficulty = otherClient.difficulty;
-    };
-
     // Initialize Stratum Connection
     this.init = initializeClient;
 };
@@ -442,8 +430,8 @@ let StratumNetwork = function(options, authorizeFn) {
 
         // Establish New Stratum Client
         socket.setKeepAlive(true);
-        let subscriptionId = subscriptionCounter.next();
-        let client = new StratumClient({
+        const subscriptionId = subscriptionCounter.next();
+        const client = new StratumClient({
             subscriptionId: subscriptionId,
             authorizeFn: authorizeFn,
             socket: socket,
@@ -456,15 +444,18 @@ let StratumNetwork = function(options, authorizeFn) {
         // Manage Client Behaviors
         _this.emit('client.connected', client);
         client.on('socketDisconnect', function() {
-            _this.manuallyRemoveStratumClient(subscriptionId);
+            delete _this.stratumClients[subscriptionId];
             _this.emit('client.disconnected', client);
-        }).on('checkBan', function() {
+        });
+        client.on('checkBan', function() {
             _this.checkBan(client);
-        }).on('triggerBan', function() {
+        });
+        client.on('triggerBan', function() {
             _this.addBannedIP(client.remoteAddress);
-        }).init();
+        })
 
         // Return Client Subscription ID
+        client.init();
         return subscriptionId;
     };
 
@@ -483,20 +474,6 @@ let StratumNetwork = function(options, authorizeFn) {
     // Add Banned IP to List of Banned IPs
     this.addBannedIP = function(ipAddress) {
         _this.bannedIPs[ipAddress] = Date.now();
-    };
-
-    // Manually Add Stratum Client to Stratum Server
-    this.manuallyAddStratumClient = function(clientObj) {
-        let subId = _this.handleNewClient(clientObj.socket);
-        if (subId != null) { // not banned!
-            _this.stratumClients[subId].manuallyAuthClient(clientObj.workerName, clientObj.workerPass);
-            _this.stratumClients[subId].manuallySetValues(clientObj);
-        }
-    };
-
-    // Manually Remove Stratum Client from Stratum Server
-    this.manuallyRemoveStratumClient = function (subscriptionId) {
-        delete _this.[subscriptionId];
     };
 
     // Initialize Stratum Connection
