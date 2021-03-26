@@ -36,13 +36,13 @@ let StratumClient = function(options) {
     let _this = this;
     let algorithm = options.algorithm
     let banning = options.banning;
-    let pendingDifficulty = null;
 
     // Establish Public Stratum Variables
     this.lastActivity = Date.now();
     this.socket = options.socket;
     this.remoteAddress = options.socket.remoteAddress;
     this.shares = {valid: 0, invalid: 0};
+    this.pendingDifficulty = null;
 
     // Helper Function if Banning is Disabled
     function banningDisabled() {
@@ -284,7 +284,7 @@ let StratumClient = function(options) {
 
     // Push Updated Difficulty to Difficulty Queue
     this.enqueueNextDifficulty = function(requestedNewDifficulty) {
-        pendingDifficulty = requestedNewDifficulty;
+        _this.pendingDifficulty = requestedNewDifficulty;
         return true;
     };
 
@@ -311,9 +311,9 @@ let StratumClient = function(options) {
             _this.socket.destroy();
             return;
         }
-        if (pendingDifficulty != null) {
-            let result = _this.sendDifficulty(pendingDifficulty);
-            pendingDifficulty = null;
+        if (_this.pendingDifficulty != null) {
+            let result = _this.sendDifficulty(_this.pendingDifficulty);
+            _this.pendingDifficulty = null;
             if (result) {
                 _this.emit('difficultyChanged', _this.difficulty);
             }
@@ -452,6 +452,7 @@ let StratumNetwork = function(options, authorizeFn) {
         });
         client.on('triggerBan', function() {
             _this.addBannedIP(client.remoteAddress);
+            _this.emit('client.banned', client);
         })
 
         // Return Client Subscription ID

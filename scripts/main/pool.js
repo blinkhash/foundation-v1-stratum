@@ -39,7 +39,7 @@ let Pool = function(options, authorizeFn) {
     this.processBlockNotify = function(blockHash, sourceTrigger) {
         emitLog('Block notification via ' + sourceTrigger);
         if (typeof(_this.manager.currentJob) !== 'undefined' && blockHash !== _this.manager.currentJob.rpcData.previousblockhash) {
-            getBlockTemplate(function(error, result) {
+            _this.getBlockTemplate(function(error, result) {
                 if (error) {
                     emitErrorLog('Block notify error getting block template for ' + options.coin.name);
                 }
@@ -64,17 +64,17 @@ let Pool = function(options, authorizeFn) {
 
     // Initialize Pool Server
     this.start = function() {
-        setupDifficulty();
-        setupDaemonInterface(function() {
-            setupPoolData(function() {
-                setupRecipients();
-                setupJobManager();
-                setupBlockchain(function() {
-                    setupFirstJob(function() {
-                        setupBlockPolling();
-                        setupPeer();
-                        setupStratum(function() {
-                            outputPoolInfo();
+        _this.setupDifficulty();
+        _this.setupDaemonInterface(function() {
+            _this.setupPoolData(function() {
+                _this.setupRecipients();
+                _this.setupJobManager();
+                _this.setupBlockchain(function() {
+                    _this.setupFirstJob(function() {
+                        _this.setupBlockPolling();
+                        _this.setupPeer();
+                        _this.setupStratum(function() {
+                            _this.outputPoolInfo();
                             _this.emit('started');
                         });
                     });
@@ -84,7 +84,7 @@ let Pool = function(options, authorizeFn) {
     };
 
     // Initialize Pool Difficulty
-    function setupDifficulty() {
+    this.setupDifficulty = function() {
         _this.difficulty = {};
         Object.keys(options.ports).forEach(function(port) {
             if (options.ports[port].difficulty)
@@ -93,7 +93,7 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Initialize Pool Daemon
-    function setupDaemonInterface(callback) {
+    this.setupDaemonInterface = function(callback) {
 
         // Check to Ensure Daemons are Configured
         if (!Array.isArray(options.daemons) || options.daemons.length < 1) {
@@ -121,7 +121,7 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Initialize Pool Data
-    function setupPoolData(callback) {
+    this.setupPoolData = function(callback) {
 
         // Define Initial RPC Calls
         let batchRPCCommand = [
@@ -204,7 +204,7 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Initialize Pool Recipients
-    function setupRecipients() {
+    this.setupRecipients = function() {
         if (options.recipients.length === 0) {
             emitErrorLog('No rewardRecipients have been setup which means no fees will be taken');
         }
@@ -215,7 +215,7 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Submit Block to Stratum Server
-    function submitBlock(blockHex, callback) {
+    this.submitBlock = function(blockHex, callback) {
 
         // Check which Submit Method is Supported
         let rpcCommand, rpcArgs;
@@ -251,7 +251,7 @@ let Pool = function(options, authorizeFn) {
 
 
     // Check Whether Block was Accepted by Daemon
-    function checkBlockAccepted(blockHash, callback) {
+    this.checkBlockAccepted = function(blockHash, callback) {
         _this.daemon.cmd('getblock', [blockHash], function(results) {
             let validResults = results.filter(function(result) {
                 return result.response && (result.response.hash === blockHash)
@@ -274,7 +274,7 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Load Current Block Template
-    function getBlockTemplate(callback) {
+    this.getBlockTemplate = function(callback) {
 
         // Derive Blockchain Configuration
         let callConfig = {
@@ -304,7 +304,7 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Initialize Pool Job Manager
-    function setupJobManager() {
+    this.setupJobManager = function() {
 
         // Establish Manager
         _this.manager = new Manager(options);
@@ -324,12 +324,12 @@ let Pool = function(options, authorizeFn) {
             if (!isValidBlock)
                 _this.emit('share', isValidShare, isValidBlock, shareData);
             else {
-                submitBlock(blockHex, function() {
-                    checkBlockAccepted(shareData.blockHash, function(isAccepted, tx) {
+                _this.submitBlock(blockHex, function() {
+                    _this.checkBlockAccepted(shareData.blockHash, function(isAccepted, tx) {
                         isValidBlock = isAccepted;
                         shareData.txHash = tx;
                         _this.emit('share', isValidShare, isValidBlock, shareData);
-                        getBlockTemplate(function(error, result, foundNewBlock) {
+                        _this.getBlockTemplate(function(error, result, foundNewBlock) {
                             if (foundNewBlock)
                                 emitLog('Block notification via RPC after block submission');
                         });
@@ -349,7 +349,7 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Wait Until Blockchain is Fully Synced
-    function setupBlockchain(callback) {
+    this.setupBlockchain = function(callback) {
 
         // Derive Blockchain Configuration
         let callConfig = {
@@ -412,10 +412,10 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Initialize Pool First Job
-    function setupFirstJob(callback) {
+    this.setupFirstJob = function(callback) {
 
         // Establish First Block Template
-        getBlockTemplate(function(error, result) {
+        _this.getBlockTemplate(function(error, result) {
             if (error) {
                 emitErrorLog('Error with getblocktemplate on creating first job, server cannot start');
                 return;
@@ -441,7 +441,7 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Initialize Pool Block Polling
-    function setupBlockPolling() {
+    this.setupBlockPolling = function() {
         if (typeof options.blockRefreshInterval !== "number" || options.blockRefreshInterval <= 0) {
             emitLog('Block template polling has been disabled');
             return;
@@ -451,7 +451,7 @@ let Pool = function(options, authorizeFn) {
         blockPollingIntervalId = setInterval(function() {
             if (pollingFlag === false) {
                 pollingFlag = true;
-                getBlockTemplate(function(error, result, foundNewBlock) {
+                _this.getBlockTemplate(function(error, result, foundNewBlock) {
                     if (foundNewBlock) {
                         emitLog('Block notification via RPC polling');
                     }
@@ -462,7 +462,7 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Initialize Pool Peers
-    function setupPeer() {
+    this.setupPeer = function() {
 
         // Establish Peer Settings
         options.verack = false;
@@ -516,7 +516,7 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Start Pool Stratum Server
-    function setupStratum(callback) {
+    this.setupStratum = function(callback) {
 
         // Establish Stratum Server
         _this.stratum = new Stratum.network(options, authorizeFn);
@@ -537,7 +537,7 @@ let Pool = function(options, authorizeFn) {
             if (options.debug) {
                 emitLog('No new blocks for ' + options.jobRebroadcastTimeout + ' seconds - updating transactions & rebroadcasting work');
             }
-            getBlockTemplate(function(error, rpcData, processedBlock) {
+            _this.getBlockTemplate(function(error, rpcData, processedBlock) {
                 if (error || processedBlock) return;
                 _this.manager.updateCurrentJob(rpcData);
                 emitLog('Updated existing job for current block template')
@@ -645,7 +645,7 @@ let Pool = function(options, authorizeFn) {
     }
 
     // Output Derived Pool Information
-    function outputPoolInfo() {
+    this.outputPoolInfo = function() {
         let startMessage = 'Stratum Pool Server Started for ' + options.coin.name +
             ' [' + options.coin.symbol.toUpperCase() + '] {' + options.coin.algorithm + '}';
         if (process.env.forkId && process.env.forkId !== '0') {
@@ -666,19 +666,6 @@ let Pool = function(options, authorizeFn) {
         }
         emitSpecialLog(infoLines.join('\n\t\t\t\t\t\t'));
     }
-
-    // Establish External Capabilities
-    this.setupDifficulty = setupDifficulty
-    this.setupDaemonInterface = setupDaemonInterface
-    this.setupPoolData = setupPoolData
-    this.setupRecipients = setupRecipients
-    this.setupJobManager = setupJobManager
-    this.setupBlockchain = setupBlockchain
-    this.setupFirstJob = setupFirstJob
-    this.setupBlockPolling = setupBlockPolling
-    this.setupPeer = setupPeer
-    this.setupStratum = setupStratum
-    this.outputPoolInfo = outputPoolInfo
 };
 
 module.exports = Pool;

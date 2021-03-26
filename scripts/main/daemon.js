@@ -22,14 +22,14 @@ let async = require('async');
 // DaemonInterface Main Function
 let DaemonInterface = function(daemons, logger) {
 
-    // Establish Private Daemon Variables
+    // Establish Daemon Variables
     let _this = this;
-    logger = logger || function(severity, message) {
+    this.logger = logger || function(severity, message) {
         console.log(severity + ': ' + message);
     };
 
     // Configure Daemon HTTP Requests
-    function performHttpRequest(instance, jsonData, callback) {
+    this.performHttpRequest = function(instance, jsonData, callback) {
 
         // Establish HTTP Options
         let options = {
@@ -46,7 +46,7 @@ let DaemonInterface = function(daemons, logger) {
         let parseJson = function(res, data) {
             let dataJson;
             if ((res.statusCode === 401) || (res.statusCode === 403)) {
-                logger('error', 'Unauthorized RPC access - invalid RPC username or password');
+                _this.logger('error', 'Unauthorized RPC access - invalid RPC username or password');
                 callback()
                 return;
             }
@@ -54,7 +54,7 @@ let DaemonInterface = function(daemons, logger) {
                 dataJson = JSON.parse(data);
             }
             catch(e) {
-                logger('error', 'Could not parse RPC data from daemon instance ' + instance.index
+                _this.logger('error', 'Could not parse RPC data from daemon instance ' + instance.index
                     + '\nRequest Data: ' + jsonData
                     + '\nReponse Data: ' + data);
                 callback()
@@ -132,7 +132,7 @@ let DaemonInterface = function(daemons, logger) {
           });
         });
         let serializedRequest = JSON.stringify(requestJson);
-        performHttpRequest(this.instances[0], serializedRequest, function(error, result) {
+        _this.performHttpRequest(this.instances[0], serializedRequest, function(error, result) {
             callback(error, result);
         });
     }
@@ -158,7 +158,7 @@ let DaemonInterface = function(daemons, logger) {
                 params: params,
                 id: Date.now() + Math.floor(Math.random() * 10)
             });
-            performHttpRequest(instance, requestJson, function(error, result, data) {
+            _this.performHttpRequest(instance, requestJson, function(error, result, data) {
                 itemFinished(error, result, data);
             });
         }, function() {
@@ -167,10 +167,6 @@ let DaemonInterface = function(daemons, logger) {
             }
         });
     }
-
-    // Establish External Capabilities
-    this.performHttpRequest = performHttpRequest;
-    this.logger = logger;
 }
 
 exports.interface = DaemonInterface;

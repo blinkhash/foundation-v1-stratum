@@ -15,15 +15,18 @@ let Promise = require('promise');
 // Merkle Main Function
 let Merkle = function(data) {
 
+    // Establish Merkle Variables
+    let _this = this;
+
     // Concat Hashes Together
-    function concatHash(h1, h2) {
+    this.concatHash = function(h1, h2) {
         let joined = Buffer.concat([h1, h2]);
         let dhashed = util.sha256d(joined);
         return dhashed;
     }
 
     // Calculate Merkle Steps
-    function calculateSteps(data) {
+    this.calculateSteps = function(data) {
         let steps = [];
         if (data) {
             let L = data;
@@ -41,7 +44,7 @@ let Merkle = function(data) {
                     let Ld = [];
                     let r = util.range(StartL, Ll, 2);
                     r.forEach(function(i) {
-                        Ld.push(concatHash(L[i], L[i + 1]));
+                        Ld.push(_this.concatHash(L[i], L[i + 1]));
                     });
                     L = PreL.concat(Ld);
                     Ll = L.length;
@@ -52,16 +55,16 @@ let Merkle = function(data) {
     }
 
     // Hash Merkle Steps With Input
-    function withFirst(hash) {
-        this.steps.forEach(function (step) {
+    this.withFirst = function(hash) {
+        _this.steps.forEach(function (step) {
             hash = util.sha256d(Buffer.concat([hash, step]))
         });
         return hash;
     }
 
     // Establish External Capabilities
-    this.steps = calculateSteps(data);
-    this.withFirst = withFirst;
+    this.steps = _this.calculateSteps(data);
+
 }
 
 // Export Merkle

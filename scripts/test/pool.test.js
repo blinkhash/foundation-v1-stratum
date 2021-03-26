@@ -2306,7 +2306,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool info outputting [1]', (done) => {
+    test('Test pool info outputting', (done) => {
         const response = [];
         const optionsCopy = Object.assign({}, options);
         const pool = new Pool(optionsCopy, () => {});

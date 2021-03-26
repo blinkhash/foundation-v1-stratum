@@ -80,18 +80,18 @@ let Peer = function(options) {
     };
 
     // Initialize Peer Connection
-    function initializePeer() {
-        const client = connectPeer();
+    this.initializePeer = function() {
+        const client = _this.connectPeer();
         return client;
     }
 
     // Establish Peer Connection
-    function connectPeer() {
+    this.connectPeer = function() {
         client = net.connect({
             host: options.p2p.host,
             port: options.p2p.port
         }, function () {
-            sendVersion();
+            _this.sendVersion();
         });
 
         // Manage Peer Close Functionality
@@ -99,7 +99,7 @@ let Peer = function(options) {
             if (verack) {
                 _this.emit('disconnected');
                 verack = false;
-                connectPeer();
+                _this.connectPeer();
             }
             else if (validConnectionConfig) {
                 _this.emit('connectionRejected');
@@ -118,12 +118,12 @@ let Peer = function(options) {
         });
 
         // Allow Peer to Receive/Send Messages
-        setupMessageParser(client);
+        _this.setupMessageParser(client);
         return client;
     }
 
     // Establish Peer Message Parser
-    function setupMessageParser(client) {
+    this.setupMessageParser = function(client) {
         let beginReadingMessage = function (preRead) {
             readFlowingBytes(client, 24, preRead, function (header, lopped) {
                 let msgMagic = header.readUInt32LE(0);
@@ -149,7 +149,7 @@ let Peer = function(options) {
                         beginReadingMessage(null);
                         return;
                     }
-                    handleMessage(msgCommand, payload);
+                    _this.handleMessage(msgCommand, payload);
                     beginReadingMessage(lopped);
                 });
             });
@@ -158,7 +158,7 @@ let Peer = function(options) {
     }
 
     // Handle Peer Inventory
-    function handleInventory(payload) {
+    this.handleInventory = function(payload) {
         let count = payload.readUInt8(0);
         payload = payload.slice(1);
         if (count >= 0xfd) {
@@ -182,11 +182,11 @@ let Peer = function(options) {
     }
 
     // Handle Peer Messages
-    function handleMessage(command, payload) {
+    this.handleMessage = function(command, payload) {
         _this.emit('peerMessage', {command: command, payload: payload});
         switch (command) {
             case commands.inv.toString():
-                handleInventory(payload);
+                _this.handleInventory(payload);
                 break;
             case commands.verack.toString():
                 if(!verack) {
@@ -195,7 +195,7 @@ let Peer = function(options) {
                 }
                 break;
             case commands.version.toString():
-                sendMessage(commands.verack, Buffer.alloc(0));
+                _this.sendMessage(commands.verack, Buffer.alloc(0));
                 break;
             default:
                 break;
@@ -204,7 +204,7 @@ let Peer = function(options) {
     }
 
     // Broadcast/Send Peer Messages
-    function sendMessage(command, payload) {
+    this.sendMessage = function(command, payload) {
         let message = Buffer.concat([
             magic,
             command,
@@ -217,7 +217,7 @@ let Peer = function(options) {
     }
 
     // Broadcast/Send Peer Version
-    function sendVersion() {
+    this.sendVersion = function() {
         let payload = Buffer.concat([
             util.packUInt32LE(options.protocolVersion),
             networkServices,
@@ -229,20 +229,11 @@ let Peer = function(options) {
             blockStartHeight,
             relayTransactions
         ]);
-        sendMessage(commands.version, payload);
+        _this.sendMessage(commands.version, payload);
     }
 
     // Initialize Peer Connection
-    let connection = initializePeer();
-
-    // Establish External Capabilities
-    this.initializePeer = initializePeer
-    this.connectPeer = connectPeer
-    this.setupMessageParser = setupMessageParser
-    this.handleInventory = handleInventory
-    this.handleMessage = handleMessage
-    this.sendMessage = sendMessage
-    this.sendVersion = sendVersion
+    let connection = _this.initializePeer();
 };
 
 // Export Peer
