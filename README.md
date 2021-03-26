@@ -1,4 +1,6 @@
-## Introduction
+# Blinkhash Stratum
+
+[![Codecov Coverage](https://img.shields.io/codecov/c/github/blinkhash/blinkhash-stratum-pool.svg?style=flat-square)](https://codecov.io/gh/blinkhash/blinkhash-stratum-pool/)
 
 This portal is a high performance Stratum server written entirely in Node.js. One instance of this software can startup and manage multiple coin pools, each with their own daemon and Stratum ports. This server itself was built to be efficient, transparent, and easy to setup, while still maintaining greater scalability than many of the other open-source Stratum servers. This repository itself, however, is simply a module. It will do nothing on its own. Unless you're a Node.js developer who would like to learn more regarding stratum authentication and raw share data, this module will not be of use to you. For a complete backend server that implements this module, see https://github.com/blinkhash/blinkhash-server. It handles payments, database integration, multi-coin/pool support, and more.
 
