@@ -21,6 +21,7 @@
     "name": "Nick Sarris"
   },
   "jest": {
+    "collectCoverage": true,
     "verbose": true
   },
   "scripts": {
@@ -54,6 +55,7 @@
   "_resolved": "git://github.com/blinkhash/blinkhash-stratum-pool.git",
   "_from": "stratum-pool@git://github.com/blinkhash/blinkhash-stratum-pool.git",
   "devDependencies": {
+    "codecov": "^3.8.1",
     "eslint": "^7.23.0",
     "jest": "^26.6.3",
     "mitm": "^1.7.1",
