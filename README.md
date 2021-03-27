@@ -46,3 +46,7 @@ Maintaining this project has always been driven out of nothing more than a desir
 - Ethereum: 0xd3e3daED621d228244Fa89A3dd8AF07B52E72319
 - Litecoin: MFWpARrSADAy3Qj79C4pSasS9F156QipwC
 - ZCash: t1NSk8gyiou8TxWRZTVuUkfM5f9riopN58A
+
+## License
+
+Released under the GNU General Public License v2. See http://www.gnu.org/licenses/gpl-2.0.html for more information
