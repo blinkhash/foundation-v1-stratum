@@ -20,6 +20,9 @@
   "author": {
     "name": "Matthew Little"
   },
+  "jest": {
+    "verbose": true
+  },
   "scripts": {
     "test": "jest --coverage"
   },
