@@ -6,7 +6,9 @@
 
 This portal is a high performance Stratum server written entirely in Node.js. One instance of this software can startup and manage multiple coin pools, each with their own daemon and Stratum ports. This server itself was built to be efficient, transparent, and easy to setup, while still maintaining greater scalability than many of the other open-source Stratum servers. This repository itself, however, is simply a module. It will do nothing on its own. Unless you're a Node.js developer who would like to learn more regarding stratum authentication and raw share data, this module will not be of use to you. For a complete backend server that implements this module, see https://github.com/blinkhash/blinkhash-server. It handles payments, database integration, multi-coin/pool support, and more.
 
-## Getting Started
+---
+
+### Getting Started
 
 #### Requirements
 
@@ -38,7 +40,9 @@ rpcport=26710
 
 For redundancy, it's recommended to have at least two daemon instances running in case one drops out-of-sync or offline. All instances listed will be polled for block/transaction updates and be used for submitting blocks. Creating a backup daemon involves spawning a daemon using the `-datadir=/backup` command-line argument which creates a new daemon instance with it's own config directory and coin.conf file. Learn about the daemon, how to use it and how it works if you want to be a good pool operator.
 
-## Donations
+---
+
+### Donations
 
 Maintaining this project has always been driven out of nothing more than a desire to give back to the mining community, however I always appreciate donations, especially if this repository helps you in any way.
 
@@ -47,6 +51,10 @@ Maintaining this project has always been driven out of nothing more than a desir
 - Litecoin: MFWpARrSADAy3Qj79C4pSasS9F156QipwC
 - ZCash: t1NSk8gyiou8TxWRZTVuUkfM5f9riopN58A
 
-## License
+---
+
+### License
 
 Released under the GNU General Public License v2. See http://www.gnu.org/licenses/gpl-2.0.html for more information
+
+---
