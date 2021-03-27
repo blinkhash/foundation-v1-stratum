@@ -1,5 +1,5 @@
 {
-  "name": "stratum-pool",
+  "name": "blinkhash-stratum-pool",
   "version": "0.1.9",
   "description": "High performance Stratum poolserver in Node.js",
   "keywords": [
@@ -18,7 +18,7 @@
   },
   "license": "GPL-2.0",
   "author": {
-    "name": "Matthew Little"
+    "name": "Nick Sarris"
   },
   "jest": {
     "verbose": true
@@ -26,14 +26,7 @@
   "scripts": {
     "test": "jest --coverage"
   },
-  "contributors": [
-    {
-      "name": "vekexasia"
-    },
-    {
-      "name": "TheSeven"
-    }
-  ],
+  "contributors": [],
   "main": "scripts/index.js",
   "repository": {
     "type": "git",
