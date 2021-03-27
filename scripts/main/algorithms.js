@@ -5,18 +5,18 @@
  */
 
 // Import Required Modules
-let multiHashing = require('multi-hashing');
-let util = require('./util.js');
+const multiHashing = require('multi-hashing');
+const util = require('./util.js');
 
 // Algorithms Main Function
-let algorithms = {
+const algorithms = {
 
     // Sha256 Algorithm
     'sha256d': {
         hash: function(){
             return function(){
                 return util.sha256d.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -24,11 +24,11 @@ let algorithms = {
     'scrypt': {
         multiplier: Math.pow(2, 16),
         hash: function(coinConfig){
-            let nValue = coinConfig.nValue || 1024;
-            let rValue = coinConfig.rValue || 1;
+            const nValue = coinConfig.nValue || 1024;
+            const rValue = coinConfig.rValue || 1;
             return function(data){
                 return multiHashing.scrypt(data,nValue,rValue);
-            }
+            };
         }
     },
 
@@ -37,7 +37,7 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.c11.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -46,7 +46,7 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.x11.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -55,7 +55,7 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.x13.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -64,7 +64,7 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.x15.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -74,7 +74,7 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.x16r.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -84,7 +84,7 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.x16rv2.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -93,7 +93,7 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.nist5.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -102,7 +102,7 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.quark.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -118,7 +118,7 @@ let algorithms = {
             else {
                 return function() {
                     return multiHashing.keccak.apply(this, arguments);
-                }
+                };
             }
         }
     },
@@ -129,7 +129,7 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.blake.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -139,7 +139,7 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.neoscrypt.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -148,7 +148,7 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.skein.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -158,7 +158,7 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.groestl.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -168,7 +168,7 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.fugue.apply(this, arguments);
-            }
+            };
         }
     },
 
@@ -177,18 +177,17 @@ let algorithms = {
         hash: function(){
             return function(){
                 return multiHashing.qubit.apply(this, arguments);
-            }
+            };
         }
     },
 };
 
 // Set Default Multiplier
-for (let algo in algorithms){
+Object.keys(algorithms).forEach(algo => {
     if (!algorithms[algo].multiplier) {
         algorithms[algo].multiplier = 1;
     }
-}
+});
 
 // Export Algorithms
 module.exports = algorithms;
-global.algorithms = algorithms;

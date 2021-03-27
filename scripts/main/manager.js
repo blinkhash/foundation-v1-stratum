@@ -6,32 +6,32 @@
 
 // Import Required Modules
 const events = require('events');
-let crypto = require('crypto');
-let bignum = require('bignum');
-let util = require('./util.js');
+const crypto = require('crypto');
+const bignum = require('bignum');
+const util = require('./util.js');
 
 // Import Required Modules
-let Algorithms = require('./algorithms.js');
+const Algorithms = require('./algorithms.js');
 
 // Max Difficulty
-let diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
+const diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
 
 // Import BlockTemplate Module
-let BlockTemplate = require('./blocks.js');
+const BlockTemplate = require('./blocks.js');
 
 // Generate Unique ExtraNonce for each Subscriber
-let ExtraNonceCounter = function(configInstanceId) {
-    let instanceId = configInstanceId || crypto.randomBytes(4).readUInt32LE(0);
+const ExtraNonceCounter = function(configInstanceId) {
+    const instanceId = configInstanceId || crypto.randomBytes(4).readUInt32LE(0);
     this.counter = instanceId << 27;
     this.size = 4;
     this.next = function() {
-        let extraNonce = util.packUInt32BE(Math.abs(this.counter += 1));
+        const extraNonce = util.packUInt32BE(Math.abs(this.counter += 1));
         return extraNonce.toString('hex');
     };
 };
 
 // Generate Unique Job for each BlockTemplate
-let JobCounter = function() {
+const JobCounter = function() {
     this.counter = 0;
     this.next = function() {
         this.counter += 1;
@@ -46,12 +46,12 @@ let JobCounter = function() {
 };
 
 // Manager Main Function
-let Manager = function(options) {
+const Manager = function(options) {
 
     // Establish Private Manager Variables
-    let _this = this;
-    let shareMultiplier = Algorithms[options.coin.algorithm].multiplier;
-    let hashDigest = Algorithms[options.coin.algorithm].hash(options.coin);
+    const _this = this;
+    const shareMultiplier = Algorithms[options.coin.algorithm].multiplier;
+    const hashDigest = Algorithms[options.coin.algorithm].hash(options.coin);
 
     // Establish Public Manager Variables
     this.currentJob;
@@ -64,18 +64,18 @@ let Manager = function(options) {
     // Determine Block Hash Function
     function blockHash() {
         switch (options.coin.algorithm) {
-            default:
-                return function (d) {
-                    return util.reverseBuffer(util.sha256d(d));
-                };
+        default:
+            return function (d) {
+                return util.reverseBuffer(util.sha256d(d));
+            };
         }
     }
 
     // Determine Coinbase Hash Function
     function coinbaseHash() {
         switch (options.coin.algorithm) {
-            default:
-                return util.sha256d;
+        default:
+            return util.sha256d;
         }
     }
 
@@ -85,7 +85,7 @@ let Manager = function(options) {
 
     // Update Current Managed Job
     this.updateCurrentJob = function(rpcData) {
-        let tmpBlockTemplate = new BlockTemplate(
+        const tmpBlockTemplate = new BlockTemplate(
             this.jobCounter.next(),
             Object.assign({}, rpcData),
             _this.extraNoncePlaceholder,
@@ -94,7 +94,7 @@ let Manager = function(options) {
         _this.currentJob = tmpBlockTemplate;
         _this.emit('updatedBlock', tmpBlockTemplate);
         _this.validJobs[tmpBlockTemplate.jobId] = tmpBlockTemplate;
-    }
+    };
 
     // Check if New Block is Processed
     this.processTemplate = function(rpcData) {
@@ -114,7 +114,7 @@ let Manager = function(options) {
         }
 
         // Update Current Template
-        let tmpBlockTemplate = new BlockTemplate(
+        const tmpBlockTemplate = new BlockTemplate(
             this.jobCounter.next(),
             Object.assign({}, rpcData),
             _this.extraNoncePlaceholder,
@@ -130,7 +130,7 @@ let Manager = function(options) {
     this.processShare = function(jobId, previousDifficulty, difficulty, extraNonce1, extraNonce2, nTime, nonce, ipAddress, port, workerName) {
 
         // Share is Invalid
-        let shareError = function(error) {
+        const shareError = function(error) {
             _this.emit('share', {
                 job: jobId,
                 ip: ipAddress,
@@ -142,27 +142,22 @@ let Manager = function(options) {
             return {error: error, result: null};
         };
 
-        // Establish Share Variables
-        let submitTime, job, nTimeInt;
-        let headerBuffer, headerHash, headerBigNum;
-        let shareDiff, blockDiffAdjusted;
-
         let blockHash = null;
         let blockHashInvalid = null;
         let blockHex = null;
 
         // Edge Cases to Check if Share is Invalid
-        submitTime = Date.now() / 1000 | 0;
-        job = this.validJobs[jobId];
+        const submitTime = Date.now() / 1000 | 0;
+        const job = this.validJobs[jobId];
         if (extraNonce2.length / 2 !== _this.extraNonce2Size)
             return shareError([20, 'incorrect size of extranonce2']);
-        if (typeof job === 'undefined' || job.jobId != jobId ) {
+        if (typeof job === 'undefined' || job.jobId != jobId) {
             return shareError([21, 'job not found']);
         }
         if (nTime.length !== 8) {
             return shareError([20, 'incorrect size of ntime']);
         }
-        nTimeInt = parseInt(nTime, 16);
+        const nTimeInt = parseInt(nTime, 16);
         if (nTimeInt < job.rpcData.curtime || nTimeInt > submitTime + 7200) {
             return shareError([20, 'ntime out of range']);
         }
@@ -174,24 +169,24 @@ let Manager = function(options) {
         }
 
         // Establish Share Information
-        let extraNonce1Buffer = Buffer.from(extraNonce1, 'hex');
-        let extraNonce2Buffer = Buffer.from(extraNonce2, 'hex');
-        let coinbaseBuffer = job.serializeCoinbase(extraNonce1Buffer, extraNonce2Buffer, options);
-        let coinbaseHash = this.coinbaseHasher(coinbaseBuffer);
-        let merkleRoot = util.reverseBuffer(job.merkle.withFirst(coinbaseHash)).toString('hex');
+        const extraNonce1Buffer = Buffer.from(extraNonce1, 'hex');
+        const extraNonce2Buffer = Buffer.from(extraNonce2, 'hex');
+        const coinbaseBuffer = job.serializeCoinbase(extraNonce1Buffer, extraNonce2Buffer);
+        const coinbaseHash = this.coinbaseHasher(coinbaseBuffer);
+        const merkleRoot = util.reverseBuffer(job.merkle.withFirst(coinbaseHash)).toString('hex');
 
         // Start Generating Block Hash
-        headerBuffer = job.serializeHeader(merkleRoot, nTime, nonce, options);
-        headerHash = hashDigest(headerBuffer, nTimeInt);
-        headerBigNum = bignum.fromBuffer(headerHash, {endian: 'little', size: 32});
+        const headerBuffer = job.serializeHeader(merkleRoot, nTime, nonce);
+        const headerHash = hashDigest(headerBuffer, nTimeInt);
+        const headerBigNum = bignum.fromBuffer(headerHash, {endian: 'little', size: 32});
 
         // Calculate Share Difficulty
-        shareDiff = diff1 / headerBigNum.toNumber() * shareMultiplier;
-        blockDiffAdjusted = job.difficulty * shareMultiplier;
+        const shareDiff = diff1 / headerBigNum.toNumber() * shareMultiplier;
+        const blockDiffAdjusted = job.difficulty * shareMultiplier;
 
         // Check if Share is Valid Block Candidate
         if (job.target.ge(headerBigNum)) {
-            blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer, options).toString('hex');
+            blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer).toString('hex');
             blockHash = this.blockHasher(headerBuffer, nTime).toString('hex');
         }
         else {

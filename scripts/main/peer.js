@@ -5,23 +5,23 @@
  */
 
 // Import Required Modules
-let net = require('net');
-let crypto = require('crypto');
+const net = require('net');
+const crypto = require('crypto');
 const events = require('events');
-let util = require('./util.js');
+const util = require('./util.js');
 
 // Generate String Buffer from Parameter Length
 function fixedLenStringBuffer(s, len) {
-    let buff = Buffer.alloc(len);
+    const buff = Buffer.alloc(len);
     buff.fill(0);
     buff.write(s);
     return buff;
-};
+}
 
 // Generate Command String Buffer
 function commandStringBuffer(s) {
     return fixedLenStringBuffer(s, 12);
-};
+}
 
 /* Reads a set amount of bytes from a flowing stream, argument descriptions:
    - stream to read from, must have data emitter
@@ -32,46 +32,46 @@ function commandStringBuffer(s) {
 // Read Bytes Functionality
 function readFlowingBytes(stream, amount, preRead, callback) {
     let buff = preRead ? preRead : Buffer.from([]);
-    let readData = function (data) {
+    const readData = function (data) {
         buff = Buffer.concat([buff, data]);
         if (buff.length >= amount) {
-            let returnData = buff.slice(0, amount);
-            let lopped = buff.length > amount ? buff.slice(amount) : null;
+            const returnData = buff.slice(0, amount);
+            const lopped = buff.length > amount ? buff.slice(amount) : null;
             callback(returnData, lopped);
         }
         else
             stream.once('data', readData);
     };
     readData(Buffer.from([]));
-};
+}
 
 // Peer Main Function
-let Peer = function(options) {
+const Peer = function(options) {
 
     // Establish Peer Variables
-    let _this = this;
+    const _this = this;
     let client;
     let verack = options.verack;
     let validConnectionConfig = options.validConnectionConfig;
-    let magic = Buffer.from(options.testnet ? options.coin.peerMagicTestnet : options.coin.peerMagic, 'hex');
-    let magicInt = magic.readUInt32LE(0);
+    const magic = Buffer.from(options.testnet ? options.coin.peerMagicTestnet : options.coin.peerMagic, 'hex');
+    const magicInt = magic.readUInt32LE(0);
 
     // Bitcoin Inventory Codes
-    let invCodes = {
+    const invCodes = {
         error: 0,
         tx: 1,
         block: 2
     };
 
     // Establish Network Variables
-    let networkServices = Buffer.from('0100000000000000', 'hex'); // NODE_NETWORK services (value 1 packed as uint64)
-    let emptyNetAddress = Buffer.from('010000000000000000000000000000000000ffff000000000000', 'hex');
-    let userAgent = util.varStringBuffer('/node-stratum/');
-    let blockStartHeight = Buffer.from('00000000', 'hex'); // block start_height, can be empty
-    let relayTransactions = options.p2p.disableTransactions === true ? Buffer.from([false]) : Buffer.from([]);
+    const networkServices = Buffer.from('0100000000000000', 'hex'); // NODE_NETWORK services (value 1 packed as uint64)
+    const emptyNetAddress = Buffer.from('010000000000000000000000000000000000ffff000000000000', 'hex');
+    const userAgent = util.varStringBuffer('/node-stratum/');
+    const blockStartHeight = Buffer.from('00000000', 'hex'); // block start_height, can be empty
+    const relayTransactions = options.p2p.disableTransactions === true ? Buffer.from([false]) : Buffer.from([]);
 
     // Establish Peer Commands
-    let commands = {
+    const commands = {
         version: commandStringBuffer('version'),
         inv: commandStringBuffer('inv'),
         verack: commandStringBuffer('verack'),
@@ -83,7 +83,7 @@ let Peer = function(options) {
     this.initializePeer = function() {
         const client = _this.connectPeer();
         return client;
-    }
+    };
 
     // Establish Peer Connection
     this.connectPeer = function() {
@@ -120,13 +120,13 @@ let Peer = function(options) {
         // Allow Peer to Receive/Send Messages
         _this.setupMessageParser(client);
         return client;
-    }
+    };
 
     // Establish Peer Message Parser
     this.setupMessageParser = function(client) {
-        let beginReadingMessage = function (preRead) {
+        const beginReadingMessage = function (preRead) {
             readFlowingBytes(client, 24, preRead, function (header, lopped) {
-                let msgMagic = header.readUInt32LE(0);
+                const msgMagic = header.readUInt32LE(0);
                 if (msgMagic !== magicInt) {
                     _this.emit('error', 'bad magic number from peer');
                     while (header.readUInt32LE(0) !== magicInt && header.length >= 4) {
@@ -140,9 +140,9 @@ let Peer = function(options) {
                     }
                     return;
                 }
-                let msgCommand = header.slice(4, 16).toString();
-                let msgLength = header.readUInt32LE(16);
-                let msgChecksum = header.readUInt32LE(20);
+                const msgCommand = header.slice(4, 16).toString();
+                const msgLength = header.readUInt32LE(16);
+                const msgChecksum = header.readUInt32LE(20);
                 readFlowingBytes(client, msgLength, lopped, function (payload, lopped) {
                     if (util.sha256d(payload).readUInt32LE(0) !== msgChecksum) {
                         _this.emit('error', 'bad payload - failed checksum');
@@ -155,7 +155,7 @@ let Peer = function(options) {
             });
         };
         beginReadingMessage(null);
-    }
+    };
 
     // Handle Peer Inventory
     this.handleInventory = function(payload) {
@@ -167,45 +167,47 @@ let Peer = function(options) {
         }
         while (count--) {
             switch (payload.readUInt32LE(0)) {
-                case invCodes.error:
-                    break;
-                case invCodes.tx:
-                    let tx = payload.slice(4, 36).toString('hex');
-                    break;
-                case invCodes.block:
-                    let block = payload.slice(4, 36).toString('hex');
-                    _this.emit('blockFound', block);
-                    break;
+            case invCodes.error:
+                break;
+            case invCodes.tx: {
+                // eslint-disable-next-line no-unused-vars
+                const tx = payload.slice(4, 36).toString('hex');
+                break;
             }
+            case invCodes.block: {
+                const block = payload.slice(4, 36).toString('hex');
+                _this.emit('blockFound', block);
+                break;
+            }}
             payload = payload.slice(36);
         }
-    }
+    };
 
     // Handle Peer Messages
     this.handleMessage = function(command, payload) {
         _this.emit('peerMessage', {command: command, payload: payload});
         switch (command) {
-            case commands.inv.toString():
-                _this.handleInventory(payload);
-                break;
-            case commands.verack.toString():
-                if(!verack) {
-                    verack = true;
-                    _this.emit('connected');
-                }
-                break;
-            case commands.version.toString():
-                _this.sendMessage(commands.verack, Buffer.alloc(0));
-                break;
-            default:
-                break;
+        case commands.inv.toString():
+            _this.handleInventory(payload);
+            break;
+        case commands.verack.toString():
+            if(!verack) {
+                verack = true;
+                _this.emit('connected');
+            }
+            break;
+        case commands.version.toString():
+            _this.sendMessage(commands.verack, Buffer.alloc(0));
+            break;
+        default:
+            break;
         }
 
-    }
+    };
 
     // Broadcast/Send Peer Messages
     this.sendMessage = function(command, payload) {
-        let message = Buffer.concat([
+        const message = Buffer.concat([
             magic,
             command,
             util.packUInt32LE(payload.length),
@@ -214,11 +216,11 @@ let Peer = function(options) {
         ]);
         client.write(message);
         _this.emit('sentMessage', message);
-    }
+    };
 
     // Broadcast/Send Peer Version
     this.sendVersion = function() {
-        let payload = Buffer.concat([
+        const payload = Buffer.concat([
             util.packUInt32LE(options.protocolVersion),
             networkServices,
             util.packUInt64LE(Date.now() / 1000 | 0),
@@ -230,10 +232,10 @@ let Peer = function(options) {
             relayTransactions
         ]);
         _this.sendMessage(commands.version, payload);
-    }
+    };
 
     // Initialize Peer Connection
-    let connection = _this.initializePeer();
+    _this.initializePeer();
 };
 
 // Export Peer

@@ -42,7 +42,7 @@ const rpcData = {
     "bits": "1e0ffff0",
     "height": 1,
     "default_witness_commitment": "6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9"
-}
+};
 
 const options = {
     "coin": {
@@ -64,7 +64,7 @@ const options = {
     "poolAddress": "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq",
     "recipients": [],
     "rewards": "",
-}
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -92,17 +92,17 @@ describe('Test manager functionality', () => {
 
     test('Test job updates given new blockTemplate', () => {
         manager.updateCurrentJob(rpcData);
-        expect(typeof manager.currentJob).toBe("object")
-        expect(manager.currentJob.rpcData.height).toBe(1)
-        expect(manager.currentJob.rpcData.previousblockhash).toBe("9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2")
-        expect(typeof manager.validJobs[1]).toBe("object")
+        expect(typeof manager.currentJob).toBe("object");
+        expect(manager.currentJob.rpcData.height).toBe(1);
+        expect(manager.currentJob.rpcData.previousblockhash).toBe("9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2");
+        expect(typeof manager.validJobs[1]).toBe("object");
     });
 
     test('Test template updates given new blockTemplate [1]', () => {
         const response1 = manager.processTemplate(rpcData);
         const response2 = manager.processTemplate(rpcData);
-        expect(response1).toBe(true)
-        expect(response2).toBe(false)
+        expect(response1).toBe(true);
+        expect(response2).toBe(false);
     });
 
     test('Test template updates given new blockTemplate [2]', () => {
@@ -110,8 +110,8 @@ describe('Test manager functionality', () => {
         const response1 = manager.processTemplate(transactionData);
         transactionData.previousblockhash = "8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2";
         const response2 = manager.processTemplate(transactionData);
-        expect(response1).toBe(true)
-        expect(response2).toBe(true)
+        expect(response1).toBe(true);
+        expect(response2).toBe(true);
     });
 
     test('Test template updates given new blockTemplate [3]', () => {
@@ -120,8 +120,8 @@ describe('Test manager functionality', () => {
         transactionData.previousblockhash = "8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2";
         transactionData.height = 0;
         const response2 = manager.processTemplate(transactionData);
-        expect(response1).toBe(true)
-        expect(response2).toBe(false)
+        expect(response1).toBe(true);
+        expect(response2).toBe(false);
     });
 
     test('Test share submission process [1]', () => {
@@ -176,8 +176,8 @@ describe('Test manager functionality', () => {
     test('Test share submission process [6]', () => {
         const transactionData = JSON.parse(JSON.stringify(rpcData));
         manager.processTemplate(transactionData);
-        const previousDifficulty = 0.0000001
-        const difficulty = 0.0000001
+        const previousDifficulty = 0.0000001;
+        const difficulty = 0.0000001;
         const extraNonce1 = "00000001".toString("hex");
         const extraNonce2 = "00000000".toString("hex");
         const time = "6036c54f".toString("hex");
@@ -189,23 +189,23 @@ describe('Test manager functionality', () => {
     test('Test share submission process [7]', () => {
         const transactionData = JSON.parse(JSON.stringify(rpcData));
         manager.processTemplate(transactionData);
-        const previousDifficulty = 0.0000001
-        const difficulty = 0.0000001
+        const previousDifficulty = 0.0000001;
+        const difficulty = 0.0000001;
         const extraNonce1 = "00000001".toString("hex");
         const extraNonce2 = "00000000".toString("hex");
         const time = "6036c54f".toString("hex");
         const nonce = "fe1a0000".toString("hex");
-        const response1 = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, "ip_addr", "port", "worker");
-        const response2 = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, "ip_addr", "port", "worker");
-        expect(response2.error[0]).toBe(22);
-        expect(response2.error[1]).toBe('duplicate share');
+        manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, "ip_addr", "port", "worker");
+        const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, "ip_addr", "port", "worker");
+        expect(response.error[0]).toBe(22);
+        expect(response.error[1]).toBe('duplicate share');
     });
 
     test('Test share submission process [8]', () => {
         const transactionData = JSON.parse(JSON.stringify(rpcData));
         manager.processTemplate(transactionData);
-        const previousDifficulty = 1
-        const difficulty = 1
+        const previousDifficulty = 1;
+        const difficulty = 1;
         const extraNonce1 = "00000001".toString("hex");
         const extraNonce2 = "00000000".toString("hex");
         const time = "6036c54f".toString("hex");

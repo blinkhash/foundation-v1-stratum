@@ -5,18 +5,18 @@
  */
 
 // Import Required Modules
-let bignum = require('bignum');
-let util = require('./util.js');
+const bignum = require('bignum');
+const util = require('./util.js');
 
 // Import Required Modules
-let Merkle = require('./merkle.js');
-let Transactions = require('./transactions.js');
+const Merkle = require('./merkle.js');
+const Transactions = require('./transactions.js');
 
 // Max Difficulty
-let diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
+const diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
 
 // BlockTemplate Main Function
-let BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
+const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
 
     // Establish Block Variables
     this.submits = [];
@@ -32,18 +32,18 @@ let BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
         return steps.map(function(step) {
             return step.toString('hex');
         });
-    }
+    };
 
     // Function to get Transaction Buffers
     this.getTransactionBuffers = function(txs) {
-        let txHashes = txs.map(function(tx) {
+        const txHashes = txs.map(function(tx) {
             if (tx.txid !== undefined) {
                 return util.uint256BufferFromHash(tx.txid);
             }
             return util.uint256BufferFromHash(tx.hash);
         });
         return [null].concat(txHashes);
-    }
+    };
 
     // Function to get Masternode Vote Data
     this.getVoteData = function() {
@@ -57,22 +57,22 @@ let BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
                 })
             )
         );
-    }
+    };
 
     // Create Generation Transaction
     this.createGeneration = function(rpcData, extraNoncePlaceholder, options) {
-        let transactions = new Transactions();
+        const transactions = new Transactions();
         return transactions.bitcoin(rpcData, extraNoncePlaceholder, options);
-    }
+    };
 
     // Create Merkle Data
-    this.createMerkle = function(rpcData, genTransaction, options) {
+    this.createMerkle = function(rpcData) {
         return new Merkle(this.getTransactionBuffers(rpcData.transactions));
-    }
+    };
 
     // Establish Generation/Merkle
     this.generation = this.createGeneration(this.rpcData, extraNoncePlaceholder, options);
-    this.merkle = this.createMerkle(this.rpcData, this.generation, options);
+    this.merkle = this.createMerkle(this.rpcData);
 
     // Structure Block Transaction Data
     this.transactions = Buffer.concat(this.rpcData.transactions.map(function(tx) {
@@ -83,18 +83,18 @@ let BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     this.prevHashReversed = util.reverseByteOrder(Buffer.from(this.rpcData.previousblockhash, 'hex')).toString('hex');
 
     // Serialize Block Coinbase
-    this.serializeCoinbase = function(extraNonce1, extraNonce2, options) {
+    this.serializeCoinbase = function(extraNonce1, extraNonce2) {
         return Buffer.concat([
-          this.generation[0],
-          extraNonce1,
-          extraNonce2,
-          this.generation[1]
-        ])
+            this.generation[0],
+            extraNonce1,
+            extraNonce2,
+            this.generation[1]
+        ]);
     };
 
     // Serialize Block Headers
-    this.serializeHeader = function(merkleRoot, nTime, nonce, options) {
-        let header =  Buffer.alloc(80);
+    this.serializeHeader = function(merkleRoot, nTime, nonce) {
+        let header = Buffer.alloc(80);
         let position = 0;
         header.write(nonce, position, 4, 'hex');
         header.write(this.rpcData.bits, position += 4, 4, 'hex');
@@ -107,8 +107,8 @@ let BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     };
 
     // Serialize Entire Block
-    this.serializeBlock = function(header, secondary, options) {
-        let buffer = Buffer.concat([
+    this.serializeBlock = function(header, secondary) {
+        const buffer = Buffer.concat([
             header,
             util.varIntBuffer(this.rpcData.transactions.length + 1),
             secondary,
@@ -121,7 +121,7 @@ let BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
 
     // Push Submissions to Array
     this.registerSubmit = function(header) {
-        let submission = header.join("").toLowerCase();
+        const submission = header.join("").toLowerCase();
         if (this.submits.indexOf(submission) === -1) {
             this.submits.push(submission);
             return true;
@@ -130,7 +130,7 @@ let BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     };
 
     // Get Current Job Parameters
-    this.getJobParams = function(options) {
+    this.getJobParams = function() {
         if (!this.jobParams) {
             this.jobParams = [
                 this.jobId,

@@ -115,17 +115,17 @@ describe('Test utility functionality', () => {
     });
 
     test('Test implemented reverseBuffer', () => {
-        const buffer = util.reverseBuffer(Buffer.from("9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2", "hex"))
+        const buffer = util.reverseBuffer(Buffer.from("9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2", "hex"));
         expect(buffer).toStrictEqual(Buffer.from("e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997", "hex"));
     });
 
     test('Test implemented reverseByteOrder', () => {
-        const buffer = util.reverseByteOrder(Buffer.from("9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2", "hex"))
+        const buffer = util.reverseByteOrder(Buffer.from("9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2", "hex"));
         expect(buffer).toStrictEqual(Buffer.from("bc7727e2ee0395305fc6e36b29a60b37be7d49b6bd4c808b83ef65839719aefb", "hex"));
     });
 
     test('Test implemented reverseHex', () => {
-        const buffer = util.reverseHex("9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2", "hex")
+        const buffer = util.reverseHex("9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2", "hex");
         expect(buffer).toStrictEqual("e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997");
     });
 

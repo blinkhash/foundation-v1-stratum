@@ -46,7 +46,7 @@ const rpcData = {
     "bits": "1e0ffff0",
     "height": 1,
     "default_witness_commitment": "6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9"
-}
+};
 
 const blockchainData = {
     "chain": "main",
@@ -230,13 +230,13 @@ const options = {
     "tcpProxyProtocol": false,
 };
 
-nock.disableNetConnect()
-nock.enableNetConnect('127.0.0.1')
+nock.disableNetConnect();
+nock.enableNetConnect('127.0.0.1');
 
 ////////////////////////////////////////////////////////////////////////////////
 
 function mockSetupDaemon(pool, callback) {
-    const scope = nock('http://127.0.0.1:8332')
+    nock('http://127.0.0.1:8332')
         .post('/', body => body.method === "getpeerinfo")
         .reply(200, JSON.stringify({
             id: "nocktest",
@@ -247,7 +247,7 @@ function mockSetupDaemon(pool, callback) {
 }
 
 function mockSetupData(pool, callback) {
-    const scope = nock('http://127.0.0.1:8332')
+    nock('http://127.0.0.1:8332')
         .post('/').reply(200, JSON.stringify([
             { id: "nocktest", error: null, result: { isvalid: true, address: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" }},
             { id: "nocktest", error: null, result: { networkhashps: 0 }},
@@ -259,7 +259,7 @@ function mockSetupData(pool, callback) {
 }
 
 function mockSetupTestnetData(pool, callback) {
-    const scope = nock('http://127.0.0.1:8332')
+    nock('http://127.0.0.1:8332')
         .post('/').reply(200, JSON.stringify([
             { id: "nocktest", error: null, result: { isvalid: true, address: "tb1qprvwwfr5cey54e4353t9dmker7zd9w4uhvkz5p" }},
             { id: "nocktest", error: null, result: { networkhashps: 0 }},
@@ -272,7 +272,7 @@ function mockSetupTestnetData(pool, callback) {
 
 function mockSetupBlockchain(pool, callback) {
     const rpcDataCopy = Object.assign({}, rpcData);
-    const scope1 = nock('http://127.0.0.1:8332')
+    nock('http://127.0.0.1:8332')
         .post('/', body => body.method === "getblocktemplate")
         .reply(200, JSON.stringify({
             id: "nocktest",
@@ -284,7 +284,7 @@ function mockSetupBlockchain(pool, callback) {
 
 function mockSetupFirstJob(pool, callback) {
     const rpcDataCopy = Object.assign({}, rpcData);
-    const scope = nock('http://127.0.0.1:8332')
+    nock('http://127.0.0.1:8332')
         .post('/', body => body.method === "getblocktemplate")
         .reply(200, JSON.stringify({
             id: "nocktest",
@@ -308,7 +308,7 @@ describe('Test pool functionality', () => {
         const optionsCopy = Object.assign({}, options);
         optionsCopy.coin = Object.assign({}, options.coin);
         optionsCopy.coin.algorithm = "invalid";
-        expect(() => new Pool(optionsCopy, null)).toThrow(Error)
+        expect(() => new Pool(optionsCopy, null)).toThrow(Error);
     });
 
     test('Test initialization of port difficulty', () => {
@@ -347,7 +347,7 @@ describe('Test pool functionality', () => {
     test('Test pool daemon events [2]', (done) => {
         const optionsCopy = Object.assign({}, options);
         const pool = new Pool(optionsCopy, null);
-        const scope = nock('http://127.0.0.1:8332')
+        nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(401, {});
         pool.on('log', (type, text) => {
@@ -356,13 +356,13 @@ describe('Test pool functionality', () => {
             done();
         });
         pool.setupDaemonInterface(() => {});
-        pool.daemon.cmd('getpeerinfo', [], (results) => {});
+        pool.daemon.cmd('getpeerinfo', [], () => {});
     });
 
     test('Test pool daemon events [3]', (done) => {
         const optionsCopy = Object.assign({}, options);
         const pool = new Pool(optionsCopy, null);
-        const scope = nock('http://127.0.0.1:8332')
+        nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
                 id: "nocktest",
@@ -375,7 +375,7 @@ describe('Test pool functionality', () => {
     test('Test pool daemon events [4]', (done) => {
         const optionsCopy = Object.assign({}, options);
         const pool = new Pool(optionsCopy, null);
-        const scope = nock('http://127.0.0.1:8332')
+        nock('http://127.0.0.1:8332')
             .post('/', body => body.method === "getpeerinfo")
             .reply(200, JSON.stringify({
                 id: "nocktest",
@@ -403,7 +403,7 @@ describe('Test pool functionality', () => {
         });
         mockSetupDaemon(pool, () => {
             pool.setupPoolData(() => {});
-        })
+        });
     });
 
     test('Test pool batch data events [2]', (done) => {
@@ -416,14 +416,14 @@ describe('Test pool functionality', () => {
         });
         mockSetupDaemon(pool, () => {
             pool.setupPoolData(() => {});
-        })
+        });
     });
 
     test('Test pool batch data events [3]', (done) => {
         const optionsCopy = Object.assign({}, options);
         const pool = new Pool(optionsCopy, null);
         mockSetupDaemon(pool, () => {
-            const scope = nock('http://127.0.0.1:8332')
+            nock('http://127.0.0.1:8332')
                 .post('/').reply(200, JSON.stringify([
                     { id: "nocktest", error: null, result: { isvalid: true, address: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" }},
                     { id: "nocktest", error: null, result: { networkhashps: 0 }},
@@ -440,7 +440,7 @@ describe('Test pool functionality', () => {
                 expect(optionsCopy.hasSubmitMethod).toBe(true);
                 done();
             });
-        })
+        });
     });
 
     test('Test pool batch data events [4]', (done) => {
@@ -452,7 +452,7 @@ describe('Test pool functionality', () => {
             done();
         });
         mockSetupDaemon(pool, () => {
-            const scope = nock('http://127.0.0.1:8332')
+            nock('http://127.0.0.1:8332')
                 .post('/').reply(200, JSON.stringify([
                     { id: "nocktest", error: true, result: { isvalid: true, address: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" }},
                     { id: "nocktest", error: null, result: { networkhashps: 0 }},
@@ -473,7 +473,7 @@ describe('Test pool functionality', () => {
             done();
         });
         mockSetupDaemon(pool, () => {
-            const scope = nock('http://127.0.0.1:8332')
+            nock('http://127.0.0.1:8332')
                 .post('/').reply(200, JSON.stringify([
                     { id: "nocktest", error: null, result: { isvalid: false, address: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" }},
                     { id: "nocktest", error: null, result: { networkhashps: 0 }},
@@ -490,7 +490,7 @@ describe('Test pool functionality', () => {
         optionsCopy.coin.hasGetInfo = true;
         const pool = new Pool(optionsCopy, null);
         mockSetupDaemon(pool, () => {
-            const scope = nock('http://127.0.0.1:8332')
+            nock('http://127.0.0.1:8332')
                 .post('/').reply(200, JSON.stringify([
                     { id: "nocktest", error: null, result: { isvalid: true, address: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" }},
                     { id: "nocktest", error: null, result: { networkhashps: 0 }},
@@ -514,7 +514,7 @@ describe('Test pool functionality', () => {
         optionsCopy.coin.hasGetInfo = false;
         const pool = new Pool(optionsCopy, null);
         mockSetupDaemon(pool, () => {
-            const scope = nock('http://127.0.0.1:8332')
+            nock('http://127.0.0.1:8332')
                 .post('/').reply(200, JSON.stringify([
                     { id: "nocktest", error: null, result: { isvalid: true, address: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" }},
                     { id: "nocktest", error: null, result: { networkhashps: 0 }},
@@ -538,7 +538,7 @@ describe('Test pool functionality', () => {
         const optionsCopy = Object.assign({}, options);
         const pool = new Pool(optionsCopy, null);
         mockSetupDaemon(pool, () => {
-            const scope = nock('http://127.0.0.1:8332')
+            nock('http://127.0.0.1:8332')
                 .post('/').reply(200, JSON.stringify([
                     { id: "nocktest", error: null, result: { isvalid: true, address: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" }},
                     { id: "nocktest", error: null, result: { networkhashps: 0 }},
@@ -567,7 +567,7 @@ describe('Test pool functionality', () => {
             done();
         });
         mockSetupDaemon(pool, () => {
-            const scope = nock('http://127.0.0.1:8332')
+            nock('http://127.0.0.1:8332')
                 .post('/').reply(200, JSON.stringify([
                     { id: "nocktest", error: null, result: { isvalid: true, address: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" }},
                     { id: "nocktest", error: null, result: { networkhashps: 0 }},
@@ -630,10 +630,10 @@ describe('Test pool functionality', () => {
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
                 pool.setupJobManager();
-                pool.manager.emit('newBlock', rpcDataCopy)
+                pool.manager.emit('newBlock', rpcDataCopy);
                 done();
             });
-        })
+        });
     });
 
     test('Test pool manager events [2]', (done) => {
@@ -643,10 +643,10 @@ describe('Test pool functionality', () => {
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
                 pool.setupJobManager();
-                pool.manager.emit('updatedBlock', rpcDataCopy)
+                pool.manager.emit('updatedBlock', rpcDataCopy);
                 done();
             });
-        })
+        });
     });
 
     test('Test pool manager events [3]', (done) => {
@@ -656,7 +656,7 @@ describe('Test pool functionality', () => {
             expect(isValidShare).toBe(true);
             expect(isValidBlock).toBe(false);
             expect(shareData.job).toBe(1);
-            expect(shareData.blockHashInvalid).toBe("example blockhash")
+            expect(shareData.blockHashInvalid).toBe("example blockhash");
             done();
         });
         mockSetupDaemon(pool, () => {
@@ -675,10 +675,10 @@ describe('Test pool functionality', () => {
                     blockDiffActual: 1,
                     blockHash: null,
                     blockHashInvalid: "example blockhash",
-                }
+                };
                 pool.manager.emit('share', shareData, null);
             });
-        })
+        });
     });
 
     test('Test pool manager events [4]', (done) => {
@@ -691,7 +691,7 @@ describe('Test pool functionality', () => {
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
-                const scope = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "submitblock")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
@@ -712,11 +712,11 @@ describe('Test pool functionality', () => {
                     blockDiffActual: 1,
                     blockHash: "example blockhash",
                     blockHashInvalid: null,
-                }
+                };
                 const blockHex = Buffer.from("000011110000111100001111", "hex");
                 pool.manager.emit('share', shareData, blockHex);
             });
-        })
+        });
     });
 
     test('Test pool manager events [5]', (done) => {
@@ -729,7 +729,7 @@ describe('Test pool functionality', () => {
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
-                const scope = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "submitblock")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
@@ -750,15 +750,15 @@ describe('Test pool functionality', () => {
                     blockDiffActual: 1,
                     blockHash: "example blockhash",
                     blockHashInvalid: null,
-                }
+                };
                 const blockHex = Buffer.from("000011110000111100001111", "hex");
                 pool.manager.emit('share', shareData, blockHex);
             });
-        })
+        });
     });
 
     test('Test pool manager events [6]', (done) => {
-        const response = []
+        const response = [];
         const optionsCopy = Object.assign({}, options);
         const rpcDataCopy = Object.assign({}, rpcData);
         const pool = new Pool(optionsCopy, null);
@@ -774,8 +774,8 @@ describe('Test pool functionality', () => {
                 done();
             }
         });
-        pool.on('share', (isValidShare, isValidBlock, shareData) => {
-            const scope1 = nock('http://127.0.0.1:8332')
+        pool.on('share', () => {
+            nock('http://127.0.0.1:8332')
                 .post('/', body => body.method === "getblocktemplate")
                 .reply(200, JSON.stringify({
                     id: "nocktest",
@@ -785,14 +785,14 @@ describe('Test pool functionality', () => {
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
-                const scope2 = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "submitblock")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
                         error: null,
                         result: null,
                     }));
-                const scope3 = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "getblock")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
@@ -813,15 +813,15 @@ describe('Test pool functionality', () => {
                     blockDiffActual: 1,
                     blockHash: "example blockhash",
                     blockHashInvalid: null,
-                }
+                };
                 const blockHex = Buffer.from("000011110000111100001111", "hex");
                 pool.manager.emit('share', shareData, blockHex);
             });
-        })
+        });
     });
 
     test('Test pool manager events [7]', (done) => {
-        const response = []
+        const response = [];
         const optionsCopy = Object.assign({}, options);
         const rpcDataCopy = Object.assign({}, rpcData);
         const pool = new Pool(optionsCopy, null);
@@ -837,8 +837,8 @@ describe('Test pool functionality', () => {
                 done();
             }
         });
-        pool.on('share', (isValidShare, isValidBlock, shareData) => {
-            const scope1 = nock('http://127.0.0.1:8332')
+        pool.on('share', () => {
+            nock('http://127.0.0.1:8332')
                 .post('/', body => body.method === "getblocktemplate")
                 .reply(200, JSON.stringify({
                     id: "nocktest",
@@ -847,7 +847,7 @@ describe('Test pool functionality', () => {
                 }));
         });
         mockSetupDaemon(pool, () => {
-            const scope2 = nock('http://127.0.0.1:8332')
+            nock('http://127.0.0.1:8332')
                 .post('/').reply(200, JSON.stringify([
                     { id: "nocktest", error: null, result: { isvalid: true, address: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" }},
                     { id: "nocktest", error: null, result: { networkhashps: 0 }},
@@ -856,14 +856,14 @@ describe('Test pool functionality', () => {
                     { id: "nocktest", error: null, result: { protocolversion: 1, connections: 1 }},
                 ]));
             pool.setupPoolData(() => {
-                const scope3 = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "getblocktemplate")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
                         error: null,
                         result: null,
                     }));
-                const scope4 = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "getblock")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
@@ -884,15 +884,15 @@ describe('Test pool functionality', () => {
                     blockDiffActual: 1,
                     blockHash: "example blockhash",
                     blockHashInvalid: null,
-                }
+                };
                 const blockHex = Buffer.from("000011110000111100001111", "hex");
                 pool.manager.emit('share', shareData, blockHex);
             });
-        })
+        });
     });
 
     test('Test pool manager events [8]', (done) => {
-        const response = []
+        const response = [];
         const optionsCopy = Object.assign({}, options);
         const rpcDataCopy = Object.assign({}, rpcData);
         const pool = new Pool(optionsCopy, null);
@@ -908,8 +908,8 @@ describe('Test pool functionality', () => {
                 done();
             }
         });
-        pool.on('share', (isValidShare, isValidBlock, shareData) => {
-            const scope1 = nock('http://127.0.0.1:8332')
+        pool.on('share', () => {
+            nock('http://127.0.0.1:8332')
                 .post('/', body => body.method === "getblocktemplate")
                 .reply(200, JSON.stringify({
                     id: "nocktest",
@@ -919,14 +919,14 @@ describe('Test pool functionality', () => {
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
-                const scope2 = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "submitblock")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
                         error: null,
                         result: null,
                     }));
-                const scope3 = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "getblock")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
@@ -951,15 +951,15 @@ describe('Test pool functionality', () => {
                     blockDiffActual: 1,
                     blockHash: "example blockhash",
                     blockHashInvalid: null,
-                }
+                };
                 const blockHex = Buffer.from("000011110000111100001111", "hex");
                 pool.manager.emit('share', shareData, blockHex);
             });
-        })
+        });
     });
 
     test('Test pool manager events [9]', (done) => {
-        const response = []
+        const response = [];
         const optionsCopy = Object.assign({}, options);
         const rpcDataCopy = Object.assign({}, rpcData);
         const pool = new Pool(optionsCopy, null);
@@ -975,8 +975,8 @@ describe('Test pool functionality', () => {
                 done();
             }
         });
-        pool.on('share', (isValidShare, isValidBlock, shareData) => {
-            const scope1 = nock('http://127.0.0.1:8332')
+        pool.on('share', () => {
+            nock('http://127.0.0.1:8332')
                 .post('/', body => body.method === "getblocktemplate")
                 .reply(200, JSON.stringify({
                     id: "nocktest",
@@ -986,14 +986,14 @@ describe('Test pool functionality', () => {
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
-                const scope2 = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "submitblock")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
                         error: null,
                         result: null,
                     }));
-                const scope3 = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "getblock")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
@@ -1018,17 +1018,16 @@ describe('Test pool functionality', () => {
                     blockDiffActual: 1,
                     blockHash: "example blockhash",
                     blockHashInvalid: null,
-                }
+                };
                 const blockHex = Buffer.from("000011110000111100001111", "hex");
                 pool.manager.emit('share', shareData, blockHex);
             });
-        })
+        });
     });
 
     test('Test pool manager events [10]', (done) => {
-        const response = []
+        const response = [];
         const optionsCopy = Object.assign({}, options);
-        const rpcDataCopy = Object.assign({}, rpcData);
         const pool = new Pool(optionsCopy, null);
         pool.on('log', (type, text) => {
             response.push([type, text]);
@@ -1042,8 +1041,8 @@ describe('Test pool functionality', () => {
                 done();
             }
         });
-        pool.on('share', (isValidShare, isValidBlock, shareData) => {
-            const scope1 = nock('http://127.0.0.1:8332')
+        pool.on('share', () => {
+            nock('http://127.0.0.1:8332')
                 .post('/', body => body.method === "getblocktemplate")
                 .reply(200, JSON.stringify({
                     id: "nocktest",
@@ -1053,14 +1052,14 @@ describe('Test pool functionality', () => {
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
-                const scope2 = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "submitblock")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
                         error: null,
                         result: null,
                     }));
-                const scope3 = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "getblock")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
@@ -1085,11 +1084,11 @@ describe('Test pool functionality', () => {
                     blockDiffActual: 1,
                     blockHash: "example blockhash",
                     blockHashInvalid: null,
-                }
+                };
                 const blockHex = Buffer.from("000011110000111100001111", "hex");
                 pool.manager.emit('share', shareData, blockHex);
             });
-        })
+        });
     });
 
     test('Test pool blockchain events [1]', (done) => {
@@ -1098,7 +1097,7 @@ describe('Test pool functionality', () => {
         const pool = new Pool(optionsCopy, null);
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
-                const scope = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "getblocktemplate")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
@@ -1111,7 +1110,7 @@ describe('Test pool functionality', () => {
     });
 
     test('Test pool blockchain events [2]', (done) => {
-        const response = []
+        const response = [];
         const optionsCopy = Object.assign({}, options);
         const blockchainDataCopy = Object.assign({}, blockchainData);
         const peerDataCopy = Object.assign({}, peerData);
@@ -1128,21 +1127,21 @@ describe('Test pool functionality', () => {
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
-                const scope1 = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "getblocktemplate")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
                         error: { code: -10 },
                         result: null,
                     }));
-                const scope2 = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "getblockchaininfo")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
                         error: null,
                         result: blockchainDataCopy,
                     }));
-                const scope3 = nock('http://127.0.0.1:8332')
+                nock('http://127.0.0.1:8332')
                     .post('/', body => body.method === "getpeerinfo")
                     .reply(200, JSON.stringify({
                         id: "nocktest",
@@ -1162,7 +1161,7 @@ describe('Test pool functionality', () => {
             mockSetupData(pool, () => {
                 pool.setupJobManager();
                 mockSetupBlockchain(pool, () => {
-                    const scope = nock('http://127.0.0.1:8332')
+                    nock('http://127.0.0.1:8332')
                         .post('/', body => body.method === "getblocktemplate")
                         .reply(200, JSON.stringify({
                             id: "nocktest",
@@ -1180,7 +1179,7 @@ describe('Test pool functionality', () => {
     });
 
     test('Test pool job events [2]', (done) => {
-        const response = []
+        const response = [];
         const optionsCopy = Object.assign({}, options);
         const pool = new Pool(optionsCopy, null);
         pool.on('log', (type, text) => {
@@ -1197,7 +1196,7 @@ describe('Test pool functionality', () => {
             mockSetupData(pool, () => {
                 pool.setupJobManager();
                 mockSetupBlockchain(pool, () => {
-                    const scope = nock('http://127.0.0.1:8332')
+                    nock('http://127.0.0.1:8332')
                         .post('/', body => body.method === "getblocktemplate")
                         .reply(200, JSON.stringify({
                             id: "nocktest",
@@ -1211,7 +1210,7 @@ describe('Test pool functionality', () => {
     });
 
     test('Test pool polling events [1]', (done) => {
-        const response = []
+        const response = [];
         const optionsCopy = Object.assign({}, options);
         const pool = new Pool(optionsCopy, null);
         pool.on('log', (type, text) => {
@@ -1222,7 +1221,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("debug");
                 expect(response[1][1]).toBe("Block template polling has been disabled");
                 done();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
@@ -1252,14 +1251,14 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("debug");
                 expect(response[1][1]).toBe("Block notification via RPC polling");
                 done();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
                 pool.setupJobManager();
                 mockSetupBlockchain(pool, () => {
                     mockSetupFirstJob(pool, () => {
-                        const scope = nock('http://127.0.0.1:8332')
+                        nock('http://127.0.0.1:8332')
                             .post('/', body => body.method === "getblocktemplate")
                             .reply(200, JSON.stringify({
                                 id: "nocktest",
@@ -1287,7 +1286,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("debug");
                 expect(response[1][1]).toBe("p2p has been disabled in the configuration");
                 done();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
@@ -1308,7 +1307,7 @@ describe('Test pool functionality', () => {
         optionsCopy.coin.peerMagicTestnet = false;
         optionsCopy.recipients = Object.assign([], options.recipients);
         optionsCopy.recipients[0] = Object.assign({}, options.recipients[0]);
-        optionsCopy.recipients[0].address = "tb1qnc0z4696tusrgscws5gvc7g2hhz99m6lrssfc2"
+        optionsCopy.recipients[0].address = "tb1qnc0z4696tusrgscws5gvc7g2hhz99m6lrssfc2";
         const pool = new Pool(optionsCopy, null);
         pool.on('log', (type, text) => {
             response.push([type, text]);
@@ -1318,7 +1317,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("error");
                 expect(response[1][1]).toBe("p2p cannot be enabled in testnet without peerMagicTestnet set in coin configuration");
                 done();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupTestnetData(pool, () => {
@@ -1346,7 +1345,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("error");
                 expect(response[1][1]).toBe("p2p cannot be enabled without peerMagic set in coin configuration");
                 done();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
@@ -1372,7 +1371,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("error");
                 expect(response[1][1]).toBe("p2p connection failed - likely incorrect p2p magic value");
                 done();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
@@ -1399,7 +1398,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("error");
                 expect(response[1][1]).toBe("p2p connection failed - likely incorrect host or port");
                 done();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
@@ -1426,7 +1425,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("error");
                 expect(response[1][1]).toBe("p2p had a socket error: true");
                 done();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
@@ -1453,7 +1452,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("error");
                 expect(response[1][1]).toBe("p2p had an error: true");
                 done();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
@@ -1485,7 +1484,7 @@ describe('Test pool functionality', () => {
                 expect(response[3][0]).toBe("debug");
                 expect(response[3][1]).toBe("Block template for Bitcoin updated successfully");
                 done();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
@@ -1494,7 +1493,7 @@ describe('Test pool functionality', () => {
                     mockSetupFirstJob(pool, () => {
                         pool.setupPeer();
                         pool.peer.on('blockNotify', function(hash) {
-                            const scope = nock('http://127.0.0.1:8332')
+                            nock('http://127.0.0.1:8332')
                                 .post('/', body => body.method === "getblocktemplate")
                                 .reply(200, JSON.stringify({
                                     id: "nocktest",
@@ -1524,7 +1523,7 @@ describe('Test pool functionality', () => {
                 expect(response[4][0]).toBe("error");
                 expect(response[4][1]).toBe("Block notify error getting block template for Bitcoin");
                 done();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
@@ -1533,7 +1532,7 @@ describe('Test pool functionality', () => {
                     mockSetupFirstJob(pool, () => {
                         pool.setupPeer();
                         pool.peer.on('blockNotify', function(hash) {
-                            const scope = nock('http://127.0.0.1:8332')
+                            nock('http://127.0.0.1:8332')
                                 .post('/', body => body.method === "getblocktemplate")
                                 .reply(200, JSON.stringify({
                                     id: "nocktest",
@@ -1561,7 +1560,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("debug");
                 expect(response[1][1]).toBe("Block notification via p2p");
                 done();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
@@ -1577,7 +1576,6 @@ describe('Test pool functionality', () => {
     });
 
     test('Test pool stratum events [1]', (done) => {
-        const response = [];
         const optionsCopy = Object.assign({}, options);
         const pool = new Pool(optionsCopy, () => {});
         mockSetupDaemon(pool, () => {
@@ -1613,7 +1611,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("debug");
                 expect(response[1][1]).toBe("No new blocks for 60 seconds - updating transactions & rebroadcasting work");
                 pool.stratum.stopServer();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
@@ -1622,7 +1620,7 @@ describe('Test pool functionality', () => {
                     mockSetupFirstJob(pool, () => {
                         pool.setupPeer();
                         pool.setupStratum(() => {
-                            const scope = nock('http://127.0.0.1:8332')
+                            nock('http://127.0.0.1:8332')
                                 .post('/', body => body.method === "getblocktemplate")
                                 .reply(200, JSON.stringify({
                                     id: "nocktest",
@@ -1655,7 +1653,7 @@ describe('Test pool functionality', () => {
                 expect(response[3][0]).toBe("debug");
                 expect(response[3][1]).toBe("Updated existing job for current block template");
                 pool.stratum.stopServer();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
@@ -1664,7 +1662,7 @@ describe('Test pool functionality', () => {
                     mockSetupFirstJob(pool, () => {
                         pool.setupPeer();
                         pool.setupStratum(() => {
-                            const scope = nock('http://127.0.0.1:8332')
+                            nock('http://127.0.0.1:8332')
                                 .post('/', body => body.method === "getblocktemplate")
                                 .reply(200, JSON.stringify({
                                     id: "nocktest",
@@ -1699,7 +1697,7 @@ describe('Test pool functionality', () => {
                 expect(response[3][0]).toBe("debug");
                 expect(response[3][1]).toBe("Established new job for updated block template");
                 pool.stratum.stopServer();
-            };
+            }
         });
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
@@ -1708,7 +1706,7 @@ describe('Test pool functionality', () => {
                     mockSetupFirstJob(pool, () => {
                         pool.setupPeer();
                         pool.setupStratum(() => {
-                            const scope = nock('http://127.0.0.1:8332')
+                            nock('http://127.0.0.1:8332')
                                 .post('/', body => body.method === "getblocktemplate")
                                 .reply(200, JSON.stringify({
                                     id: "nocktest",
@@ -1737,7 +1735,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("warning");
                 expect(response[1][1]).toBe("Malformed message from client [example]: \"Message\"");
                 pool.stratum.stopServer();
-            };
+            }
         });
         pool.on('connectionSucceeded', () => {
             client.emit('malformedMessage', "Message");
@@ -1754,7 +1752,7 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return "client [example]" };
+                            client.getLabel = () => { return "client [example]"; };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -1777,7 +1775,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("warning");
                 expect(response[1][1]).toBe("Socket error from client [example]: \"Error\"");
                 pool.stratum.stopServer();
-            };
+            }
         });
         pool.on('connectionSucceeded', () => {
             client.emit('socketError', "Error");
@@ -1794,7 +1792,7 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return "client [example]" };
+                            client.getLabel = () => { return "client [example]"; };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -1817,7 +1815,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("warning");
                 expect(response[1][1]).toBe("Connection timed out for client [example]: Timeout");
                 pool.stratum.stopServer();
-            };
+            }
         });
         pool.on('connectionSucceeded', () => {
             client.emit('socketTimeout', "Timeout");
@@ -1834,7 +1832,7 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return "client [example]" };
+                            client.getLabel = () => { return "client [example]"; };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -1857,7 +1855,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("warning");
                 expect(response[1][1]).toBe("Socket disconnect for client [example]");
                 pool.stratum.stopServer();
-            };
+            }
         });
         pool.on('connectionSucceeded', () => {
             client.emit('socketDisconnect');
@@ -1874,7 +1872,7 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return "client [example]" };
+                            client.getLabel = () => { return "client [example]"; };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -1897,7 +1895,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("debug");
                 expect(response[1][1]).toBe("Rejected incoming connection from 127.0.0.1. The client is banned for 100000 seconds");
                 pool.stratum.stopServer();
-            };
+            }
         });
         pool.on('connectionSucceeded', () => {
             client.emit('kickedBannedIP', 100000);
@@ -1915,7 +1913,7 @@ describe('Test pool functionality', () => {
                             client.socket = socket;
                             client.socket.localPort = 3001;
                             client.remoteAddress = "127.0.0.1";
-                            client.getLabel = () => { return "client [example]" };
+                            client.getLabel = () => { return "client [example]"; };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -1938,7 +1936,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("debug");
                 expect(response[1][1]).toBe("Forgave banned IP 127.0.0.1");
                 pool.stratum.stopServer();
-            };
+            }
         });
         pool.on('connectionSucceeded', () => {
             client.emit('forgaveBannedIP');
@@ -1956,7 +1954,7 @@ describe('Test pool functionality', () => {
                             client.socket = socket;
                             client.socket.localPort = 3001;
                             client.remoteAddress = "127.0.0.1";
-                            client.getLabel = () => { return "client [example]" };
+                            client.getLabel = () => { return "client [example]"; };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -1979,7 +1977,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("debug");
                 expect(response[1][1]).toBe("Unknown stratum method from client [example]: Unknown");
                 pool.stratum.stopServer();
-            };
+            }
         });
         pool.on('connectionSucceeded', () => {
             client.emit('unknownStratumMethod', { method: "Unknown"});
@@ -1996,7 +1994,7 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return "client [example]" };
+                            client.getLabel = () => { return "client [example]"; };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2019,7 +2017,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("warning");
                 expect(response[1][1]).toBe("Detected socket flooding from client [example]");
                 pool.stratum.stopServer();
-            };
+            }
         });
         pool.on('connectionSucceeded', () => {
             client.emit('socketFlooded');
@@ -2036,7 +2034,7 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return "client [example]" };
+                            client.getLabel = () => { return "client [example]"; };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2059,7 +2057,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("error");
                 expect(response[1][1]).toBe("Client IP detection failed, tcpProxyProtocol is enabled yet did not receive proxy protocol message, instead got data: Data");
                 pool.stratum.stopServer();
-            };
+            }
         });
         pool.on('connectionSucceeded', () => {
             client.emit('tcpProxyError', "Data");
@@ -2076,7 +2074,7 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return "client [example]" };
+                            client.getLabel = () => { return "client [example]"; };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2099,7 +2097,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("warning");
                 expect(response[1][1]).toBe("Ban triggered for client [example]: Socket flooding");
                 pool.stratum.stopServer();
-            };
+            }
         });
         pool.on('connectionSucceeded', () => {
             client.emit('triggerBan', "Socket flooding");
@@ -2116,7 +2114,7 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return "client [example]" };
+                            client.getLabel = () => { return "client [example]"; };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2139,9 +2137,9 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("debug");
                 expect(response[1][1]).toBe("Difficulty updated successfully for worker: worker1");
                 pool.stratum.stopServer();
-            };
+            }
         });
-        pool.on('difficultyUpdate', (worker, difficulty) => {
+        pool.on('difficultyUpdate', (worker) => {
             pool.emit('log', 'debug', 'Difficulty updated successfully for worker: ' + worker);
         });
         pool.on('connectionSucceeded', () => {
@@ -2159,8 +2157,8 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.workerName = "worker1"
-                            client.getLabel = () => { return "client [example]" };
+                            client.workerName = "worker1";
+                            client.getLabel = () => { return "client [example]"; };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2183,10 +2181,10 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("debug");
                 expect(response[1][1]).toBe("Client successfully subscribed to stratum network");
                 pool.stratum.stopServer();
-            };
+            }
         });
         pool.on('connectionSucceeded', () => {
-            client.emit('subscription', {}, (error, extraNonce1, extraNonce2Size) => {
+            client.emit('subscription', {}, () => {
                 pool.emit('log', 'debug', 'Client successfully subscribed to stratum network');
             });
         });
@@ -2202,9 +2200,9 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return "client [example]" };
-                            client.sendDifficulty = (difficulty) => {};
-                            client.sendMiningJob = (jobParams) => {};
+                            client.getLabel = () => { return "client [example]"; };
+                            client.sendDifficulty = () => {};
+                            client.sendMiningJob = () => {};
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2228,10 +2226,10 @@ describe('Test pool functionality', () => {
                 expect(response[0][0]).toBe("debug");
                 expect(response[0][1]).toBe("Client successfully subscribed to stratum network");
                 pool.stratum.stopServer();
-            };
+            }
         });
         pool.on('connectionSucceeded', () => {
-            client.emit('subscription', {}, (error, extraNonce1, extraNonce2Size) => {
+            client.emit('subscription', {}, () => {
                 pool.emit('log', 'debug', 'Client successfully subscribed to stratum network');
             });
         });
@@ -2247,9 +2245,9 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return "client [example]" };
-                            client.sendDifficulty = (difficulty) => {};
-                            client.sendMiningJob = (jobParams) => {};
+                            client.getLabel = () => { return "client [example]"; };
+                            client.sendDifficulty = () => {};
+                            client.sendMiningJob = () => {};
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2272,10 +2270,10 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("debug");
                 expect(response[1][1]).toBe("Client successfully subscribed to stratum network");
                 pool.stratum.stopServer();
-            };
+            }
         });
         pool.on('connectionSucceeded', () => {
-            client.emit('submit', {params: [0, 1, 2, 3, 4]}, (error, result) => {
+            client.emit('submit', {params: [0, 1, 2, 3, 4]}, () => {
                 pool.emit('log', 'debug', 'Client successfully subscribed to stratum network');
             });
         });
@@ -2295,9 +2293,9 @@ describe('Test pool functionality', () => {
                             client.remoteAddress = "127.0.0.1",
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return "client [example]" };
-                            client.sendDifficulty = (difficulty) => {};
-                            client.sendMiningJob = (jobParams) => {};
+                            client.getLabel = () => { return "client [example]"; };
+                            client.sendDifficulty = () => {};
+                            client.sendMiningJob = () => {};
                             pool.stratum.emit('client.connected', client);
                         });
                     });

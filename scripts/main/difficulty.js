@@ -38,7 +38,7 @@ function RingBuffer(maxSize) {
 
     // Average Ring Buffer
     this.avg = function() {
-        let sum = data.reduce(function(a, b) { return a + b });
+        const sum = data.reduce(function(a, b) { return a + b; });
         return sum / (isFull ? maxSize : cursor);
     };
 
@@ -56,49 +56,49 @@ function RingBuffer(maxSize) {
 }
 
 // Difficulty Main Function
-let Difficulty = function(port, difficultyOptions, showLogs) {
+const Difficulty = function(port, difficultyOptions, showLogs) {
 
     // Establish Difficulty Variables
-    let _this = this;
-    let logging = showLogs;
-    let variance = difficultyOptions.targetTime * (difficultyOptions.variancePercent / 100);
-    let bufferSize = difficultyOptions.retargetTime / difficultyOptions.targetTime * 4;
-    let tMin = difficultyOptions.targetTime - variance;
-    let tMax = difficultyOptions.targetTime + variance;
+    const _this = this;
+    const logging = showLogs;
+    const variance = difficultyOptions.targetTime * (difficultyOptions.variancePercent / 100);
+    const bufferSize = difficultyOptions.retargetTime / difficultyOptions.targetTime * 4;
+    const tMin = difficultyOptions.targetTime - variance;
+    const tMax = difficultyOptions.targetTime + variance;
 
     // Manage Individual Clients
     this.manageClient = function(client) {
 
         // Check if Client is Connected to VarDiff Port
-        let stratumPort = client.socket.localPort;
+        const stratumPort = client.socket.localPort;
         if (stratumPort != port) {
             console.error("Handling a client which is not of this vardiff?");
         }
 
         // Establish Client Variables
-        let options = difficultyOptions;
+        const options = difficultyOptions;
         let lastTs, lastRtc, timeBuffer;
 
         // Manage Client Submission
         client.on('submit', function() {
-            let ts = (Date.now() / 1000) | 0;
+            const ts = (Date.now() / 1000) | 0;
             if (!lastRtc) {
                 lastRtc = ts - options.retargetTime / 2;
                 lastTs = ts;
                 timeBuffer = new RingBuffer(bufferSize);
                 if (logging) {
-                    console.log("Setting difficulty on client initialization")
+                    console.log("Setting difficulty on client initialization");
                 }
                 return;
             }
-            let sinceLast = ts - lastTs;
+            const sinceLast = ts - lastTs;
             timeBuffer.append(sinceLast);
             lastTs = ts;
-            let avg = timeBuffer.avg();
+            const avg = timeBuffer.avg();
             let ddiff = options.targetTime / avg;
             if ((ts - lastRtc) < options.retargetTime && timeBuffer.size() > 0) {
                 if (logging) {
-                    console.log("No difficulty update required")
+                    console.log("No difficulty update required");
                 }
                 return;
             }
@@ -111,7 +111,7 @@ let Difficulty = function(port, difficultyOptions, showLogs) {
                     ddiff = options.minDiff / client.difficulty;
                 }
                 if (logging) {
-                    console.log("Decreasing current difficulty")
+                    console.log("Decreasing current difficulty");
                 }
             }
             else if (avg < tMin && client.difficulty < options.maxDiff) {
@@ -122,16 +122,16 @@ let Difficulty = function(port, difficultyOptions, showLogs) {
                     ddiff = options.maxDiff / client.difficulty;
                 }
                 if (logging) {
-                    console.log("Increasing current difficulty")
+                    console.log("Increasing current difficulty");
                 }
             }
             else {
                 if (logging) {
-                    console.log("No difficulty update required")
+                    console.log("No difficulty update required");
                 }
                 return;
             }
-            let newDiff = toFixed(client.difficulty * ddiff, 8);
+            const newDiff = toFixed(client.difficulty * ddiff, 8);
             timeBuffer.clear();
             _this.emit('newDifficulty', client, newDiff);
         });

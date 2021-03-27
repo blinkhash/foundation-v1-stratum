@@ -18,7 +18,7 @@ const vardiff1 = {
     "targetTime": 1,
     "retargetTime": 1,
     "variancePercent": -0.1,
-}
+};
 const vardiff2 = {
     "minDiff": 8,
     "maxDiff": 8,
@@ -26,7 +26,7 @@ const vardiff2 = {
     "retargetTime": 1,
     "variancePercent": -0.1,
     "x2mode": true,
-}
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -37,10 +37,10 @@ describe('Test difficulty functionality', () => {
         client = new events.EventEmitter();
         client.lastActivity = Date.now();
         client.difficulty = 8;
-        client.socket = { localPort: port }
+        client.socket = { localPort: port };
     });
 
-    let difficulty, difficultyLog;
+    let difficulty1, difficulty2;
     beforeEach(() => {
         difficulty1 = new Difficulty(port, vardiff1, false);
         difficulty2 = new Difficulty(port, vardiff2, true);

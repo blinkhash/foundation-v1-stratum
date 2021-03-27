@@ -5,17 +5,16 @@
  */
 
 // Import Required Modules
-let base58 = require('base58-native');
-let bchaddr = require('bchaddrjs');
-let bignum = require('bignum');
-let bitcoin = require('blinkhash-utxo-lib');
-let crypto = require('crypto');
+const bchaddr = require('bchaddrjs');
+const bignum = require('bignum');
+const bitcoin = require('blinkhash-utxo-lib');
+const crypto = require('crypto');
 
 // Convert Address to Script
 exports.addressToScript = function(addr, network) {
     network = network || {};
     if (network.coin === 'bch' && bchaddr.isCashAddress(addr)) {
-        addr = bchaddr.toLegacyAddress(addr)
+        addr = bchaddr.toLegacyAddress(addr);
         return bitcoin.address.toOutputScript(addr, network);
     }
     else if (typeof network.coin !== "undefined") {
@@ -28,12 +27,12 @@ exports.addressToScript = function(addr, network) {
 
 // Convert Bits into Target Bignum
 exports.bignumFromBitsBuffer = function(bitsBuff) {
-    let numBytes = bitsBuff.readUInt8(0);
-    let bigBits = bignum.fromBuffer(bitsBuff.slice(1));
-    let target = bigBits.mul(
+    const numBytes = bitsBuff.readUInt8(0);
+    const bigBits = bignum.fromBuffer(bitsBuff.slice(1));
+    const target = bigBits.mul(
         bignum(2).pow(
             bignum(8).mul(
-                    numBytes - 3
+                numBytes - 3
             )
         )
     );
@@ -42,41 +41,41 @@ exports.bignumFromBitsBuffer = function(bitsBuff) {
 
 // Convert Bits into Target Bignum
 exports.bignumFromBitsHex = function(bitsString) {
-    let bitsBuff = Buffer.from(bitsString, 'hex');
+    const bitsBuff = Buffer.from(bitsString, 'hex');
     return exports.bignumFromBitsBuffer(bitsBuff);
 };
 
 // Alloc/Write UInt16LE
 exports.packUInt16LE = function(num) {
-    let buff = Buffer.alloc(2);
+    const buff = Buffer.alloc(2);
     buff.writeUInt16LE(num, 0);
     return buff;
 };
 
 // Alloc/Write UInt16LE
 exports.packUInt16BE = function(num) {
-    let buff = Buffer.alloc(2);
+    const buff = Buffer.alloc(2);
     buff.writeUInt16BE(num, 0);
     return buff;
 };
 
 // Alloc/Write UInt32LE
 exports.packUInt32LE = function(num) {
-    let buff = Buffer.alloc(4);
+    const buff = Buffer.alloc(4);
     buff.writeUInt32LE(num, 0);
     return buff;
 };
 
 // Alloc/Write UInt32BE
 exports.packUInt32BE = function(num) {
-    let buff = Buffer.alloc(4);
+    const buff = Buffer.alloc(4);
     buff.writeUInt32BE(num, 0);
     return buff;
 };
 
 // Alloc/Write Int64LE
 exports.packUInt64LE = function(num) {
-    let buff = Buffer.alloc(8);
+    const buff = Buffer.alloc(8);
     buff.writeUInt32LE(num % Math.pow(2, 32), 0);
     buff.writeUInt32LE(Math.floor(num / Math.pow(2, 32)), 4);
     return buff;
@@ -84,7 +83,7 @@ exports.packUInt64LE = function(num) {
 
 // Alloc/Write Int64LE
 exports.packUInt64BE = function(num) {
-    let buff = Buffer.alloc(8);
+    const buff = Buffer.alloc(8);
     buff.writeUInt32BE(Math.floor(num / Math.pow(2, 32)), 0);
     buff.writeUInt32BE(num % Math.pow(2, 32), 4);
     return buff;
@@ -92,14 +91,14 @@ exports.packUInt64BE = function(num) {
 
 // Alloc/Write Int32LE
 exports.packInt32LE = function(num) {
-    let buff = Buffer.alloc(4);
+    const buff = Buffer.alloc(4);
     buff.writeInt32LE(num, 0);
     return buff;
 };
 
 // Alloc/Write Int32BE
 exports.packInt32BE = function(num) {
-    let buff = Buffer.alloc(4);
+    const buff = Buffer.alloc(4);
     buff.writeInt32BE(num, 0);
     return buff;
 };
@@ -116,7 +115,7 @@ exports.range = function(start, stop, step) {
     if ((step > 0 && start >= stop) || (step < 0 && start <= stop)) {
         return [];
     }
-    let result = [];
+    const result = [];
     for (let i = start; step > 0 ? i < stop : i > stop; i += step) {
         result.push(i);
     }
@@ -125,7 +124,7 @@ exports.range = function(start, stop, step) {
 
 // Reverse Input Buffer
 exports.reverseBuffer = function(buff) {
-    let reversed = Buffer.alloc(buff.length);
+    const reversed = Buffer.alloc(buff.length);
     for (let i = buff.length - 1; i >= 0; i--) {
         reversed[buff.length - i - 1] = buff[i];
     }
@@ -151,7 +150,7 @@ exports.serializeNumber = function(n) {
         return Buffer.from([0x50 + n]);
     }
     let l = 1;
-    let buff = Buffer.alloc(9);
+    const buff = Buffer.alloc(9);
     while (n > 0x7f)
     {
         buff.writeUInt8(n & 0xff, l++);
@@ -195,7 +194,7 @@ exports.serializeString = function(s) {
 
 // Hash Input w/ Sha256
 exports.sha256 = function(buffer) {
-    let hash1 = crypto.createHash('sha256');
+    const hash1 = crypto.createHash('sha256');
     hash1.update(buffer);
     return hash1.digest();
 };
@@ -209,7 +208,7 @@ exports.sha256d = function(buffer) {
 exports.uint256BufferFromHash = function(hex) {
     let fromHex = Buffer.from(hex, 'hex');
     if (fromHex.length != 32) {
-        let empty = Buffer.alloc(32);
+        const empty = Buffer.alloc(32);
         empty.fill(0);
         fromHex.copy(empty);
         fromHex = empty;
@@ -222,19 +221,19 @@ exports.varIntBuffer = function(n) {
     if (n < 0xfd)
         return Buffer.from([n]);
     else if (n <= 0xffff) {
-        let buff = Buffer.alloc(3);
+        const buff = Buffer.alloc(3);
         buff[0] = 0xfd;
         exports.packUInt16LE(n).copy(buff, 1);
         return buff;
     }
     else if (n <= 0xffffffff) {
-        let buff = Buffer.alloc(5);
+        const buff = Buffer.alloc(5);
         buff[0] = 0xfe;
         exports.packUInt32LE(n).copy(buff, 1);
         return buff;
     }
     else {
-        let buff = Buffer.alloc(9);
+        const buff = Buffer.alloc(9);
         buff[0] = 0xff;
         exports.packUInt64LE(n).copy(buff, 1);
         return buff;
@@ -243,6 +242,6 @@ exports.varIntBuffer = function(n) {
 
 // Generate VarString Buffer
 exports.varStringBuffer = function(string) {
-    let strBuff = Buffer.from(string);
+    const strBuff = Buffer.from(string);
     return Buffer.concat([exports.varIntBuffer(strBuff.length), strBuff]);
 };

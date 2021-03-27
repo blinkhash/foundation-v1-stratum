@@ -22,7 +22,7 @@ const options = {
         "disableTransactions": true
     },
     "testnet": false,
-}
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -35,7 +35,7 @@ describe('Test peer functionality', () => {
     test('Test initialization of peer socket', () => {
         const optionsCopy = Object.assign({}, options);
         const peer = new Peer(optionsCopy);
-        client = peer.initializePeer();
+        const client = peer.initializePeer();
         expect(typeof client).toBe("object");
         expect(Object.keys(client._events).length).toBe(5);
     });
@@ -45,7 +45,7 @@ describe('Test peer functionality', () => {
         optionsCopy.verack = true;
         const peer = new Peer(optionsCopy);
         peer.on('disconnected', () => output1 = "Disconnected");
-        client = peer.initializePeer();
+        const client = peer.initializePeer();
         client.emit('close');
         expect(output1).toBe('Disconnected');
     });
@@ -55,7 +55,7 @@ describe('Test peer functionality', () => {
         optionsCopy.validConnectionConfig = true;
         const peer = new Peer(optionsCopy);
         peer.on('connectionRejected', () => output1 = "Connection Rejected");
-        client = peer.initializePeer();
+        const client = peer.initializePeer();
         client.emit('close');
         expect(output1).toBe('Connection Rejected');
     });
@@ -64,7 +64,7 @@ describe('Test peer functionality', () => {
         const optionsCopy = Object.assign({}, options);
         const peer = new Peer(optionsCopy);
         peer.on('connectionFailed', () => output1 = "Connection Failed");
-        client = peer.initializePeer();
+        const client = peer.initializePeer();
         client.emit('error', { code: "ECONNREFUSED" });
         expect(output1).toBe('Connection Failed');
     });
@@ -73,7 +73,7 @@ describe('Test peer functionality', () => {
         const optionsCopy = Object.assign({}, options);
         const peer = new Peer(optionsCopy);
         peer.on('socketError', () => output1 = "Socket Error");
-        client = peer.initializePeer();
+        const client = peer.initializePeer();
         client.emit('error', {});
         expect(output1).toBe('Socket Error');
     });
@@ -82,9 +82,9 @@ describe('Test peer functionality', () => {
         const optionsCopy = Object.assign({}, options);
         const peer = new Peer(optionsCopy);
         peer.on('blockFound', () => output1 = "Block Found");
-        peer.handleInventory(Buffer.from("0100000000", "hex"))
-        peer.handleInventory(Buffer.from("0101000000", "hex"))
-        peer.handleInventory(Buffer.from("0102000000", "hex"))
+        peer.handleInventory(Buffer.from("0100000000", "hex"));
+        peer.handleInventory(Buffer.from("0101000000", "hex"));
+        peer.handleInventory(Buffer.from("0102000000", "hex"));
         expect(output1).toBe('Block Found');
     });
 
@@ -142,8 +142,6 @@ describe('Test peer functionality', () => {
     test('Test peer version messaging [4]', () => {
         const optionsCopy = Object.assign({}, options);
         const peer = new Peer(optionsCopy);
-        const version = Buffer.from("76657273696f6e0000000000", "hex");
-        const payload = Buffer.from("0100000000", "hex");
         peer.on('sentMessage', (message) => output1 = message);
         peer.sendVersion();
         expect(output1.slice(0, 20)).toStrictEqual(Buffer.from("f9beb4d976657273696f6e000000000064000000", "hex"));

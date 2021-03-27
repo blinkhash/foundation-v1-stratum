@@ -5,23 +5,22 @@
  */
 
 // Import Required Modules
-let bitcoin = require('blinkhash-utxo-lib')
-let util = require('./util.js');
+const util = require('./util.js');
 
 // Generate Combined Transactions (Bitcoin)
-let Transactions = function() {
+const Transactions = function() {
 
     // Structure Bitcoin Protocol Transaction
     this.bitcoin = function(rpcData, extraNoncePlaceholder, options) {
 
         // Establish Transactions Variables [1]
-        let txLockTime = 0;
-        let txInSequence = 0;
+        const txLockTime = 0;
+        const txInSequence = 0;
         let txType = 0;
         let txExtraPayload;
-        let txInPrevOutHash = "";
-        let txInPrevOutIndex = Math.pow(2, 32) - 1;
-        let txOutputBuffers = [];
+        const txInPrevOutHash = "";
+        const txInPrevOutIndex = Math.pow(2, 32) - 1;
+        const txOutputBuffers = [];
         let txVersion = options.coin.txMessages === true ? 2 : 1;
 
         // Support Coinbase v3 Block Template
@@ -42,17 +41,17 @@ let Transactions = function() {
         // Establish Transactions Variables [2]
         let reward = rpcData.coinbasevalue;
         let rewardToPool = reward;
-        let poolIdentifier = options.identifier || "https://github.com/blinkhash/blinkhash-server"
-        let poolAddressScript = util.addressToScript(options.poolAddress, options.network)
-        let coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
+        const poolIdentifier = options.identifier || "https://github.com/blinkhash/blinkhash-server";
+        const poolAddressScript = util.addressToScript(options.poolAddress, options.network);
+        const coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
 
         // Handle Comments if Necessary
-        let txComment = options.coin.txMessages === true ?
+        const txComment = options.coin.txMessages === true ?
             util.serializeString(poolIdentifier) :
             Buffer.from([]);
 
         // Handle ScriptSig [1]
-        let scriptSigPart1 = Buffer.concat([
+        const scriptSigPart1 = Buffer.concat([
             util.serializeNumber(rpcData.height),
             coinbaseAux,
             util.serializeNumber(Date.now() / 1000 | 0),
@@ -60,10 +59,10 @@ let Transactions = function() {
         ]);
 
         // Handle ScriptSig [2]
-        let scriptSigPart2 = util.serializeString(poolIdentifier);
+        const scriptSigPart2 = util.serializeString(poolIdentifier);
 
         // Combine Transaction [1]
-        let p1 = Buffer.concat([
+        const p1 = Buffer.concat([
             util.packUInt32LE(txVersion),
             util.varIntBuffer(1),
             util.uint256BufferFromHash(txInPrevOutHash),
@@ -75,8 +74,8 @@ let Transactions = function() {
         // Handle Masternodes
         if (rpcData.masternode) {
             if (rpcData.masternode.payee) {
-                let payeeReward = rpcData.masternode.amount;
-                let payeeScript = util.addressToScript(rpcData.masternode.payee, options.network);
+                const payeeReward = rpcData.masternode.amount;
+                const payeeScript = util.addressToScript(rpcData.masternode.payee, options.network);
                 reward -= payeeReward;
                 rewardToPool -= payeeReward;
                 txOutputBuffers.push(Buffer.concat([
@@ -87,10 +86,10 @@ let Transactions = function() {
             }
             else if (rpcData.masternode.length > 0) {
                 rpcData.masternode.forEach(payee => {
-                    let payeeReward = payee.amount;
+                    const payeeReward = payee.amount;
                     let payeeScript;
                     if (payee.script) {
-                        payeeScript = Buffer.from(payee.script, 'hex')
+                        payeeScript = Buffer.from(payee.script, 'hex');
                     }
                     else {
                         payeeScript = util.addressToScript(payee.payee, options.network);
@@ -109,10 +108,10 @@ let Transactions = function() {
         // Handle Superblocks
         if (rpcData.superblock && rpcData.superblock.length > 0) {
             rpcData.superblock.forEach(payee => {
-                let payeeReward = payee.amount;
+                const payeeReward = payee.amount;
                 let payeeScript;
                 if (payee.script) {
-                    payeeScript = Buffer.from(payee.script, 'hex')
+                    payeeScript = Buffer.from(payee.script, 'hex');
                 }
                 else {
                     payeeScript = util.addressToScript(payee.payee, options.network);
@@ -129,8 +128,8 @@ let Transactions = function() {
 
         // Handle Other Given Payees
         if (rpcData.payee) {
-            let payeeReward = rpcData.payee_amount || Math.ceil(reward / 5);
-            let payeeScript = util.addressToScript(rpcData.payee, options.network);
+            const payeeReward = rpcData.payee_amount || Math.ceil(reward / 5);
+            const payeeScript = util.addressToScript(rpcData.payee, options.network);
             reward -= payeeReward;
             rewardToPool -= payeeReward;
             txOutputBuffers.push(Buffer.concat([
@@ -143,15 +142,15 @@ let Transactions = function() {
         // Handle Secondary Transactions
         switch (options.rewards) {
 
-            // No Founder Rewards
-            default:
-                break;
+        // No Founder Rewards
+        default:
+            break;
         }
 
         // Handle Recipient Transactions
         options.recipients.forEach(recipient => {
-            let recipientReward = Math.floor(recipient.percentage * reward);
-            let recipientScript = util.addressToScript(recipient.address, options.network);
+            const recipientReward = Math.floor(recipient.percentage * reward);
+            const recipientScript = util.addressToScript(recipient.address, options.network);
             reward -= recipientReward;
             rewardToPool -= recipientReward;
             txOutputBuffers.push(Buffer.concat([
@@ -159,7 +158,7 @@ let Transactions = function() {
                 util.varIntBuffer(recipientScript.length),
                 recipientScript,
             ]));
-        })
+        });
 
         // Handle Pool Transaction
         txOutputBuffers.unshift(Buffer.concat([
@@ -170,7 +169,7 @@ let Transactions = function() {
 
         // Handle Witness Commitment
         if (rpcData.default_witness_commitment !== undefined) {
-            witness_commitment = Buffer.from(rpcData.default_witness_commitment, 'hex');
+            const witness_commitment = Buffer.from(rpcData.default_witness_commitment, 'hex');
             txOutputBuffers.unshift(Buffer.concat([
                 util.packUInt64LE(0),
                 util.varIntBuffer(witness_commitment.length),
@@ -179,7 +178,7 @@ let Transactions = function() {
         }
 
         // Combine All Transactions
-        let outputTransactions = Buffer.concat([
+        const outputTransactions = Buffer.concat([
             util.varIntBuffer(txOutputBuffers.length),
             Buffer.concat(txOutputBuffers)
         ]);
@@ -204,7 +203,7 @@ let Transactions = function() {
 
         // Return Generated Transaction
         return [p1, p2];
-    }
+    };
 };
 
 // Export Transactions

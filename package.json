@@ -24,6 +24,8 @@
     "verbose": true
   },
   "scripts": {
+    "clean": "eslint . --ext .js --ignore-pattern node_modules/",
+    "clean:fix": "eslint . --ext .js --fix --ignore-pattern node_modules/",
     "test": "jest --coverage"
   },
   "contributors": [],
@@ -52,6 +54,7 @@
   "_resolved": "git://github.com/blinkhash/blinkhash-stratum-pool.git",
   "_from": "stratum-pool@git://github.com/blinkhash/blinkhash-stratum-pool.git",
   "devDependencies": {
+    "eslint": "^7.23.0",
     "jest": "^26.6.3",
     "mitm": "^1.7.1",
     "nock": "^13.0.10"
