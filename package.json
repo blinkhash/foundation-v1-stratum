@@ -1,5 +1,5 @@
 {
-  "name": "blinkhash-stratum",
+  "name": "@blinkhash/blinkhash-stratum",
   "version": "0.0.1",
   "description": "High performance Stratum poolserver in Node.js",
   "keywords": [
@@ -54,8 +54,8 @@
   "engines": {
     "node": ">=0.10"
   },
-  "readmeFilename": "README.md",
-  "_id": "blinkhash-stratum@0.0.1",
-  "_resolved": "git://github.com/blinkhash/blinkhash-stratum.git",
-  "_from": "blinkhash-stratum@git://github.com/blinkhash/blinkhash-stratum.git"
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "readmeFilename": "README.md"
 }
