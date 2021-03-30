@@ -1,7 +1,7 @@
 # Blinkhash Stratum
 
-[![Codecov Coverage](https://img.shields.io/codecov/c/github/blinkhash/blinkhash-stratum-pool.svg?style=flat-square)](https://codecov.io/gh/blinkhash/blinkhash-stratum-pool/)
-[![Build Status](https://travis-ci.org/blinkhash/blinkhash-stratum-pool.svg?branch=master)](https://travis-ci.org/blinkhash/blinkhash-stratum-pool)
+[![Codecov Coverage](https://img.shields.io/codecov/c/github/blinkhash/blinkhash-stratum.svg?style=flat-square)](https://codecov.io/gh/blinkhash/blinkhash-stratum/)
+[![Build Status](https://travis-ci.org/blinkhash/blinkhash-stratum.svg?branch=master)](https://travis-ci.org/blinkhash/blinkhash-stratum)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
 This portal is a high performance Stratum server written entirely in Node.js. One instance of this software can startup and manage multiple coin pools, each with their own daemon and Stratum ports. This server itself was built to be efficient, transparent, and easy to setup, while still maintaining greater scalability than many of the other open-source Stratum servers. This repository itself, however, is simply a module. It will do nothing on its own. Unless you're a Node.js developer who would like to learn more regarding stratum authentication and raw share data, this module will not be of use to you. For a complete backend server that implements this module, see https://github.com/blinkhash/blinkhash-server. It handles payments, database integration, multi-coin/pool support, and more.
@@ -22,8 +22,8 @@ Note: Those are legitimate requirements. If you use old versions of Node.js or R
 This module is configured to primarily work with https://github.com/blinkhash/blinkhash-server. While you can install it just by following the instructions on its repository, you can also do so directly with the following instructions. These commands will assume that you already have downloaded and are located in the same folder as 'blinkhash-server/'.
 
 ```bash
-git clone https://github.com/blinkhash/blinkhash-stratum-pool blinkhash-server/node_modules/stratum-pool
-cd blinkhash-server/node_modules/stratum-pool
+git clone https://github.com/blinkhash/blinkhash-stratum blinkhash-server/node_modules/blinkhash-stratum
+cd blinkhash-server/node_modules/blinkhash-stratum
 npm update
 ```
 

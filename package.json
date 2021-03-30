@@ -1,5 +1,5 @@
 {
-  "name": "blinkhash-stratum-pool",
+  "name": "blinkhash-stratum",
   "version": "0.0.1",
   "description": "High performance Stratum poolserver in Node.js",
   "keywords": [
@@ -12,9 +12,9 @@
     "litecoin",
     "scrypt"
   ],
-  "homepage": "https://github.com/blinkhash/blinkhash-stratum-pool",
+  "homepage": "https://github.com/blinkhash/blinkhash-stratum",
   "bugs": {
-    "url": "https://github.com/blinkhash/blinkhash-stratum-pool/issues"
+    "url": "https://github.com/blinkhash/blinkhash-stratum/issues"
   },
   "license": "GPL-2.0",
   "author": {
@@ -33,7 +33,7 @@
   "main": "scripts/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/blinkhash/blinkhash-stratum-pool.git"
+    "url": "https://github.com/blinkhash/blinkhash-stratum.git"
   },
   "dependencies": {
     "async": "1.5.2",
@@ -44,21 +44,18 @@
     "multi-hashing": "git://github.com/blinkhash/blinkhash-multi-hashing.git",
     "promise": "^8.1.0"
   },
-  "engines": {
-    "node": ">=0.10"
-  },
-  "readmeFilename": "README.md",
-  "_id": "stratum-pool@0.1.9",
-  "dist": {
-    "shasum": "b1cb69519b09f9e97ae2b17fff6d9adf6310a11d"
-  },
-  "_resolved": "git://github.com/blinkhash/blinkhash-stratum-pool.git",
-  "_from": "stratum-pool@git://github.com/blinkhash/blinkhash-stratum-pool.git",
   "devDependencies": {
     "codecov": "^3.8.1",
     "eslint": "^7.23.0",
     "jest": "^26.6.3",
     "mitm": "^1.7.1",
     "nock": "^13.0.10"
-  }
+  },
+  "engines": {
+    "node": ">=0.10"
+  },
+  "readmeFilename": "README.md",
+  "_id": "blinkhash-stratum@0.0.1",
+  "_resolved": "git://github.com/blinkhash/blinkhash-stratum.git",
+  "_from": "blinkhash-stratum@git://github.com/blinkhash/blinkhash-stratum.git"
 }
