@@ -54,7 +54,6 @@ const options = {
         "algorithm": "scrypt",
     },
     "network": {
-        "messagePrefix": "\x18Bitcoin Signed Message:\n",
         "bech32": "bc",
         "bip32": {
             "public": 0x0488b21e,

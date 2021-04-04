@@ -8,7 +8,6 @@
 const util = require('../main/util');
 
 const network1 = {
-    "messagePrefix": "\x18Bitcoin Signed Message:\n",
     "bech32": "bc",
     "bip32": {
         "public": 0x0488b21e,
@@ -21,7 +20,6 @@ const network1 = {
 };
 
 const network2 = {
-    "messagePrefix": "\x18Bitcoin Signed Message:\n",
     "bip32": {
         "public": 0x0488b21e,
         "private": 0x0488ade4,

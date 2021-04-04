@@ -142,9 +142,9 @@ const Transactions = function() {
         // Handle Secondary Transactions
         switch (options.rewards) {
 
-        // No Founder Rewards
-        default:
-            break;
+            // No Founder Rewards
+            default:
+                break;
         }
 
         // Handle Recipient Transactions

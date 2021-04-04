@@ -169,7 +169,6 @@ const options = {
         "hasGetInfo": false,
         "segwit": true,
         "mainnet": {
-            "messagePrefix": "\x18Bitcoin Signed Message:\n",
             "bech32": "bc",
             "bip32": {
                 "public": 0x0488b21e,
@@ -181,7 +180,6 @@ const options = {
             "coin": "btc",
         },
         "testnet": {
-            "messagePrefix": "\x18Bitcoin Signed Message:\n",
             "bech32": "tb",
             "bip32": {
                 "public": 0x043587cf,
