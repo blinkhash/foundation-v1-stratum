@@ -6,7 +6,6 @@
 
 // Import Required Modules
 const events = require('events');
-const nock = require('nock');
 
 // Import Required Modules
 const Stratum = require('../main/stratum');
@@ -87,9 +86,6 @@ const options = {
     "rewards": "",
     "tcpProxyProtocol": false,
 };
-
-nock.disableNetConnect();
-nock.enableNetConnect('127.0.0.1');
 
 ////////////////////////////////////////////////////////////////////////////////
 

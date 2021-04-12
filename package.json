@@ -30,7 +30,7 @@
     "test": "jest --coverage"
   },
   "contributors": [],
-  "main": "scripts/index.js",
+  "main": "scripts/main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/blinkhash/blinkhash-stratum.git"
