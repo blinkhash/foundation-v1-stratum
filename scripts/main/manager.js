@@ -126,10 +126,10 @@ const Manager = function(options) {
             _this.emit('share', {
                 job: jobId,
                 ip: ipAddress,
-                worker: workerName,
-                difficulty: difficulty,
                 port: port,
-                error: error[1]
+                difficulty: difficulty,
+                error: error[1],
+                worker: workerName,
             });
             return {error: error, result: null};
         };
@@ -199,23 +199,23 @@ const Manager = function(options) {
             job: jobId,
             ip: ipAddress,
             port: port,
-            worker: workerName,
-            height: job.rpcData.height,
-            blockReward: job.rpcData.coinbasevalue,
-            difficulty: difficulty,
-            shareDiff: shareDiff.toFixed(8),
             blockDiff : blockDiffAdjusted,
             blockDiffActual: job.difficulty,
-            blockHash: blockHash,
-            blockHashInvalid: blockHashInvalid
+            difficulty: difficulty,
+            hash: blockHash,
+            hashInvalid: blockHashInvalid,
+            height: job.rpcData.height,
+            reward: job.rpcData.coinbasevalue,
+            shareDiff: shareDiff.toFixed(8),
+            worker: workerName,
         }, blockHex);
 
         return {
-            result: true,
             error: null,
-            blockHash: blockHash,
-            blockHashInvalid: blockHashInvalid,
-            blockHex: blockHex,
+            hash: blockHash,
+            hashInvalid: blockHashInvalid,
+            hex: blockHex,
+            result: true,
         };
     };
 };

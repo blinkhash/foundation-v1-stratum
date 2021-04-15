@@ -940,15 +940,15 @@ describe('Test pool functionality', () => {
                     job: 1,
                     ip: "ip_addr",
                     port: "port",
-                    worker: "worker",
-                    height: 1,
-                    blockReward: 5000000000,
-                    difficulty: 1,
-                    shareDiff: 1,
                     blockDiff : 1,
                     blockDiffActual: 1,
-                    blockHash: "example blockhash",
-                    blockHashInvalid: null,
+                    difficulty: 1,
+                    hash: "example blockhash",
+                    hashInvalid: null,
+                    height: 1,
+                    reward: 5000000000,
+                    shareDiff: 1,
+                    worker: "worker",
                 };
                 const blockHex = Buffer.from("000011110000111100001111", "hex");
                 pool.manager.emit('share', shareData, blockHex);

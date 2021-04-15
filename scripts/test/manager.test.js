@@ -182,7 +182,7 @@ describe('Test manager functionality', () => {
         const time = "6036c54f".toString("hex");
         const nonce = "fe1a0000".toString("hex");
         const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, "ip_addr", "port", "worker");
-        expect(typeof response.blockHashInvalid).toBe("string");
+        expect(typeof response.hashInvalid).toBe("string");
     });
 
     test('Test share submission process [7]', () => {
@@ -224,6 +224,6 @@ describe('Test manager functionality', () => {
         const time = "6036c54f".toString("hex");
         const nonce = "fe1a0000".toString("hex");
         const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, "ip_addr", "port", "worker");
-        expect(typeof response.blockHashInvalid).toBe("string");
+        expect(typeof response.hashInvalid).toBe("string");
     });
 });

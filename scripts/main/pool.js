@@ -303,9 +303,9 @@ const Pool = function(options, authorizeFn) {
                 _this.emit('share', isValidShare, isValidBlock, shareData);
             else {
                 _this.submitBlock(blockHex, function() {
-                    _this.checkBlockAccepted(shareData.blockHash, function(isAccepted, tx) {
+                    _this.checkBlockAccepted(shareData.hash, function(isAccepted, tx) {
                         isValidBlock = isAccepted;
-                        shareData.txHash = tx;
+                        shareData.transaction = tx;
                         _this.emit('share', isValidShare, isValidBlock, shareData);
                         _this.getBlockTemplate(function(error, result, foundNewBlock) {
                             if (foundNewBlock)

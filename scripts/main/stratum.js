@@ -25,7 +25,7 @@ const StratumClient = function(options) {
     this.lastActivity = Date.now();
     this.pendingDifficulty = null;
     this.remoteAddress = options.socket.remoteAddress;
-    this.shares = {valid: 0, invalid: 0};
+    this.shares = { valid: 0, invalid: 0 };
     this.socket = options.socket;
 
     // Helper Function if Banning is Disabled
@@ -45,7 +45,7 @@ const StratumClient = function(options) {
         if (totalShares >= _this.banning.checkThreshold) {
             const percentBad = (_this.shares.invalid / totalShares) * 100;
             if (percentBad < _this.banning.invalidPercent) {
-                this.shares = {valid: 0, invalid: 0};
+                this.shares = { valid: 0, invalid: 0 };
             }
             else {
                 _this.emit('triggerBan', _this.shares.invalid + ' out of the last ' + totalShares + ' shares were invalid');
