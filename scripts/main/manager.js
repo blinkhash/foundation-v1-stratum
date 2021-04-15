@@ -8,7 +8,7 @@
 const events = require('events');
 const crypto = require('crypto');
 const bignum = require('bignum');
-const util = require('./util.js');
+const utils = require('./utils.js');
 
 // Import Required Modules
 const Algorithms = require('./algorithms.js');
@@ -25,7 +25,7 @@ const ExtraNonceCounter = function(configInstanceId) {
     this.counter = instanceId << 27;
     this.size = 4;
     this.next = function() {
-        const extraNonce = util.packUInt32BE(Math.abs(this.counter += 1));
+        const extraNonce = utils.packUInt32BE(Math.abs(this.counter += 1));
         return extraNonce.toString('hex');
     };
 };
@@ -66,7 +66,7 @@ const Manager = function(options) {
         switch (options.coin.algorithm) {
         default:
             return function (d) {
-                return util.reverseBuffer(util.sha256d(d));
+                return utils.reverseBuffer(utils.sha256d(d));
             };
         }
     }
@@ -75,7 +75,7 @@ const Manager = function(options) {
     function coinbaseHash() {
         switch (options.coin.algorithm) {
         default:
-            return util.sha256d;
+            return utils.sha256d;
         }
     }
 
@@ -173,7 +173,7 @@ const Manager = function(options) {
         const extraNonce2Buffer = Buffer.from(extraNonce2, 'hex');
         const coinbaseBuffer = job.serializeCoinbase(extraNonce1Buffer, extraNonce2Buffer);
         const coinbaseHash = this.coinbaseHasher(coinbaseBuffer);
-        const merkleRoot = util.reverseBuffer(job.merkle.withFirst(coinbaseHash)).toString('hex');
+        const merkleRoot = utils.reverseBuffer(job.merkle.withFirst(coinbaseHash)).toString('hex');
 
         // Start Generating Block Hash
         const headerBuffer = job.serializeHeader(merkleRoot, nTime, nonce);
@@ -191,7 +191,7 @@ const Manager = function(options) {
         }
         else {
             if (options.emitInvalidBlockHashes) {
-                blockHashInvalid = util.reverseBuffer(util.sha256d(headerBuffer)).toString('hex');
+                blockHashInvalid = utils.reverseBuffer(utils.sha256d(headerBuffer)).toString('hex');
             }
             if (shareDiff / difficulty < 0.99) {
                 if (previousDifficulty && shareDiff >= previousDifficulty) {
@@ -219,7 +219,6 @@ const Manager = function(options) {
             blockHashInvalid: blockHashInvalid
         }, blockHex);
 
-        // Return Valid Share
         return {
             result: true,
             error: null,

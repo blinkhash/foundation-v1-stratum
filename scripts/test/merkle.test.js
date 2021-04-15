@@ -5,7 +5,7 @@
  */
 
 // Import Required Modules
-const util = require('../main/util');
+const utils = require('../main/utils');
 
 // Import Required Modules
 const Merkle = require('../main/merkle');
@@ -50,7 +50,7 @@ describe('Test merkle functionality', () => {
 
     test('Test withFirst calculations', () => {
         const coinbaseHash = Buffer.from("afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b53031", "hex");
-        const merkleRoot = util.reverseBuffer(merkle3.withFirst(coinbaseHash)).toString('hex');
+        const merkleRoot = utils.reverseBuffer(merkle3.withFirst(coinbaseHash)).toString('hex');
         expect(merkleRoot).toBe("0b8dcdd18969a859444b18f927f69202f5a8c4379b3ed5b3f7c1bd1f57e916d0");
     });
 });

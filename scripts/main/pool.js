@@ -59,7 +59,7 @@ const Pool = function(options, authorizeFn) {
         });
     };
 
-    // Initialize Pool Server
+    // Start Pool Capabilities
     this.start = function() {
         _this.setupDifficulty();
         _this.setupDaemonInterface(function() {

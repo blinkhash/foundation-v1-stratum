@@ -5,7 +5,7 @@
  */
 
 // Import Required Modules
-const util = require('../main/util');
+const utils = require('../main/utils');
 
 // Import Required Modules
 const Algorithms = require('../main/algorithms');
@@ -141,7 +141,7 @@ describe('Test block functionality', () => {
     test('Test merkle root generation', () => {
         const coinbase = Buffer.from("01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff020101ffffffff0100f2052a010000001976a914614ca2f0f4baccdd63f45a0e0e0ff7ffb88041fb88ac00000000", "hex");
         const coinbaseHash = manager.coinbaseHasher(coinbase);
-        const merkleRoot = util.reverseBuffer(block.merkle.withFirst(coinbaseHash)).toString('hex');
+        const merkleRoot = utils.reverseBuffer(block.merkle.withFirst(coinbaseHash)).toString('hex');
         expect(merkleRoot).toBe("0b8dcdd18969a859444b18f927f69202f5a8c4379b3ed5b3f7c1bd1f57e916d0");
     });
 
@@ -191,9 +191,9 @@ describe('Test block functionality', () => {
             block.generation[0].toString('hex'),
             block.generation[1].toString('hex'),
             block.getMerkleHashes(block.merkle.steps),
-            util.packInt32BE(block.rpcData.version).toString('hex'),
+            utils.packInt32BE(block.rpcData.version).toString('hex'),
             block.rpcData.bits,
-            util.packInt32BE(block.rpcData.curtime).toString('hex'),
+            utils.packInt32BE(block.rpcData.curtime).toString('hex'),
             true
         ];
         const currentParams = block.getJobParams();
@@ -228,9 +228,9 @@ describe('Test miscellaneous features of block implementation', () => {
             block.generation[0].toString('hex'),
             block.generation[1].toString('hex'),
             block.getMerkleHashes(block.merkle.steps),
-            util.packInt32BE(block.rpcData.version).toString('hex'),
+            utils.packInt32BE(block.rpcData.version).toString('hex'),
             block.rpcData.bits,
-            util.packInt32BE(block.rpcData.curtime).toString('hex'),
+            utils.packInt32BE(block.rpcData.curtime).toString('hex'),
             true
         ];
         block.jobParams = jobParams;

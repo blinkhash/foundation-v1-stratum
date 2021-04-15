@@ -5,7 +5,7 @@
  */
 
 // Import Required Modules
-const util = require('./util.js');
+const utils = require('./utils.js');
 
 // Merkle Main Function
 const Merkle = function(data) {
@@ -16,7 +16,7 @@ const Merkle = function(data) {
     // Concat Hashes Together
     this.concatHash = function(h1, h2) {
         const joined = Buffer.concat([h1, h2]);
-        const dhashed = util.sha256d(joined);
+        const dhashed = utils.sha256d(joined);
         return dhashed;
     };
 
@@ -33,7 +33,7 @@ const Merkle = function(data) {
                 if (Ll % 2)
                     L.push(L[L.length - 1]);
                 const Ld = [];
-                const r = util.range(StartL, Ll, 2);
+                const r = utils.range(StartL, Ll, 2);
                 r.forEach(function(i) {
                     Ld.push(_this.concatHash(L[i], L[i + 1]));
                 });
@@ -47,7 +47,7 @@ const Merkle = function(data) {
     // Hash Merkle Steps With Input
     this.withFirst = function(hash) {
         _this.steps.forEach(function (step) {
-            hash = util.sha256d(Buffer.concat([hash, step]));
+            hash = utils.sha256d(Buffer.concat([hash, step]));
         });
         return hash;
     };

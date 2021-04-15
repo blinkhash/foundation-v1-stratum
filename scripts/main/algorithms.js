@@ -6,7 +6,7 @@
 
 // Import Required Modules
 const multiHashing = require('multi-hashing');
-const util = require('./util.js');
+const utils = require('./utils.js');
 
 // Algorithms Main Function
 const algorithms = {
@@ -15,7 +15,7 @@ const algorithms = {
     'sha256d': {
         hash: function(){
             return function(){
-                return util.sha256d.apply(this, arguments);
+                return utils.sha256d.apply(this, arguments);
             };
         }
     },

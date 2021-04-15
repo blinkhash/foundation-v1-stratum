@@ -7,7 +7,7 @@
 // Import Required Modules
 const net = require('net');
 const events = require('events');
-const util = require('./util.js');
+const utils = require('./utils.js');
 
 // Increment Count for Each Subscription
 const SubscriptionCounter = function() {
@@ -17,7 +17,7 @@ const SubscriptionCounter = function() {
         next: function() {
             count += 1;
             if (Number.MAX_VALUE === count) count = 0;
-            return padding + util.packUInt64LE(count).toString('hex');
+            return padding + utils.packUInt64LE(count).toString('hex');
         }
     };
 };
@@ -84,7 +84,7 @@ const StratumClient = function(options) {
     };
 
     // Establish Stratum Connection
-    this.setupSocket = function() {
+    this.start = function() {
 
         // Setup Main Socket Connection
         let dataBuffer = '';
@@ -315,9 +315,6 @@ const StratumClient = function(options) {
             params: jobParams
         });
     };
-
-    // Initialize Stratum Connection
-    this.init = _this.setupSocket;
 };
 
 /**
@@ -343,8 +340,8 @@ const StratumNetwork = function(options, authorizeFn) {
     // Determine Length of Client Ban
     const bannedMS = options.banning ? options.banning.time * 1000 : null;
 
-    // Initialize Stratum Connection
-    this.initializeServer = function() {
+    // Start Stratum Capabilities
+    this.start = function() {
 
         // Interval to Clear Old Bans from BannedIPs
         if (options.banning && options.banning.enabled) {
@@ -447,8 +444,7 @@ const StratumNetwork = function(options, authorizeFn) {
             _this.emit('client.banned', client);
         });
 
-        // Return Client Subscription ID
-        client.init();
+        client.start();
         return subscriptionId;
     };
 
@@ -470,7 +466,7 @@ const StratumNetwork = function(options, authorizeFn) {
     };
 
     // Initialize Stratum Connection
-    _this.initializeServer();
+    _this.start();
 };
 
 // Export Stratum Client/Server

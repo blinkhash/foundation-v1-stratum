@@ -8,7 +8,7 @@
 const net = require('net');
 const crypto = require('crypto');
 const events = require('events');
-const util = require('./util.js');
+const utils = require('./utils.js');
 
 // Generate String Buffer from Parameter Length
 function fixedLenStringBuffer(s, len) {
@@ -66,7 +66,7 @@ const Peer = function(options) {
     // Establish Network Variables
     const networkServices = Buffer.from('0100000000000000', 'hex'); // NODE_NETWORK services (value 1 packed as uint64)
     const emptyNetAddress = Buffer.from('010000000000000000000000000000000000ffff000000000000', 'hex');
-    const userAgent = util.varStringBuffer('/node-stratum/');
+    const userAgent = utils.varStringBuffer('/node-stratum/');
     const blockStartHeight = Buffer.from('00000000', 'hex'); // block start_height, can be empty
     const relayTransactions = options.p2p.disableTransactions === true ? Buffer.from([false]) : Buffer.from([]);
 
@@ -79,8 +79,8 @@ const Peer = function(options) {
         getblocks: commandStringBuffer('getblocks')
     };
 
-    // Initialize Peer Connection
-    this.initializePeer = function() {
+    // Start Peer Capabilities
+    this.start = function() {
         const client = _this.connectPeer();
         return client;
     };
@@ -144,7 +144,7 @@ const Peer = function(options) {
                 const msgLength = header.readUInt32LE(16);
                 const msgChecksum = header.readUInt32LE(20);
                 readFlowingBytes(client, msgLength, lopped, function (payload, lopped) {
-                    if (util.sha256d(payload).readUInt32LE(0) !== msgChecksum) {
+                    if (utils.sha256d(payload).readUInt32LE(0) !== msgChecksum) {
                         _this.emit('error', 'bad payload - failed checksum');
                         beginReadingMessage(null);
                         return;
@@ -210,8 +210,8 @@ const Peer = function(options) {
         const message = Buffer.concat([
             magic,
             command,
-            util.packUInt32LE(payload.length),
-            util.sha256d(payload).slice(0, 4),
+            utils.packUInt32LE(payload.length),
+            utils.sha256d(payload).slice(0, 4),
             payload
         ]);
         client.write(message);
@@ -221,9 +221,9 @@ const Peer = function(options) {
     // Broadcast/Send Peer Version
     this.sendVersion = function() {
         const payload = Buffer.concat([
-            util.packUInt32LE(options.protocolVersion),
+            utils.packUInt32LE(options.protocolVersion),
             networkServices,
-            util.packUInt64LE(Date.now() / 1000 | 0),
+            utils.packUInt64LE(Date.now() / 1000 | 0),
             emptyNetAddress,
             emptyNetAddress,
             crypto.pseudoRandomBytes(8),
@@ -235,7 +235,7 @@ const Peer = function(options) {
     };
 
     // Initialize Peer Connection
-    _this.initializePeer();
+    _this.start();
 };
 
 // Export Peer

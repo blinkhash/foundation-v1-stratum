@@ -5,7 +5,7 @@
  */
 
 // Import Required Modules
-const util = require('./util.js');
+const utils = require('./utils.js');
 
 // Generate Combined Transactions (Bitcoin)
 const Transactions = function() {
@@ -32,7 +32,7 @@ const Transactions = function() {
 
         // Handle Version w/ CoinbaseTxn
         if (rpcData.coinbasetxn && rpcData.coinbasetxn.data) {
-            txVersion = parseInt(util.reverseHex(rpcData.coinbasetxn.data.slice(0, 8)), 16);
+            txVersion = parseInt(utils.reverseHex(rpcData.coinbasetxn.data.slice(0, 8)), 16);
         }
         else {
             txVersion = txVersion + (txType << 16);
@@ -42,32 +42,32 @@ const Transactions = function() {
         let reward = rpcData.coinbasevalue;
         let rewardToPool = reward;
         const poolIdentifier = options.identifier || "https://github.com/blinkhash/blinkhash-server";
-        const poolAddressScript = util.addressToScript(options.poolAddress, options.network);
+        const poolAddressScript = utils.addressToScript(options.poolAddress, options.network);
         const coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
 
         // Handle Comments if Necessary
         const txComment = options.coin.txMessages === true ?
-            util.serializeString(poolIdentifier) :
+            utils.serializeString(poolIdentifier) :
             Buffer.from([]);
 
         // Handle ScriptSig [1]
         const scriptSigPart1 = Buffer.concat([
-            util.serializeNumber(rpcData.height),
+            utils.serializeNumber(rpcData.height),
             coinbaseAux,
-            util.serializeNumber(Date.now() / 1000 | 0),
+            utils.serializeNumber(Date.now() / 1000 | 0),
             Buffer.from([extraNoncePlaceholder.length])
         ]);
 
         // Handle ScriptSig [2]
-        const scriptSigPart2 = util.serializeString(poolIdentifier);
+        const scriptSigPart2 = utils.serializeString(poolIdentifier);
 
         // Combine Transaction [1]
         const p1 = Buffer.concat([
-            util.packUInt32LE(txVersion),
-            util.varIntBuffer(1),
-            util.uint256BufferFromHash(txInPrevOutHash),
-            util.packUInt32LE(txInPrevOutIndex),
-            util.varIntBuffer(scriptSigPart1.length + extraNoncePlaceholder.length + scriptSigPart2.length),
+            utils.packUInt32LE(txVersion),
+            utils.varIntBuffer(1),
+            utils.uint256BufferFromHash(txInPrevOutHash),
+            utils.packUInt32LE(txInPrevOutIndex),
+            utils.varIntBuffer(scriptSigPart1.length + extraNoncePlaceholder.length + scriptSigPart2.length),
             scriptSigPart1
         ]);
 
@@ -75,12 +75,12 @@ const Transactions = function() {
         if (rpcData.masternode) {
             if (rpcData.masternode.payee) {
                 const payeeReward = rpcData.masternode.amount;
-                const payeeScript = util.addressToScript(rpcData.masternode.payee, options.network);
+                const payeeScript = utils.addressToScript(rpcData.masternode.payee, options.network);
                 reward -= payeeReward;
                 rewardToPool -= payeeReward;
                 txOutputBuffers.push(Buffer.concat([
-                    util.packUInt64LE(payeeReward),
-                    util.varIntBuffer(payeeScript.length),
+                    utils.packUInt64LE(payeeReward),
+                    utils.varIntBuffer(payeeScript.length),
                     payeeScript,
                 ]));
             }
@@ -92,13 +92,13 @@ const Transactions = function() {
                         payeeScript = Buffer.from(payee.script, 'hex');
                     }
                     else {
-                        payeeScript = util.addressToScript(payee.payee, options.network);
+                        payeeScript = utils.addressToScript(payee.payee, options.network);
                     }
                     reward -= payeeReward;
                     rewardToPool -= payeeReward;
                     txOutputBuffers.push(Buffer.concat([
-                        util.packUInt64LE(payeeReward),
-                        util.varIntBuffer(payeeScript.length),
+                        utils.packUInt64LE(payeeReward),
+                        utils.varIntBuffer(payeeScript.length),
                         payeeScript,
                     ]));
                 });
@@ -114,13 +114,13 @@ const Transactions = function() {
                     payeeScript = Buffer.from(payee.script, 'hex');
                 }
                 else {
-                    payeeScript = util.addressToScript(payee.payee, options.network);
+                    payeeScript = utils.addressToScript(payee.payee, options.network);
                 }
                 reward -= payeeReward;
                 rewardToPool -= payeeReward;
                 txOutputBuffers.push(Buffer.concat([
-                    util.packUInt64LE(payeeReward),
-                    util.varIntBuffer(payeeScript.length),
+                    utils.packUInt64LE(payeeReward),
+                    utils.varIntBuffer(payeeScript.length),
                     payeeScript,
                 ]));
             });
@@ -129,12 +129,12 @@ const Transactions = function() {
         // Handle Other Given Payees
         if (rpcData.payee) {
             const payeeReward = rpcData.payee_amount || Math.ceil(reward / 5);
-            const payeeScript = util.addressToScript(rpcData.payee, options.network);
+            const payeeScript = utils.addressToScript(rpcData.payee, options.network);
             reward -= payeeReward;
             rewardToPool -= payeeReward;
             txOutputBuffers.push(Buffer.concat([
-                util.packUInt64LE(payeeReward),
-                util.varIntBuffer(payeeScript.length),
+                utils.packUInt64LE(payeeReward),
+                utils.varIntBuffer(payeeScript.length),
                 payeeScript,
             ]));
         }
@@ -150,20 +150,20 @@ const Transactions = function() {
         // Handle Recipient Transactions
         options.recipients.forEach(recipient => {
             const recipientReward = Math.floor(recipient.percentage * reward);
-            const recipientScript = util.addressToScript(recipient.address, options.network);
+            const recipientScript = utils.addressToScript(recipient.address, options.network);
             reward -= recipientReward;
             rewardToPool -= recipientReward;
             txOutputBuffers.push(Buffer.concat([
-                util.packUInt64LE(recipientReward),
-                util.varIntBuffer(recipientScript.length),
+                utils.packUInt64LE(recipientReward),
+                utils.varIntBuffer(recipientScript.length),
                 recipientScript,
             ]));
         });
 
         // Handle Pool Transaction
         txOutputBuffers.unshift(Buffer.concat([
-            util.packUInt64LE(rewardToPool),
-            util.varIntBuffer(poolAddressScript.length),
+            utils.packUInt64LE(rewardToPool),
+            utils.varIntBuffer(poolAddressScript.length),
             poolAddressScript
         ]));
 
@@ -171,24 +171,24 @@ const Transactions = function() {
         if (rpcData.default_witness_commitment !== undefined) {
             const witness_commitment = Buffer.from(rpcData.default_witness_commitment, 'hex');
             txOutputBuffers.unshift(Buffer.concat([
-                util.packUInt64LE(0),
-                util.varIntBuffer(witness_commitment.length),
+                utils.packUInt64LE(0),
+                utils.varIntBuffer(witness_commitment.length),
                 witness_commitment
             ]));
         }
 
         // Combine All Transactions
         const outputTransactions = Buffer.concat([
-            util.varIntBuffer(txOutputBuffers.length),
+            utils.varIntBuffer(txOutputBuffers.length),
             Buffer.concat(txOutputBuffers)
         ]);
 
         // Combine Transaction [2]
         let p2 = Buffer.concat([
             scriptSigPart2,
-            util.packUInt32LE(txInSequence),
+            utils.packUInt32LE(txInSequence),
             outputTransactions,
-            util.packUInt32LE(txLockTime),
+            utils.packUInt32LE(txLockTime),
             txComment
         ]);
 
@@ -196,12 +196,11 @@ const Transactions = function() {
         if (txExtraPayload !== undefined) {
             p2 = Buffer.concat([
                 p2,
-                util.varIntBuffer(txExtraPayload.length),
+                utils.varIntBuffer(txExtraPayload.length),
                 txExtraPayload
             ]);
         }
 
-        // Return Generated Transaction
         return [p1, p2];
     };
 };

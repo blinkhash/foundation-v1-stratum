@@ -82,7 +82,6 @@ const DaemonInterface = function(daemons, logger) {
                 callback({type: 'request error', message: e.message}, null);
         });
 
-        // Return JSON Output
         req.end(jsonData);
     };
 

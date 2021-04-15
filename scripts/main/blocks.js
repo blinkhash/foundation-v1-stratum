@@ -6,7 +6,7 @@
 
 // Import Required Modules
 const bignum = require('bignum');
-const util = require('./util.js');
+const utils = require('./utils.js');
 
 // Import Required Modules
 const Merkle = require('./merkle.js');
@@ -24,7 +24,7 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     this.jobId = jobId;
 
     // Calculate Block Target/Difficulty
-    this.target = this.rpcData.target ? bignum(this.rpcData.target, 16) : util.bignumFromBitsHex(this.rpcData.bits);
+    this.target = this.rpcData.target ? bignum(this.rpcData.target, 16) : utils.bignumFromBitsHex(this.rpcData.bits);
     this.difficulty = parseFloat((diff1 / this.target.toNumber()).toFixed(9));
 
     // Function to get Merkle Hashes
@@ -38,9 +38,9 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     this.getTransactionBuffers = function(txs) {
         const txHashes = txs.map(function(tx) {
             if (tx.txid !== undefined) {
-                return util.uint256BufferFromHash(tx.txid);
+                return utils.uint256BufferFromHash(tx.txid);
             }
-            return util.uint256BufferFromHash(tx.hash);
+            return utils.uint256BufferFromHash(tx.hash);
         });
         return [null].concat(txHashes);
     };
@@ -51,7 +51,7 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
             return Buffer.from([]);
         }
         return Buffer.concat(
-            [util.varIntBuffer(this.rpcData.votes.length)].concat(
+            [utils.varIntBuffer(this.rpcData.votes.length)].concat(
                 this.rpcData.votes.map(function (vt) {
                     return Buffer.from(vt, 'hex');
                 })
@@ -80,7 +80,7 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     }));
 
     // Structure Block Historical Hashes
-    this.prevHashReversed = util.reverseByteOrder(Buffer.from(this.rpcData.previousblockhash, 'hex')).toString('hex');
+    this.prevHashReversed = utils.reverseByteOrder(Buffer.from(this.rpcData.previousblockhash, 'hex')).toString('hex');
 
     // Serialize Block Coinbase
     this.serializeCoinbase = function(extraNonce1, extraNonce2) {
@@ -102,7 +102,7 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
         header.write(merkleRoot, position += 4, 32, 'hex');
         header.write(this.rpcData.previousblockhash, position += 32, 32, 'hex');
         header.writeUInt32BE(this.rpcData.version, position + 32);
-        header = util.reverseBuffer(header);
+        header = utils.reverseBuffer(header);
         return header;
     };
 
@@ -110,7 +110,7 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     this.serializeBlock = function(header, secondary) {
         const buffer = Buffer.concat([
             header,
-            util.varIntBuffer(this.rpcData.transactions.length + 1),
+            utils.varIntBuffer(this.rpcData.transactions.length + 1),
             secondary,
             this.transactions,
             this.getVoteData(),
@@ -138,9 +138,9 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
                 this.generation[0].toString('hex'),
                 this.generation[1].toString('hex'),
                 this.getMerkleHashes(this.merkle.steps),
-                util.packInt32BE(this.rpcData.version).toString('hex'),
+                utils.packInt32BE(this.rpcData.version).toString('hex'),
                 this.rpcData.bits,
-                util.packUInt32BE(this.rpcData.curtime).toString('hex'),
+                utils.packUInt32BE(this.rpcData.curtime).toString('hex'),
                 true
             ];
         }
