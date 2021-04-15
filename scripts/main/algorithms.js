@@ -4,14 +4,11 @@
  *
  */
 
-// Import Required Modules
 const multiHashing = require('multi-hashing');
 const utils = require('./utils.js');
 
-// Algorithms Main Function
-const algorithms = {
-
-    // Sha256 Algorithm
+// Main Algorithms Function
+const Algorithms = {
     'sha256d': {
         hash: function(){
             return function(){
@@ -19,8 +16,6 @@ const algorithms = {
             };
         }
     },
-
-    // Scrypt Algorithm
     'scrypt': {
         multiplier: Math.pow(2, 16),
         hash: function(coinConfig){
@@ -31,8 +26,6 @@ const algorithms = {
             };
         }
     },
-
-    // C11 Algorithm
     'c11': {
         hash: function(){
             return function(){
@@ -40,8 +33,6 @@ const algorithms = {
             };
         }
     },
-
-    // X11 Algorithm
     'x11': {
         hash: function(){
             return function(){
@@ -49,8 +40,6 @@ const algorithms = {
             };
         }
     },
-
-    // X13 Algorithm
     'x13': {
         hash: function(){
             return function(){
@@ -58,8 +47,6 @@ const algorithms = {
             };
         }
     },
-
-    // X15 Algorithm
     'x15': {
         hash: function(){
             return function(){
@@ -67,8 +54,6 @@ const algorithms = {
             };
         }
     },
-
-    // X16R Algorithm
     'x16r': {
         multiplier: Math.pow(2, 8),
         hash: function(){
@@ -77,8 +62,6 @@ const algorithms = {
             };
         }
     },
-
-    // X16Rv2 Algorithm
     'x16rv2': {
         multiplier: Math.pow(2, 8),
         hash: function(){
@@ -87,8 +70,6 @@ const algorithms = {
             };
         }
     },
-
-    // Nist5 Algorithm
     'nist5': {
         hash: function(){
             return function(){
@@ -96,8 +77,6 @@ const algorithms = {
             };
         }
     },
-
-    // Quark Algorithm
     'quark': {
         hash: function(){
             return function(){
@@ -105,8 +84,6 @@ const algorithms = {
             };
         }
     },
-
-    // Keccak Algorithm
     'keccak': {
         multiplier: Math.pow(2, 8),
         hash: function(coinConfig){
@@ -122,8 +99,6 @@ const algorithms = {
             }
         }
     },
-
-    // Blake Algorithm
     'blake': {
         multiplier: Math.pow(2, 8),
         hash: function(){
@@ -132,8 +107,6 @@ const algorithms = {
             };
         }
     },
-
-    // Neoscrypt Algorithm
     'neoscrypt': {
         multiplier: Math.pow(2, 5),
         hash: function(){
@@ -142,8 +115,6 @@ const algorithms = {
             };
         }
     },
-
-    // Skein Algorithm
     'skein': {
         hash: function(){
             return function(){
@@ -151,8 +122,6 @@ const algorithms = {
             };
         }
     },
-
-    // Groestl Algorithm
     'groestl': {
         multiplier: Math.pow(2, 8),
         hash: function(){
@@ -161,8 +130,6 @@ const algorithms = {
             };
         }
     },
-
-    // Fugue Algorithm
     'fugue': {
         multiplier: Math.pow(2, 8),
         hash: function(){
@@ -171,8 +138,6 @@ const algorithms = {
             };
         }
     },
-
-    // Qubit Algorithm
     'qubit': {
         hash: function(){
             return function(){
@@ -182,12 +147,10 @@ const algorithms = {
     },
 };
 
-// Set Default Multiplier
-Object.keys(algorithms).forEach(algo => {
-    if (!algorithms[algo].multiplier) {
-        algorithms[algo].multiplier = 1;
+Object.keys(Algorithms).forEach(algo => {
+    if (!Algorithms[algo].multiplier) {
+        Algorithms[algo].multiplier = 1;
     }
 });
 
-// Export Algorithms
-module.exports = algorithms;
+module.exports = Algorithms;

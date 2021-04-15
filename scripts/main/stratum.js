@@ -4,23 +4,9 @@
  *
  */
 
-// Import Required Modules
 const net = require('net');
 const events = require('events');
 const utils = require('./utils.js');
-
-// Increment Count for Each Subscription
-const SubscriptionCounter = function() {
-    let count = 0;
-    const padding = 'deadbeefcafebabe';
-    return {
-        next: function() {
-            count += 1;
-            if (Number.MAX_VALUE === count) count = 0;
-            return padding + utils.packUInt64LE(count).toString('hex');
-        }
-    };
-};
 
 /**
  * Defining each client that connects to the stratum server.
@@ -29,10 +15,9 @@ const SubscriptionCounter = function() {
  *  - submit(data(name, jobID, extraNonce2, ntime, nonce))
 **/
 
-// Stratum Client Main Function
+// Main Stratum Client Function
 const StratumClient = function(options) {
 
-    // Establish Stratum Variables
     const _this = this;
     this.authorized = false;
     this.banning = options.banning;
@@ -71,7 +56,6 @@ const StratumClient = function(options) {
         return false;
     };
 
-    // Determine Whether to Consider Banning
     this.considerBan = (!_this.banning || !_this.banning.enabled) ? _this.banningDisabled : _this.banningEnabled;
 
     // Manage JSON Functionality
@@ -105,7 +89,6 @@ const StratumClient = function(options) {
             _this.emit('checkBan');
         }
 
-        // Manage Stratum Data Functionality
         socket.on('data', function(d) {
             dataBuffer += d;
             if (Buffer.byteLength(dataBuffer, 'utf8') > 10240) {
@@ -138,12 +121,10 @@ const StratumClient = function(options) {
             }
         });
 
-        // Manage Stratum Close Functionality
         socket.on('close', function() {
             _this.emit('socketDisconnect');
         });
 
-        // Manage Stratum Error Functionality
         socket.on('error', function(e) {
             if (e.code !== 'ECONNRESET')
                 _this.emit('socketError', e);
@@ -153,45 +134,33 @@ const StratumClient = function(options) {
     // Handle Stratum Messages
     this.handleMessage = function(message) {
         switch (message.method) {
-
-        // Manage Stratum Subscription
-        case 'mining.subscribe':
-            _this.handleSubscribe(message);
-            break;
-
-            // Manage Stratum Authorization
-        case 'mining.authorize':
-            _this.handleAuthorize(message, true);
-            break;
-
-            // Manage Stratum Submission
-        case 'mining.submit':
-            _this.lastActivity = Date.now();
-            _this.handleSubmit(message);
-            break;
-
-            // Manage Transactions
-        case 'mining.get_transactions':
-            _this.sendJson({
-                id: message.id,
-                result: [],
-                error: [20, "Not supported.", null]
-            });
-            break;
-
-            // Manage Extranonce Capabilities
-        case 'mining.extranonce.subscribe':
-            _this.sendJson({
-                id: message.id,
-                result: false,
-                error: [20, "Not supported.", null]
-            });
-            break;
-
-            // Unknown Stratum Method
-        default:
-            _this.emit('unknownStratumMethod', message);
-            break;
+            case 'mining.subscribe':
+                _this.handleSubscribe(message);
+                break;
+            case 'mining.authorize':
+                _this.handleAuthorize(message, true);
+                break;
+            case 'mining.submit':
+                _this.lastActivity = Date.now();
+                _this.handleSubmit(message);
+                break;
+            case 'mining.get_transactions':
+                _this.sendJson({
+                    id: message.id,
+                    result: [],
+                    error: [20, "Not supported.", null]
+                });
+                break;
+            case 'mining.extranonce.subscribe':
+                _this.sendJson({
+                    id: message.id,
+                    result: false,
+                    error: [20, "Not supported.", null]
+                });
+                break;
+            default:
+                _this.emit('unknownStratumMethod', message);
+                break;
         }
     };
 
@@ -220,9 +189,7 @@ const StratumClient = function(options) {
 
     // Manage Stratum Authorization
     this.handleAuthorize = function(message, replyToSocket) {
-        _this.workerName = message.params[0];
-        _this.workerPass = message.params[1];
-        options.authorizeFn(_this.remoteAddress, options.socket.localPort, _this.workerName, _this.workerPass, function(result) {
+        options.authorizeFn(_this.remoteAddress, options.socket.localPort, message.params[0], message.params[1], function(result) {
             _this.authorized = (!result.error && result.authorized);
             if (replyToSocket) {
                 _this.sendJson({
@@ -325,19 +292,16 @@ const StratumClient = function(options) {
  *   - 'started' - when the server is up and running
  **/
 
-// Stratum Client Main Function
+// Main Stratum Network Function
 const StratumNetwork = function(options, authorizeFn) {
 
-    // Establish Stratum Variables
     const _this = this;
     this.stratumClients = {};
     this.stratumServers = {};
     this.bannedIPs = {};
 
-    const subscriptionCounter = SubscriptionCounter();
     let rebroadcastTimeout;
-
-    // Determine Length of Client Ban
+    const subscriptionCounter = utils.subscriptionCounter();
     const bannedMS = options.banning ? options.banning.time * 1000 : null;
 
     // Start Stratum Capabilities
@@ -370,7 +334,6 @@ const StratumNetwork = function(options, authorizeFn) {
             server.listen(parseInt(port), function() {
                 serversStarted += 1;
                 if (serversStarted == stratumPorts.length) {
-                    // Emit Starting Message
                     _this.emit('started');
                 }
             });
@@ -393,7 +356,6 @@ const StratumNetwork = function(options, authorizeFn) {
             server.close();
         });
 
-        // Emit Stopping Message
         _this.emit('stopped');
     };
 
@@ -465,11 +427,9 @@ const StratumNetwork = function(options, authorizeFn) {
         _this.bannedIPs[ipAddress] = Date.now();
     };
 
-    // Initialize Stratum Connection
     _this.start();
 };
 
-// Export Stratum Client/Server
 exports.network = StratumNetwork;
 StratumClient.prototype.__proto__ = events.EventEmitter.prototype;
 StratumNetwork.prototype.__proto__ = events.EventEmitter.prototype;

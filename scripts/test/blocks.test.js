@@ -120,7 +120,7 @@ describe('Test block functionality', () => {
     });
 
     test('Test reversing of hashes', () => {
-        expect(block.prevHashReversed).toBe("bc7727e2ee0395305fc6e36b29a60b37be7d49b6bd4c808b83ef65839719aefb");
+        expect(block.previousblockhash).toBe("bc7727e2ee0395305fc6e36b29a60b37be7d49b6bd4c808b83ef65839719aefb");
     });
 
     test('Test coinbase serialization [1]', () => {
@@ -187,7 +187,7 @@ describe('Test block functionality', () => {
     test('Test current job parameters', () => {
         const jobParams = [
             block.jobId,
-            block.prevHashReversed,
+            block.previousblockhash,
             block.generation[0].toString('hex'),
             block.generation[1].toString('hex'),
             block.getMerkleHashes(block.merkle.steps),
@@ -224,7 +224,7 @@ describe('Test miscellaneous features of block implementation', () => {
     test('Test if block jobParams already exists', () => {
         const jobParams = [
             block.jobId,
-            block.prevHashReversed,
+            block.previousblockhash,
             block.generation[0].toString('hex'),
             block.generation[1].toString('hex'),
             block.getMerkleHashes(block.merkle.steps),

@@ -4,16 +4,14 @@
  *
  */
 
-// Import Required Modules
 const utils = require('./utils.js');
 
-// Merkle Main Function
+// Main Merkle Function
 const Merkle = function(data) {
 
-    // Establish Merkle Variables
     const _this = this;
 
-    // Concat Hashes Together
+    // Concat Hash Array Together
     this.concatHash = function(h1, h2) {
         const joined = Buffer.concat([h1, h2]);
         const dhashed = utils.sha256d(joined);
@@ -52,10 +50,8 @@ const Merkle = function(data) {
         return hash;
     };
 
-    // Establish External Capabilities
+    // Calculate Merkle Steps
     this.steps = _this.calculateSteps(data);
-
 };
 
-// Export Merkle
 module.exports = Merkle;

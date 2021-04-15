@@ -4,16 +4,14 @@
  *
  */
 
-// Import Required Modules
 const utils = require('./utils.js');
 
-// Generate Combined Transactions (Bitcoin)
+// Main Transactions Function
 const Transactions = function() {
 
     // Structure Bitcoin Protocol Transaction
     this.bitcoin = function(rpcData, extraNoncePlaceholder, options) {
 
-        // Establish Transactions Variables [1]
         const txLockTime = 0;
         const txInSequence = 0;
         let txType = 0;
@@ -38,7 +36,6 @@ const Transactions = function() {
             txVersion = txVersion + (txType << 16);
         }
 
-        // Establish Transactions Variables [2]
         let reward = rpcData.coinbasevalue;
         let rewardToPool = reward;
         const poolIdentifier = options.identifier || "https://github.com/blinkhash/blinkhash-server";
@@ -50,7 +47,6 @@ const Transactions = function() {
             utils.serializeString(poolIdentifier) :
             Buffer.from([]);
 
-        // Handle ScriptSig [1]
         const scriptSigPart1 = Buffer.concat([
             utils.serializeNumber(rpcData.height),
             coinbaseAux,
@@ -58,10 +54,8 @@ const Transactions = function() {
             Buffer.from([extraNoncePlaceholder.length])
         ]);
 
-        // Handle ScriptSig [2]
         const scriptSigPart2 = utils.serializeString(poolIdentifier);
 
-        // Combine Transaction [1]
         const p1 = Buffer.concat([
             utils.packUInt32LE(txVersion),
             utils.varIntBuffer(1),
@@ -177,13 +171,11 @@ const Transactions = function() {
             ]));
         }
 
-        // Combine All Transactions
         const outputTransactions = Buffer.concat([
             utils.varIntBuffer(txOutputBuffers.length),
             Buffer.concat(txOutputBuffers)
         ]);
 
-        // Combine Transaction [2]
         let p2 = Buffer.concat([
             scriptSigPart2,
             utils.packUInt32LE(txInSequence),
@@ -205,5 +197,4 @@ const Transactions = function() {
     };
 };
 
-// Export Transactions
 module.exports = Transactions;

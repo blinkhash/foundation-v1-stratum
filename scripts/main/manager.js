@@ -4,20 +4,15 @@
  *
  */
 
-// Import Required Modules
 const events = require('events');
 const crypto = require('crypto');
 const bignum = require('bignum');
 const utils = require('./utils.js');
-
-// Import Required Modules
 const Algorithms = require('./algorithms.js');
+const BlockTemplate = require('./blocks.js');
 
 // Max Difficulty
 const diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
-
-// Import BlockTemplate Module
-const BlockTemplate = require('./blocks.js');
 
 // Generate Unique ExtraNonce for each Subscriber
 const ExtraNonceCounter = function(configInstanceId) {
@@ -45,15 +40,13 @@ const JobCounter = function() {
     };
 };
 
-// Manager Main Function
+// Main Manager Function
 const Manager = function(options) {
 
-    // Establish Private Manager Variables
     const _this = this;
     const shareMultiplier = Algorithms[options.coin.algorithm].multiplier;
     const hashDigest = Algorithms[options.coin.algorithm].hash(options.coin);
 
-    // Establish Public Manager Variables
     this.currentJob;
     this.validJobs = {};
     this.jobCounter = new JobCounter();
@@ -79,7 +72,6 @@ const Manager = function(options) {
         }
     }
 
-    // Establish Main Hash Functions
     this.blockHasher = blockHash();
     this.coinbaseHasher = coinbaseHash();
 
@@ -203,7 +195,6 @@ const Manager = function(options) {
             }
         }
 
-        // Share is Valid
         _this.emit('share', {
             job: jobId,
             ip: ipAddress,
@@ -229,6 +220,5 @@ const Manager = function(options) {
     };
 };
 
-// Export Manager
 module.exports = Manager;
 Manager.prototype.__proto__ = events.EventEmitter.prototype;

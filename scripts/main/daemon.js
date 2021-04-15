@@ -4,7 +4,6 @@
  *
  */
 
-// Import Required Modules
 const http = require('http');
 const events = require('events');
 const async = require('async');
@@ -18,10 +17,9 @@ const async = require('async');
  * - 'password': password for the RPC interface of the coin
 **/
 
-// DaemonInterface Main Function
+// Main DaemonInterface Function
 const DaemonInterface = function(daemons, logger) {
 
-    // Establish Daemon Variables
     const _this = this;
     this.logger = logger || function(severity, message) {
         console.log(severity + ': ' + message);
@@ -29,8 +27,6 @@ const DaemonInterface = function(daemons, logger) {
 
     // Configure Daemon HTTP Requests
     this.performHttpRequest = function(instance, jsonData, callback) {
-
-        // Establish HTTP Options
         const options = {
             hostname: instance.host,
             port: instance.port,
@@ -74,7 +70,6 @@ const DaemonInterface = function(daemons, logger) {
             });
         });
 
-        // Configure Error Behavior
         req.on('error', function(e) {
             if (e.code === 'ECONNREFUSED')
                 callback({type: 'offline', message: e.message}, null);
@@ -93,7 +88,6 @@ const DaemonInterface = function(daemons, logger) {
         return daemons;
     };
 
-    // Establish Indexed Daemons
     this.instances = this.indexDaemons(daemons);
 
     // Check if All Daemons are Online
@@ -135,10 +129,12 @@ const DaemonInterface = function(daemons, logger) {
         });
     };
 
-    // Single RPC Command
+    // Handle Single RPC Command
     this.cmd = function(method, params, callback, streamResults, returnRawData) {
         const results = [];
         async.each(this.instances, function(instance, eachCallback) {
+
+            // Build Output Request Data
             let itemFinished = function(error, result, data) {
                 const returnObj = {
                     error: error,
@@ -151,11 +147,14 @@ const DaemonInterface = function(daemons, logger) {
                 eachCallback();
                 itemFinished = function() {};
             };
+
+            // Build Input Request Data
             const requestJson = JSON.stringify({
                 method: method,
                 params: params,
                 id: Date.now() + Math.floor(Math.random() * 10)
             });
+
             _this.performHttpRequest(instance, requestJson, function(error, result, data) {
                 itemFinished(error, result, data);
             });
@@ -167,5 +166,5 @@ const DaemonInterface = function(daemons, logger) {
     };
 };
 
-exports.interface = DaemonInterface;
+module.exports = DaemonInterface;
 DaemonInterface.prototype.__proto__ = events.EventEmitter.prototype;

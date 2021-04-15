@@ -4,37 +4,32 @@
  *
  */
 
-// Import Required Modules
 const bignum = require('bignum');
 const utils = require('./utils.js');
-
-// Import Required Modules
 const Merkle = require('./merkle.js');
 const Transactions = require('./transactions.js');
 
 // Max Difficulty
 const diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
 
-// BlockTemplate Main Function
+// Main BlockTemplate Function
 const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
 
-    // Establish Block Variables
     this.submits = [];
     this.rpcData = rpcData;
     this.jobId = jobId;
 
-    // Calculate Block Target/Difficulty
     this.target = this.rpcData.target ? bignum(this.rpcData.target, 16) : utils.bignumFromBitsHex(this.rpcData.bits);
     this.difficulty = parseFloat((diff1 / this.target.toNumber()).toFixed(9));
 
-    // Function to get Merkle Hashes
+    // Calculate Merkle Hashes
     this.getMerkleHashes = function(steps) {
         return steps.map(function(step) {
             return step.toString('hex');
         });
     };
 
-    // Function to get Transaction Buffers
+    // Calculate Transaction Buffers
     this.getTransactionBuffers = function(txs) {
         const txHashes = txs.map(function(tx) {
             if (tx.txid !== undefined) {
@@ -45,7 +40,7 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
         return [null].concat(txHashes);
     };
 
-    // Function to get Masternode Vote Data
+    // Calculate Masternode Vote Data
     this.getVoteData = function() {
         if (!this.rpcData.masternode_payments) {
             return Buffer.from([]);
@@ -70,17 +65,12 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
         return new Merkle(this.getTransactionBuffers(rpcData.transactions));
     };
 
-    // Establish Generation/Merkle
     this.generation = this.createGeneration(this.rpcData, extraNoncePlaceholder, options);
     this.merkle = this.createMerkle(this.rpcData);
-
-    // Structure Block Transaction Data
+    this.previousblockhash = utils.reverseByteOrder(Buffer.from(this.rpcData.previousblockhash, 'hex')).toString('hex');
     this.transactions = Buffer.concat(this.rpcData.transactions.map(function(tx) {
         return Buffer.from(tx.data, 'hex');
     }));
-
-    // Structure Block Historical Hashes
-    this.prevHashReversed = utils.reverseByteOrder(Buffer.from(this.rpcData.previousblockhash, 'hex')).toString('hex');
 
     // Serialize Block Coinbase
     this.serializeCoinbase = function(extraNonce1, extraNonce2) {
@@ -134,7 +124,7 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
         if (!this.jobParams) {
             this.jobParams = [
                 this.jobId,
-                this.prevHashReversed,
+                this.previousblockhash,
                 this.generation[0].toString('hex'),
                 this.generation[1].toString('hex'),
                 this.getMerkleHashes(this.merkle.steps),
@@ -148,5 +138,4 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     };
 };
 
-// Export BlockTemplate
 module.exports = BlockTemplate;

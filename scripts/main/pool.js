@@ -4,21 +4,17 @@
  *
  */
 
-// Import Required Modules
 const events = require('events');
-
-// Import Required Modules
 const Algorithms = require('../main/algorithms');
 const Difficulty = require('./difficulty.js');
-const Daemon = require('./daemon.js');
+const DaemonInterface = require('./daemon.js');
 const Manager = require('./manager.js');
 const Peer = require('./peer.js');
 const Stratum = require('./stratum.js');
 
-// Pool Main Function
+// Main Pool Function
 const Pool = function(options, authorizeFn) {
 
-    // Establish Pool Variables
     const _this = this;
     const emitLog = function(text) { _this.emit('log', 'debug', text); };
     const emitWarningLog = function(text) { _this.emit('log', 'warning', text); };
@@ -98,29 +94,21 @@ const Pool = function(options, authorizeFn) {
             return;
         }
 
-        // Establish Daemon
-        _this.daemon = new Daemon.interface(options.daemons, function(severity, message) {
+        // Establish Daemon Interface
+        _this.daemon = new DaemonInterface(options.daemons, function(severity, message) {
             _this.emit('log', severity , message);
         });
-
-        // Establish Online Functionality
         _this.daemon.once('online', function() {
             callback();
         });
-
-        // Establish Failed Connection Functionality
         _this.daemon.on('connectionFailed', function(error) {
             emitErrorLog('Failed to connect daemon(s): ' + JSON.stringify(error));
         });
-
-        // Initialize Daemon
         _this.daemon.initDaemons(function() {});
     };
 
     // Initialize Pool Data
     this.setupPoolData = function(callback) {
-
-        // Define Initial RPC Calls
         const batchRPCCommand = [
             ['validateaddress', [options.address]],
             ['getmininginfo', []],
@@ -195,7 +183,6 @@ const Pool = function(options, authorizeFn) {
                 return;
             }
 
-            // Send Callback
             callback();
         });
     };
@@ -246,7 +233,6 @@ const Pool = function(options, authorizeFn) {
         });
     };
 
-
     // Check Whether Block was Accepted by Daemon
     this.checkBlockAccepted = function(blockHash, callback) {
         _this.daemon.cmd('getblock', [blockHash], function(results) {
@@ -272,8 +258,6 @@ const Pool = function(options, authorizeFn) {
 
     // Load Current Block Template
     this.getBlockTemplate = function(callback) {
-
-        // Derive Blockchain Configuration
         const callConfig = {
             "capabilities": [
                 "coinbasetxn",
@@ -303,10 +287,8 @@ const Pool = function(options, authorizeFn) {
     // Initialize Pool Job Manager
     this.setupJobManager = function() {
 
-        // Establish Manager
+        // Establish Pool Manager
         _this.manager = new Manager(options);
-
-        // Establish New Block Functionality
         _this.manager.on('newBlock', function(blockTemplate) {
             if (_this.stratum) {
                 _this.stratum.broadcastMiningJobs(blockTemplate.getJobParams());
@@ -314,7 +296,6 @@ const Pool = function(options, authorizeFn) {
             }
         });
 
-        // Establish Share Functionality
         _this.manager.on('share', function(shareData, blockHex) {
             const isValidShare = !shareData.error;
             let isValidBlock = !!blockHex;
@@ -335,7 +316,6 @@ const Pool = function(options, authorizeFn) {
             }
         });
 
-        // Establish Updated Block Functionality
         _this.manager.on('updatedBlock', function(blockTemplate) {
             if (_this.stratum) {
                 const job = blockTemplate.getJobParams();
@@ -347,8 +327,6 @@ const Pool = function(options, authorizeFn) {
 
     // Wait Until Blockchain is Fully Synced
     this.setupBlockchain = function(callback) {
-
-        // Derive Blockchain Configuration
         const callConfig = {
             "capabilities": [
                 "coinbasetxn",
@@ -408,17 +386,13 @@ const Pool = function(options, authorizeFn) {
         });
     };
 
-    // Initialize Pool First Job
+    // Initialize First Pool Job
     this.setupFirstJob = function(callback) {
-
-        // Establish First Block Template
         _this.getBlockTemplate(function(error) {
             if (error) {
                 emitErrorLog('Error with getblocktemplate on creating first job, server cannot start');
                 return;
             }
-
-            // Check for Difficulty/Warnings
             const portWarnings = [];
             const networkDiffAdjusted = options.initStats.difficulty;
             Object.keys(options.ports).forEach(function(port) {
@@ -431,8 +405,6 @@ const Pool = function(options, authorizeFn) {
                     + portWarnings.join(' and ');
                 emitWarningLog(warnMessage);
             }
-
-            // Send Callback
             callback();
         });
     };
@@ -479,34 +451,22 @@ const Pool = function(options, authorizeFn) {
             return;
         }
 
-        // Establish Peer
+        // Establish Peer Server
         _this.peer = new Peer(options);
-
-        // Establish Connection Functionality
         _this.peer.on('connected', function() {});
         _this.peer.on('disconnected', function() {});
-
-        // Establish Rejected Connection Functionality
         _this.peer.on('connectionRejected', function() {
             emitErrorLog('p2p connection failed - likely incorrect p2p magic value');
         });
-
-        // Establish Failed Connection Functionality
         _this.peer.on('connectionFailed', function() {
             emitErrorLog('p2p connection failed - likely incorrect host or port');
         });
-
-        // Establish Socket Error Functionality
         _this.peer.on('socketError', function(e) {
             emitErrorLog('p2p had a socket error: ' + JSON.stringify(e));
         });
-
-        // Establish Error Functionality
         _this.peer.on('error', function(msg) {
             emitErrorLog('p2p had an error: ' + msg);
         });
-
-        // Establish Found Block Functionality
         _this.peer.on('blockFound', function(hash) {
             _this.processBlockNotify(hash, 'p2p');
         });
@@ -517,8 +477,6 @@ const Pool = function(options, authorizeFn) {
 
         // Establish Stratum Server
         _this.stratum = new Stratum.network(options, authorizeFn);
-
-        // Establish Started Functionality
         _this.stratum.on('started', function() {
             let stratumPorts = Object.keys(options.ports);
             stratumPorts = stratumPorts.filter(function(port) {
@@ -543,13 +501,10 @@ const Pool = function(options, authorizeFn) {
 
         // Establish New Connection Functionality
         _this.stratum.on('client.connected', function(client) {
-
-            // Manage/Record Client Difficulty
             if (typeof(_this.difficulty[client.socket.localPort]) !== 'undefined') {
                 _this.difficulty[client.socket.localPort].manageClient(client);
             }
 
-            // Establish Client Difficulty Functionality
             client.on('difficultyChanged', function(diff) {
                 _this.emit('difficultyUpdate', client.workerName, diff);
             });
@@ -586,57 +541,37 @@ const Pool = function(options, authorizeFn) {
                 resultCallback(result.error, result.result ? true : null);
             });
 
-            // Establish Client Error Messaging Functionality
             client.on('malformedMessage', function(message) {
                 emitWarningLog('Malformed message from ' + client.getLabel() + ': ' + JSON.stringify(message));
             });
-
-            // Establish Client Socket Error Functionality
             client.on('socketError', function(e) {
                 emitWarningLog('Socket error from ' + client.getLabel() + ': ' + JSON.stringify(e));
             });
-
-            // Establish Client Socket Timeout Functionality
             client.on('socketTimeout', function(reason) {
                 emitWarningLog('Connection timed out for ' + client.getLabel() + ': ' + reason);
             });
-
-            // Establish Client Disconnect Functionality
             client.on('socketDisconnect', function() {
                 emitWarningLog('Socket disconnect for ' + client.getLabel());
             });
-
-            // Establish Client Banned Functionality
             client.on('kickedBannedIP', function(remainingBanTime) {
                 emitLog('Rejected incoming connection from ' + client.remoteAddress + '. The client is banned for ' + remainingBanTime + ' seconds');
             });
-
-            // Establish Client Forgiveness Functionality
             client.on('forgaveBannedIP', function() {
                 emitLog('Forgave banned IP ' + client.remoteAddress);
             });
-
-            // Establish Client Unknown Stratum Functionality
             client.on('unknownStratumMethod', function(fullMessage) {
                 emitLog('Unknown stratum method from ' + client.getLabel() + ': ' + fullMessage.method);
             });
-
-            // Establish Client DDOS Functionality
             client.on('socketFlooded', function() {
                 emitWarningLog('Detected socket flooding from ' + client.getLabel());
             });
-
-            // Establish Client TCP Error Functionality
             client.on('tcpProxyError', function(data) {
                 emitErrorLog('Client IP detection failed, tcpProxyProtocol is enabled yet did not receive proxy protocol message, instead got data: ' + data);
             });
-
-            // Establish Client Banning Functionality
             client.on('triggerBan', function(reason) {
                 emitWarningLog('Ban triggered for ' + client.getLabel() + ': ' + reason);
                 _this.emit('banIP', client.remoteAddress, client.workerName);
             });
-
             _this.emit('connectionSucceeded');
         });
     };

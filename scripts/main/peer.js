@@ -4,30 +4,18 @@
  *
  */
 
-// Import Required Modules
 const net = require('net');
 const crypto = require('crypto');
 const events = require('events');
 const utils = require('./utils.js');
 
-// Generate String Buffer from Parameter Length
-function fixedLenStringBuffer(s, len) {
-    const buff = Buffer.alloc(len);
-    buff.fill(0);
-    buff.write(s);
-    return buff;
-}
-
-// Generate Command String Buffer
-function commandStringBuffer(s) {
-    return fixedLenStringBuffer(s, 12);
-}
-
-/* Reads a set amount of bytes from a flowing stream, argument descriptions:
-   - stream to read from, must have data emitter
-   - amount of bytes to read
-   - preRead argument can be used to set start with an existing data buffer
-   - callback returns 1) data buffer and 2) lopped/over-read data */
+/**
+ * Reads a set amount of bytes from a flowing stream, argument descriptions:
+ * - stream to read from, must have data emitter
+ * - amount of bytes to read
+ * - preRead argument can be used to set start with an existing data buffer
+ * - callback returns 1) data buffer and 2) lopped/over-read data
+**/
 
 // Read Bytes Functionality
 function readFlowingBytes(stream, amount, preRead, callback) {
@@ -45,10 +33,9 @@ function readFlowingBytes(stream, amount, preRead, callback) {
     readData(Buffer.from([]));
 }
 
-// Peer Main Function
+// Main Peer Function
 const Peer = function(options) {
 
-    // Establish Peer Variables
     const _this = this;
     let client;
     let verack = options.verack;
@@ -56,27 +43,24 @@ const Peer = function(options) {
     const magic = Buffer.from(options.testnet ? options.coin.peerMagicTestnet : options.coin.peerMagic, 'hex');
     const magicInt = magic.readUInt32LE(0);
 
-    // Bitcoin Inventory Codes
-    const invCodes = {
-        error: 0,
-        tx: 1,
-        block: 2
-    };
-
-    // Establish Network Variables
     const networkServices = Buffer.from('0100000000000000', 'hex'); // NODE_NETWORK services (value 1 packed as uint64)
     const emptyNetAddress = Buffer.from('010000000000000000000000000000000000ffff000000000000', 'hex');
     const userAgent = utils.varStringBuffer('/node-stratum/');
     const blockStartHeight = Buffer.from('00000000', 'hex'); // block start_height, can be empty
     const relayTransactions = options.p2p.disableTransactions === true ? Buffer.from([false]) : Buffer.from([]);
 
-    // Establish Peer Commands
+    const invCodes = {
+        error: 0,
+        tx: 1,
+        block: 2
+    };
+
     const commands = {
-        version: commandStringBuffer('version'),
-        inv: commandStringBuffer('inv'),
-        verack: commandStringBuffer('verack'),
-        addr: commandStringBuffer('addr'),
-        getblocks: commandStringBuffer('getblocks')
+        version: utils.commandStringBuffer('version'),
+        inv: utils.commandStringBuffer('inv'),
+        verack: utils.commandStringBuffer('verack'),
+        addr: utils.commandStringBuffer('addr'),
+        getblocks: utils.commandStringBuffer('getblocks')
     };
 
     // Start Peer Capabilities
@@ -93,8 +77,6 @@ const Peer = function(options) {
         }, function () {
             _this.sendVersion();
         });
-
-        // Manage Peer Close Functionality
         client.on('close', function () {
             if (verack) {
                 _this.emit('disconnected');
@@ -105,8 +87,6 @@ const Peer = function(options) {
                 _this.emit('connectionRejected');
             }
         });
-
-        // Manage Peer Error Functionality
         client.on('error', function (e) {
             if (e.code === 'ECONNREFUSED') {
                 validConnectionConfig = false;
@@ -116,8 +96,6 @@ const Peer = function(options) {
                 _this.emit('socketError', e);
             }
         });
-
-        // Allow Peer to Receive/Send Messages
         _this.setupMessageParser(client);
         return client;
     };
@@ -234,10 +212,8 @@ const Peer = function(options) {
         _this.sendMessage(commands.version, payload);
     };
 
-    // Initialize Peer Connection
     _this.start();
 };
 
-// Export Peer
 module.exports = Peer;
 Peer.prototype.__proto__ = events.EventEmitter.prototype;

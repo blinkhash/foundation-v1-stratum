@@ -45,6 +45,22 @@ exports.bignumFromBitsHex = function(bitsString) {
     return exports.bignumFromBitsBuffer(bitsBuff);
 };
 
+// Generate String Buffer from Fixed Length
+exports.commandStringBuffer = function(s) {
+    const buff = Buffer.alloc(12);
+    buff.fill(0);
+    buff.write(s);
+    return buff;
+}
+
+// Generate String Buffer from Variable Length
+exports.fixedLenStringBuffer = function(s, len) {
+    const buff = Buffer.alloc(len);
+    buff.fill(0);
+    buff.write(s);
+    return buff;
+}
+
 // Alloc/Write UInt16LE
 exports.packUInt16LE = function(num) {
     const buff = Buffer.alloc(2);
@@ -203,6 +219,24 @@ exports.sha256 = function(buffer) {
 exports.sha256d = function(buffer) {
     return exports.sha256(exports.sha256(buffer));
 };
+
+// Increment Count for Each Subscription
+exports.subscriptionCounter = function() {
+    let count = 0;
+    const padding = 'deadbeefcafebabe';
+    return {
+        next: function() {
+            count += 1;
+            if (Number.MAX_VALUE === count) count = 0;
+            return padding + exports.packUInt64LE(count).toString('hex');
+        }
+    };
+};
+
+// Truncate to Fixed Decimal Places
+exports.toFixed = function(num, len) {
+    return parseFloat(num.toFixed(len));
+}
 
 // Generate Reverse Buffer from Input Hash
 exports.uint256BufferFromHash = function(hex) {

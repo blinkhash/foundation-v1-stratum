@@ -4,18 +4,12 @@
  *
  */
 
-// Import Required Modules
 const events = require('events');
+const utils = require('./utils.js');
 
-// Truncate Integer to Fixed Decimal Places
-function toFixed(num, len) {
-    return parseFloat(num.toFixed(len));
-}
+// Main RingBuffer Function
+const RingBuffer = function(maxSize) {
 
-// RingBuffer Main Function
-function RingBuffer(maxSize) {
-
-    // Establish Manager Variables
     let data = [];
     let cursor = 0;
     let isFull = false;
@@ -42,7 +36,7 @@ function RingBuffer(maxSize) {
         return sum / (isFull ? maxSize : cursor);
     };
 
-    // Size of Ring Buffer
+    // Calculate Size of Ring Buffer
     this.size = function() {
         return isFull ? maxSize : cursor;
     };
@@ -55,10 +49,9 @@ function RingBuffer(maxSize) {
     };
 }
 
-// Difficulty Main Function
+// Main Difficulty Function
 const Difficulty = function(port, difficultyOptions, showLogs) {
 
-    // Establish Difficulty Variables
     const _this = this;
     const logging = showLogs;
     const variance = difficultyOptions.targetTime * (difficultyOptions.variancePercent / 100);
@@ -75,11 +68,10 @@ const Difficulty = function(port, difficultyOptions, showLogs) {
             console.error("Handling a client which is not of this vardiff?");
         }
 
-        // Establish Client Variables
         const options = difficultyOptions;
         let lastTs, lastRtc, timeBuffer;
 
-        // Manage Client Submission
+        // Handle Difficulty Updates on Submission
         client.on('submit', function() {
             const ts = (Date.now() / 1000) | 0;
             if (!lastRtc) {
@@ -131,13 +123,12 @@ const Difficulty = function(port, difficultyOptions, showLogs) {
                 }
                 return;
             }
-            const newDiff = toFixed(client.difficulty * ddiff, 8);
+            const newDiff = utils.toFixed(client.difficulty * ddiff, 8);
             timeBuffer.clear();
             _this.emit('newDifficulty', client, newDiff);
         });
     };
 };
 
-// Export Difficulty
 module.exports = Difficulty;
 Difficulty.prototype.__proto__ = events.EventEmitter.prototype;
