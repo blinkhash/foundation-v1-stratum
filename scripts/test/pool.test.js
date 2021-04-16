@@ -650,9 +650,9 @@ describe('Test pool functionality', () => {
     test('Test pool manager events [3]', (done) => {
         const optionsCopy = Object.assign({}, options);
         const pool = new Pool(optionsCopy, null);
-        pool.on('share', (isValidShare, isValidBlock, shareData) => {
-            expect(isValidShare).toBe(true);
-            expect(isValidBlock).toBe(false);
+        pool.on('share', (shareData, shareValid, blockValid) => {
+            expect(shareValid).toBe(true);
+            expect(blockValid).toBe(false);
             expect(shareData.job).toBe(1);
             expect(shareData.blockHashInvalid).toBe("example blockhash");
             done();

@@ -297,16 +297,16 @@ const Pool = function(options, authorizeFn) {
         });
 
         _this.manager.on('share', function(shareData, blockHex) {
-            const isValidShare = !shareData.error;
-            let isValidBlock = !!blockHex;
-            if (!isValidBlock)
-                _this.emit('share', isValidShare, isValidBlock, shareData);
+            const shareValid = !shareData.error;
+            let blockValid = !!blockHex;
+            if (!blockValid)
+                _this.emit('share', shareData, shareValid, blockValid);
             else {
                 _this.submitBlock(blockHex, function() {
                     _this.checkBlockAccepted(shareData.hash, function(isAccepted, tx) {
-                        isValidBlock = isAccepted;
+                        blockValid = isAccepted;
                         shareData.transaction = tx;
-                        _this.emit('share', isValidShare, isValidBlock, shareData);
+                        _this.emit('share', shareData, shareValid, blockValid);
                         _this.getBlockTemplate(function(error, result, foundNewBlock) {
                             if (foundNewBlock)
                                 emitLog('Block notification via RPC after block submission');
