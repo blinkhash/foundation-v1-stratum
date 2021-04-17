@@ -292,7 +292,9 @@ const Pool = function(options, authorizeFn) {
         _this.manager.on('newBlock', function(blockTemplate) {
             if (_this.stratum) {
                 _this.stratum.broadcastMiningJobs(blockTemplate.getJobParams());
-                emitLog('Established new job for updated block template');
+                if (options.debug) {
+                    emitLog('Established new job for updated block template');                  
+                }
             }
         });
 
@@ -489,9 +491,15 @@ const Pool = function(options, authorizeFn) {
 
         // Establish Timeout Functionality
         _this.stratum.on('broadcastTimeout', function() {
+            if (options.debug) {
+                emitLog('No new blocks for ' + options.jobRebroadcastTimeout + ' seconds - updating transactions & rebroadcasting work');
+            }
             _this.getBlockTemplate(function(error, rpcData, processedBlock) {
                 if (error || processedBlock) return;
                 _this.manager.updateCurrentJob(rpcData);
+                if (options.debug) {
+                    emitLog('Updated existing job for current block template');
+                }
             });
         });
 

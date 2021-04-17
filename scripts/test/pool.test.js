@@ -1599,20 +1599,57 @@ describe('Test pool functionality', () => {
     test('Test pool stratum events [2]', (done) => {
         const response = [];
         const optionsCopy = Object.assign({}, options);
-        const rpcDataCopy = Object.assign({}, rpcData);
-        rpcDataCopy.previousblockhash = "1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769";
-        rpcDataCopy.height = 2;
         const pool = new Pool(optionsCopy, () => {});
         pool.on('log', (type, text) => {
             response.push([type, text]);
-            if (response.length === 3) {
+            if (response.length === 2) {
                 pool.stratum.on('stopped', () => done());
                 expect(response[0][0]).toBe("warning");
                 expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
-                expect(response[1][0]).toBe("error");
-                expect(response[1][1]).toBe("p2p connection failed - likely incorrect host or port");
-                expect(response[2][0]).toBe("debug");
-                expect(response[2][1]).toBe("Established new job for updated block template");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("No new blocks for 60 seconds - updating transactions & rebroadcasting work");
+                pool.stratum.stopServer();
+            }
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            nock('http://127.0.0.1:8332')
+                                .post('/', body => body.method === "getblocktemplate")
+                                .reply(200, JSON.stringify({
+                                    id: "nocktest",
+                                    error: true,
+                                    result: null,
+                                }));
+                            pool.stratum.emit('broadcastTimeout');
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [3]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const rpcDataCopy = Object.assign({}, rpcData);
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 4) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("No new blocks for 60 seconds - updating transactions & rebroadcasting work");
+                expect(response[2][0]).toBe("error");
+                expect(response[2][1]).toBe("p2p connection failed - likely incorrect host or port");
+                expect(response[3][0]).toBe("debug");
+                expect(response[3][1]).toBe("Updated existing job for current block template");
                 pool.stratum.stopServer();
             }
         });
@@ -1638,7 +1675,51 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [3]', (done) => {
+    test('Test pool stratum events [4]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        const rpcDataCopy = Object.assign({}, rpcData);
+        rpcDataCopy.previousblockhash = "1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769";
+        rpcDataCopy.height = 2;
+        const pool = new Pool(optionsCopy, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 4) {
+                pool.stratum.on('stopped', () => done());
+                expect(response[0][0]).toBe("warning");
+                expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
+                expect(response[1][0]).toBe("debug");
+                expect(response[1][1]).toBe("No new blocks for 60 seconds - updating transactions & rebroadcasting work");
+                expect(response[2][0]).toBe("error");
+                expect(response[2][1]).toBe("p2p connection failed - likely incorrect host or port");
+                expect(response[3][0]).toBe("debug");
+                expect(response[3][1]).toBe("Established new job for updated block template");
+                pool.stratum.stopServer();
+            }
+        });
+        mockSetupDaemon(pool, () => {
+            mockSetupData(pool, () => {
+                pool.setupJobManager();
+                mockSetupBlockchain(pool, () => {
+                    mockSetupFirstJob(pool, () => {
+                        pool.setupPeer();
+                        pool.setupStratum(() => {
+                            nock('http://127.0.0.1:8332')
+                                .post('/', body => body.method === "getblocktemplate")
+                                .reply(200, JSON.stringify({
+                                    id: "nocktest",
+                                    error: null,
+                                    result: rpcDataCopy,
+                                }));
+                            pool.stratum.emit('broadcastTimeout');
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    test('Test pool stratum events [5]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
@@ -1678,7 +1759,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [4]', (done) => {
+    test('Test pool stratum events [6]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
@@ -1718,7 +1799,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [5]', (done) => {
+    test('Test pool stratum events [7]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
@@ -1758,7 +1839,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [6]', (done) => {
+    test('Test pool stratum events [8]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
@@ -1798,7 +1879,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [7]', (done) => {
+    test('Test pool stratum events [9]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
@@ -1839,7 +1920,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [8]', (done) => {
+    test('Test pool stratum events [10]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
@@ -1880,7 +1961,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [9]', (done) => {
+    test('Test pool stratum events [11]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
@@ -1920,7 +2001,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [10]', (done) => {
+    test('Test pool stratum events [12]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
@@ -1960,7 +2041,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [11]', (done) => {
+    test('Test pool stratum events [13]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
@@ -2000,7 +2081,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [12]', (done) => {
+    test('Test pool stratum events [14]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
@@ -2040,7 +2121,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [13]', (done) => {
+    test('Test pool stratum events [15]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
@@ -2084,7 +2165,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [14]', (done) => {
+    test('Test pool stratum events [16]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
@@ -2128,7 +2209,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [15]', (done) => {
+    test('Test pool stratum events [17]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
@@ -2173,7 +2254,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool stratum events [16]', (done) => {
+    test('Test pool stratum events [18]', (done) => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
