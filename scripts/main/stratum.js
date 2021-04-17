@@ -189,6 +189,9 @@ const StratumClient = function(options) {
 
     // Manage Stratum Authorization
     this.handleAuthorize = function(message, replyToSocket) {
+        _this.workerName = message.params[0];
+        _this.workerPass = message.params[1];
+
         options.authorizeFn(_this.remoteAddress, options.socket.localPort, message.params[0], message.params[1], function(result) {
             _this.authorized = (!result.error && result.authorized);
             if (replyToSocket) {
