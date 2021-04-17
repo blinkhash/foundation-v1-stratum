@@ -57,7 +57,6 @@ const options = {
         "user": "",
         "password": ""
     }],
-    "debug": true,
     "jobRebroadcastTimeout": 60,
     "ports": {
         "3001": {

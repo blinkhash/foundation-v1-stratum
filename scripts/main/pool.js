@@ -489,13 +489,9 @@ const Pool = function(options, authorizeFn) {
 
         // Establish Timeout Functionality
         _this.stratum.on('broadcastTimeout', function() {
-            if (options.debug) {
-                emitLog('No new blocks for ' + options.jobRebroadcastTimeout + ' seconds - updating transactions & rebroadcasting work');
-            }
             _this.getBlockTemplate(function(error, rpcData, processedBlock) {
                 if (error || processedBlock) return;
                 _this.manager.updateCurrentJob(rpcData);
-                emitLog('Updated existing job for current block template');
             });
         });
 
