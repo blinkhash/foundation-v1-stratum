@@ -4,11 +4,8 @@
  *
  */
 
-// Import Required Modules
 const events = require('events');
 const nock = require('nock');
-
-// Import Required Modules
 const Pool = require('../main/pool');
 
 const rpcData = {

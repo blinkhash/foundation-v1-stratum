@@ -4,7 +4,6 @@
  *
  */
 
-// Import Required Modules
 const Transactions = require('../main/transactions');
 
 const rpcData = {

@@ -4,10 +4,7 @@
  *
  */
 
-// Import Required Modules
 const mitm = require('mitm');
-
-// Import Required Modules
 const Peer = require('../main/peer');
 
 const options = {

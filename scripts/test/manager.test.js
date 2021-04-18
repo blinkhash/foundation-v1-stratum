@@ -4,7 +4,6 @@
  *
  */
 
-// Import Required Modules
 const Manager = require('../main/manager');
 
 const rpcData = {

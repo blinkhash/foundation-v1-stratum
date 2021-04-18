@@ -4,7 +4,6 @@
  *
  */
 
-// Import Required Modules
 const utils = require('../main/utils');
 
 const network1 = {

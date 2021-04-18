@@ -4,10 +4,7 @@
  *
  */
 
-// Import Required Modules
 const utils = require('../main/utils');
-
-// Import Required Modules
 const Merkle = require('../main/merkle');
 
 const data1 = [

@@ -4,10 +4,7 @@
  *
  */
 
-// Import Required Modules
 const utils = require('../main/utils');
-
-// Import Required Modules
 const Algorithms = require('../main/algorithms');
 const BlockTemplate = require('../main/blocks');
 const JobManager = require('../main/manager');

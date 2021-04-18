@@ -4,10 +4,7 @@
  *
  */
 
-// Import Required Modules
 const nock = require('nock');
-
-// Import Required Modules
 const DaemonInterface = require('../main/daemon');
 
 const daemons = [{

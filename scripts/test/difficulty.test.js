@@ -4,10 +4,7 @@
  *
  */
 
-// Import Required Modules
 const events = require('events');
-
-// Import Required Modules
 const Difficulty = require('../main/difficulty');
 
 // Bad Settings
