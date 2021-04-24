@@ -40,7 +40,7 @@ const Peer = function(options) {
     let client;
     let verack = options.verack;
     let validConnectionConfig = options.validConnectionConfig;
-    const magic = Buffer.from(options.testnet ? options.coin.peerMagicTestnet : options.coin.peerMagic, 'hex');
+    const magic = Buffer.from(options.testnet ? options.coin.testnet.peerMagic : options.coin.mainnet.peerMagic, 'hex');
     const magicInt = magic.readUInt32LE(0);
 
     const networkServices = Buffer.from('0100000000000000', 'hex'); // NODE_NETWORK services (value 1 packed as uint64)

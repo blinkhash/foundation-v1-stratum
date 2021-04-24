@@ -293,7 +293,7 @@ const Pool = function(options, authorizeFn) {
             if (_this.stratum) {
                 _this.stratum.broadcastMiningJobs(blockTemplate.getJobParams());
                 if (options.debug) {
-                    emitLog('Established new job for updated block template');                  
+                    emitLog('Established new job for updated block template');
                 }
             }
         });
@@ -444,12 +444,12 @@ const Pool = function(options, authorizeFn) {
             emitLog('p2p has been disabled in the configuration');
             return;
         }
-        if (options.testnet && !options.coin.peerMagicTestnet) {
-            emitErrorLog('p2p cannot be enabled in testnet without peerMagicTestnet set in coin configuration');
+        if (options.testnet && !options.coin.testnet.peerMagic) {
+            emitErrorLog('p2p cannot be enabled in testnet without peerMagic set in testnet configuration');
             return;
         }
-        else if (!options.coin.peerMagic) {
-            emitErrorLog('p2p cannot be enabled without peerMagic set in coin configuration');
+        else if (!options.coin.mainnet.peerMagic) {
+            emitErrorLog('p2p cannot be enabled without peerMagic set in mainnet configuration');
             return;
         }
 

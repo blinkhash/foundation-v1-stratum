@@ -161,8 +161,6 @@ const options = {
         "name": "Bitcoin",
         "symbol": "BTC",
         "algorithm": "sha256d",
-        "peerMagic": "f9beb4d9",
-        "peerMagicTestnet": "0b110907",
         "hasGetInfo": false,
         "segwit": true,
         "mainnet": {
@@ -171,6 +169,7 @@ const options = {
                 "public": 0x0488b21e,
                 "private": 0x0488ade4,
             },
+            "peerMagic": "f9beb4d9",
             "pubKeyHash": 0x00,
             "scriptHash": 0x05,
             "wif": 0x80,
@@ -182,6 +181,7 @@ const options = {
                 "public": 0x043587cf,
                 "private": 0x04358394,
             },
+            "peerMagic": "0b110907",
             "pubKeyHash": 0x6f,
             "scriptHash": 0xc4,
             "wif": 0xef,
@@ -1299,7 +1299,8 @@ describe('Test pool functionality', () => {
         const response = [];
         const optionsCopy = Object.assign({}, options);
         optionsCopy.coin = Object.assign({}, options.coin);
-        optionsCopy.coin.peerMagicTestnet = false;
+        optionsCopy.coin.testnet = Object.assign({}, options.coin.testnet);
+        optionsCopy.coin.testnet.peerMagic = false;
         optionsCopy.recipients = Object.assign([], options.recipients);
         optionsCopy.recipients[0] = Object.assign({}, options.recipients[0]);
         optionsCopy.recipients[0].address = "tb1qnc0z4696tusrgscws5gvc7g2hhz99m6lrssfc2";
@@ -1310,7 +1311,7 @@ describe('Test pool functionality', () => {
                 expect(response[0][0]).toBe("warning");
                 expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
                 expect(response[1][0]).toBe("error");
-                expect(response[1][1]).toBe("p2p cannot be enabled in testnet without peerMagicTestnet set in coin configuration");
+                expect(response[1][1]).toBe("p2p cannot be enabled in testnet without peerMagic set in testnet configuration");
                 done();
             }
         });
@@ -1330,7 +1331,8 @@ describe('Test pool functionality', () => {
         const response = [];
         const optionsCopy = Object.assign({}, options);
         optionsCopy.coin = Object.assign({}, options.coin);
-        optionsCopy.coin.peerMagic = false;
+        optionsCopy.coin.mainnet = Object.assign({}, options.coin.mainnet);
+        optionsCopy.coin.mainnet.peerMagic = false;
         const pool = new Pool(optionsCopy, null);
         pool.on('log', (type, text) => {
             response.push([type, text]);
@@ -1338,7 +1340,7 @@ describe('Test pool functionality', () => {
                 expect(response[0][0]).toBe("warning");
                 expect(response[0][1]).toBe("Network diff of 0 is lower than port 3001 w/ diff 32");
                 expect(response[1][0]).toBe("error");
-                expect(response[1][1]).toBe("p2p cannot be enabled without peerMagic set in coin configuration");
+                expect(response[1][1]).toBe("p2p cannot be enabled without peerMagic set in mainnet configuration");
                 done();
             }
         });

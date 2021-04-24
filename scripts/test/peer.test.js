@@ -9,8 +9,12 @@ const Peer = require('../main/peer');
 
 const options = {
     "coin": {
-        "peerMagic": "f9beb4d9",
-        "peerMagicTestnet": "0b110907",
+        "mainnet": {
+            "peerMagic": "f9beb4d9",
+        },
+        "testnet": {
+            "peerMagic": "0b110907",
+        },
     },
     "p2p": {
         "enabled": true,
