@@ -4,7 +4,6 @@
  *
  */
 
-const mitm = require('mitm');
 const Peer = require('../main/peer');
 
 const options = {
@@ -29,9 +28,7 @@ const options = {
 
 describe('Test peer functionality', () => {
 
-    let socket, output1, output2;
-    beforeEach(() => socket = mitm());
-    afterEach(() => socket.disable());
+    let output1, output2;
 
     test('Test initialization of peer socket', () => {
         const optionsCopy = Object.assign({}, options);
