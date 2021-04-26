@@ -582,7 +582,7 @@ const Pool = function(options, authorizeFn) {
 
     // Output Derived Pool Information
     this.outputPoolInfo = function(callback) {
-        const startMessage = 'Stratum Pool Server Started for ' + options.coin.name +
+        const startMessage = 'Stratum pool server started for ' + options.coin.name +
             ' [' + options.coin.symbol.toUpperCase() + '] {' + options.coin.algorithm + '}';
         if (process.env.forkId && process.env.forkId !== '0') {
             emitLog(startMessage);

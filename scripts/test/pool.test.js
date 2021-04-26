@@ -2314,7 +2314,7 @@ describe('Test pool functionality', () => {
                 expect(response[1][0]).toBe("debug");
                 expect(response[1][1]).toBe("Block template polling has been disabled");
                 expect(response[2][0]).toBe("special");
-                expect(response[2][1]).toBe("Stratum Pool Server Started for Bitcoin [BTC] {sha256d}\n\t\t\t\t\t\tNetwork Connected:	Mainnet\n\t\t\t\t\t\tCurrent Block Height:	1\n\t\t\t\t\t\tCurrent Connect Peers:	1\n\t\t\t\t\t\tCurrent Block Diff:	0.000244141\n\t\t\t\t\t\tNetwork Difficulty:	0\n\t\t\t\t\t\tStratum Port(s):	3001\n\t\t\t\t\t\tPool Fee Percentage:	5%");
+                expect(response[2][1]).toBe("Stratum pool server started for Bitcoin [BTC] {sha256d}\n\t\t\t\t\t\tNetwork Connected:	Mainnet\n\t\t\t\t\t\tCurrent Block Height:	1\n\t\t\t\t\t\tCurrent Connect Peers:	1\n\t\t\t\t\t\tCurrent Block Diff:	0.000244141\n\t\t\t\t\t\tNetwork Difficulty:	0\n\t\t\t\t\t\tStratum Port(s):	3001\n\t\t\t\t\t\tPool Fee Percentage:	5%");
                 pool.stratum.stopServer();
             }
         });
