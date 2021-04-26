@@ -56,7 +56,7 @@ const Pool = function(options, authorizeFn) {
     };
 
     // Start Pool Capabilities
-    this.start = function() {
+    this.start = function(callback) {
         _this.setupDifficulty();
         _this.setupDaemonInterface(function() {
             _this.setupPoolData(function() {
@@ -67,7 +67,7 @@ const Pool = function(options, authorizeFn) {
                         _this.setupBlockPolling();
                         _this.setupPeer();
                         _this.setupStratum(function() {
-                            _this.outputPoolInfo();
+                            _this.outputPoolInfo(callback);
                             _this.emit('started');
                         });
                     });
@@ -581,7 +581,7 @@ const Pool = function(options, authorizeFn) {
     };
 
     // Output Derived Pool Information
-    this.outputPoolInfo = function() {
+    this.outputPoolInfo = function(callback) {
         const startMessage = 'Stratum Pool Server Started for ' + options.coin.name +
             ' [' + options.coin.symbol.toUpperCase() + '] {' + options.coin.algorithm + '}';
         if (process.env.forkId && process.env.forkId !== '0') {
@@ -601,6 +601,7 @@ const Pool = function(options, authorizeFn) {
             infoLines.push('Block Polling Every:\t' + options.blockRefreshInterval + ' ms');
         }
         emitSpecialLog(infoLines.join('\n\t\t\t\t\t\t'));
+        callback();
     };
 };
 

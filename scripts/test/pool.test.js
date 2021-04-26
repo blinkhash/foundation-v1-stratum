@@ -303,7 +303,7 @@ describe('Test pool functionality', () => {
         const optionsCopy = Object.assign({}, options);
         optionsCopy.coin = Object.assign({}, options.coin);
         optionsCopy.coin.algorithm = "invalid";
-        expect(() => new Pool(optionsCopy, null)).toThrow(Error);
+        expect(() => new Pool(optionsCopy, null, () => {})).toThrow(Error);
     });
 
     test('Test initialization of port difficulty', () => {
@@ -1842,7 +1842,7 @@ describe('Test pool functionality', () => {
         let client;
         const response = [];
         const optionsCopy = Object.assign({}, options);
-        const pool = new Pool(optionsCopy, () => {});
+        const pool = new Pool(optionsCopy, () => {}, () => {});
         pool.on('log', (type, text) => {
             response.push([type, text]);
             if (response.length === 2) {
@@ -2328,7 +2328,7 @@ describe('Test pool functionality', () => {
                         pool.setupBlockPolling();
                         pool.setupPeer();
                         pool.setupStratum(() => {
-                            pool.outputPoolInfo();
+                            pool.outputPoolInfo(() => {});
                         });
                     });
                 });
