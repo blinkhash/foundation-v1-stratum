@@ -13,13 +13,19 @@ const Peer = require('./peer.js');
 const Stratum = require('./stratum.js');
 
 // Main Pool Function
-const Pool = function(options, authorizeFn) {
+const Pool = function(options, authorizeFn, responseFn) {
 
     const _this = this;
+    this.authorizeFn = authorizeFn
+    this.responseFn = responseFn
+
     const emitLog = function(text) { _this.emit('log', 'debug', text); };
     const emitWarningLog = function(text) { _this.emit('log', 'warning', text); };
-    const emitErrorLog = function(text) { _this.emit('log', 'error', text); };
     const emitSpecialLog = function(text) { _this.emit('log', 'special', text); };
+    const emitErrorLog = function(text) {
+        _this.emit('log', 'error', text);
+        _this.responseFn(text);
+    };
 
     // Check if Algorithm is Supported
     this.options = options;
@@ -67,7 +73,7 @@ const Pool = function(options, authorizeFn) {
                         _this.setupBlockPolling();
                         _this.setupPeer();
                         _this.setupStratum(function() {
-                            _this.outputPoolInfo(callback);
+                            _this.outputPoolInfo();
                             _this.emit('started');
                         });
                     });
@@ -478,7 +484,7 @@ const Pool = function(options, authorizeFn) {
     this.setupStratum = function(callback) {
 
         // Establish Stratum Server
-        _this.stratum = new Stratum.network(options, authorizeFn);
+        _this.stratum = new Stratum.network(options, _this.authorizeFn);
         _this.stratum.on('started', function() {
             let stratumPorts = Object.keys(options.ports);
             stratumPorts = stratumPorts.filter(function(port) {
@@ -606,7 +612,7 @@ const Pool = function(options, authorizeFn) {
             infoLines.push('Block Polling Every:\t' + options.blockRefreshInterval + ' ms');
         }
         emitSpecialLog(infoLines.join('\n\t\t\t\t\t\t'));
-        callback();
+        _this.responseFn(true);
     };
 };
 
