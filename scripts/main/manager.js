@@ -119,7 +119,10 @@ const Manager = function(options) {
     };
 
     // Process New Submitted Share
-    this.processShare = function(jobId, previousDifficulty, difficulty, extraNonce1, extraNonce2, nTime, nonce, ipAddress, port, workerName) {
+    this.processShare = function(
+        jobId, previousDifficulty, difficulty, extraNonce1, extraNonce2,
+        nTime, nonce, ipAddress, port, workerName, versionBit, versionMask,
+        asicBoost) {
 
         // Share is Invalid
         const shareError = function(error) {
@@ -160,6 +163,17 @@ const Manager = function(options) {
             return shareError([22, 'duplicate share']);
         }
 
+        // Check for AsicBoost Support
+        let version = job.rpcData.version;
+        if (asicBoost && versionBit !== undefined) {
+            const vBit = parseInt("0x" + versionBit);
+            const vMask = parseInt("0x" + versionMask);
+            if ((vBit & ~vMask) !== 0) {
+                return shareError([23, 'invalid version bit']);
+            }
+            version = (version & ~vMask) | (vBit & vMask);
+        }
+
         // Establish Share Information
         const extraNonce1Buffer = Buffer.from(extraNonce1, 'hex');
         const extraNonce2Buffer = Buffer.from(extraNonce2, 'hex');
@@ -168,7 +182,7 @@ const Manager = function(options) {
         const merkleRoot = utils.reverseBuffer(job.merkle.withFirst(coinbaseHash)).toString('hex');
 
         // Start Generating Block Hash
-        const headerBuffer = job.serializeHeader(merkleRoot, nTime, nonce);
+        const headerBuffer = job.serializeHeader(merkleRoot, nTime, nonce, version);
         const headerHash = hashDigest(headerBuffer, nTimeInt);
         const headerBigNum = bignum.fromBuffer(headerHash, {endian: 'little', size: 32});
 
@@ -190,7 +204,7 @@ const Manager = function(options) {
                     difficulty = previousDifficulty;
                 }
                 else {
-                    return shareError([23, 'low difficulty share of ' + shareDiff]);
+                    return shareError([24, 'low difficulty share of ' + shareDiff]);
                 }
             }
         }

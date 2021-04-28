@@ -134,16 +134,26 @@ const StratumClient = function(options) {
     // Handle Stratum Messages
     this.handleMessage = function(message) {
         switch (message.method) {
+
+            // Supported Stratum Messages
             case 'mining.subscribe':
                 _this.handleSubscribe(message);
                 break;
             case 'mining.authorize':
                 _this.handleAuthorize(message, true);
                 break;
+            case 'mining.configure':
+                _this.handleConfigure(message)
+                break;
+            case 'mining.multi_version':
+                _this.handleMultiVersion(message)
+                break;
             case 'mining.submit':
                 _this.lastActivity = Date.now();
                 _this.handleSubmit(message);
                 break;
+
+            // Unsupported Stratum Messages
             case 'mining.get_transactions':
                 _this.sendJson({
                     id: message.id,
@@ -206,6 +216,54 @@ const StratumClient = function(options) {
             }
         });
     };
+
+    // Manage Stratum Configuration
+    this.handleConfigure = function(message) {
+        if (!options.asicBoost) {
+            _this.sendJson({
+                id: message.id,
+                result: {
+                    "version-rolling": false
+                },
+                error: null
+            });
+            _this.asicBoost = false;
+            _this.versionMask = "00000000";
+        }
+        else {
+            _this.sendJson({
+                id: message.id,
+                result: {
+                    "version-rolling": true,
+                    "version-rolling.mask": "1fffe000"
+                },
+                error: null
+            });
+            _this.asicBoost = true;
+            _this.versionMask = "1fffe000";
+        }
+        return true;
+    }
+
+    // Manage Stratum Multi-Versions
+    this.handleMultiVersion = function(message) {
+        if (!options.asicBoost) {
+            _this.asicBoost = false;
+            _this.versionMask = "00000000";
+        }
+        else {
+            const mVersion = parseInt(message.params[0]);
+            if (mVersion == 1) {
+                _this.asicBoost = false;
+                _this.versionMask = "00000000";
+            }
+            else if (mVersion > 1) {
+                _this.asicBoost = true;
+                _this.versionMask = "1fffe000";
+            }
+        }
+        return true;
+    }
 
     // Manage Stratum Submission
     this.handleSubmit = function(message) {
@@ -389,6 +447,7 @@ const StratumNetwork = function(options, authorizeFn) {
             subscriptionId: subscriptionId,
             authorizeFn: authorizeFn,
             socket: socket,
+            asicBoost: options.asicBoost,
             banning: options.banning,
             connectionTimeout: options.connectionTimeout,
             tcpProxyProtocol: options.tcpProxyProtocol

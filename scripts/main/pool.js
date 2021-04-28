@@ -540,7 +540,9 @@ const Pool = function(options, authorizeFn) {
                     client.remoteAddress,
                     client.socket.localPort,
                     message.params[0],
-                    null
+                    message.params[5],
+                    client.versionMask,
+                    client.asicBoost,
                 );
                 resultCallback(result.error, result.result ? true : null);
             });

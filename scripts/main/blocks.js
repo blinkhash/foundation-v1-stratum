@@ -83,7 +83,7 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     };
 
     // Serialize Block Headers
-    this.serializeHeader = function(merkleRoot, nTime, nonce) {
+    this.serializeHeader = function(merkleRoot, nTime, nonce, version) {
         let header = Buffer.alloc(80);
         let position = 0;
         header.write(nonce, position, 4, 'hex');
@@ -91,7 +91,7 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
         header.write(nTime, position += 4, 4, 'hex');
         header.write(merkleRoot, position += 4, 32, 'hex');
         header.write(this.rpcData.previousblockhash, position += 32, 32, 'hex');
-        header.writeUInt32BE(this.rpcData.version, position + 32);
+        header.writeUInt32BE(version, position + 32);
         header = utils.reverseBuffer(header);
         return header;
     };

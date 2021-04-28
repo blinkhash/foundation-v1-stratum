@@ -2270,7 +2270,7 @@ describe('Test pool functionality', () => {
             }
         });
         pool.on('connectionSucceeded', () => {
-            client.emit('submit', {params: [0, 1, 2, 3, 4]}, () => {
+            client.emit('submit', {params: [0, 1, 2, 3, 4, 5]}, () => {
                 pool.emit('log', 'debug', 'Client successfully subscribed to stratum network');
             });
         });
@@ -2285,14 +2285,16 @@ describe('Test pool functionality', () => {
                             const socket = new events.EventEmitter();
                             client = new events.EventEmitter();
                             client.previousDifficulty = 0;
-                            client.difficulty = 1,
-                            client.extraNonce1 = 0,
-                            client.remoteAddress = "127.0.0.1",
+                            client.difficulty = 1;
+                            client.extraNonce1 = 0;
+                            client.remoteAddress = "127.0.0.1";
                             client.socket = socket;
                             client.socket.localPort = 3001;
                             client.getLabel = () => { return "client [example]"; };
                             client.sendDifficulty = () => {};
                             client.sendMiningJob = () => {};
+                            client.asicBoost = true;
+                            client.versionMask = "1fffe000";
                             pool.stratum.emit('client.connected', client);
                         });
                     });

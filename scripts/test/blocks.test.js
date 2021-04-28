@@ -47,6 +47,7 @@ const rpcData = {
 };
 
 const options = {
+    "asicBoost": true,
     "coin": {
         "algorithm": "scrypt",
     },
@@ -146,7 +147,7 @@ describe('Test block functionality', () => {
         const merkleRoot = "3130b519a5914d1eea42022f592802c2d6b3e08b71f101aca985ff0b1031d0af";
         const time = "6036c54f".toString("hex");
         const nonce = "fe1a0000".toString("hex");
-        const headerBuffer = block.serializeHeader(merkleRoot, time, nonce);
+        const headerBuffer = block.serializeHeader(merkleRoot, time, nonce, block.rpcData.version);
         expect(headerBuffer).toStrictEqual(Buffer.from("00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b530314fc53660f0ff0f1e00001afe", "hex"));
     });
 
