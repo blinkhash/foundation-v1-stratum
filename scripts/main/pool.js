@@ -514,10 +514,10 @@ const Pool = function(options, authorizeFn) {
             });
 
             // Establish Client Subscription Functionality
-            client.on('subscription', function(params, resultCallback) {
+            client.on('subscription', function(params, callback) {
                 const extraNonce = _this.manager.extraNonceCounter.next();
                 const extraNonce2Size = _this.manager.extraNonce2Size;
-                resultCallback(null, extraNonce, extraNonce2Size);
+                callback(null, extraNonce, extraNonce2Size);
                 if (typeof(options.ports[client.socket.localPort]) !== 'undefined' && options.ports[client.socket.localPort].initial) {
                     client.sendDifficulty(options.ports[client.socket.localPort].initial);
                 }
@@ -528,7 +528,7 @@ const Pool = function(options, authorizeFn) {
             });
 
             // Establish Client Submission Functionality
-            client.on('submit', function(message, resultCallback) {
+            client.on('submit', function(message, callback) {
                 const result = _this.manager.processShare(
                     message.params[1],
                     client.previousDifficulty,
@@ -544,9 +544,10 @@ const Pool = function(options, authorizeFn) {
                     client.versionMask,
                     client.asicBoost,
                 );
-                resultCallback(result.error, result.result ? true : null);
+                callback(result.error, result.result ? true : null);
             });
 
+            // Establish Miscellaneous Client Functionality
             client.on('malformedMessage', function(message) {
                 emitWarningLog('Malformed message from ' + client.getLabel() + ': ' + JSON.stringify(message));
             });
@@ -578,6 +579,8 @@ const Pool = function(options, authorizeFn) {
                 emitWarningLog('Ban triggered for ' + client.getLabel() + ': ' + reason);
                 _this.emit('banIP', client.remoteAddress, client.workerName);
             });
+
+            // Indicate that Client Created Successfully
             _this.emit('connectionSucceeded');
         });
     };
