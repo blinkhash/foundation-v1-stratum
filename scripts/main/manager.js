@@ -169,7 +169,7 @@ const Manager = function(options) {
             const vBit = parseInt("0x" + versionBit);
             const vMask = parseInt("0x" + versionMask);
             if ((vBit & ~vMask) !== 0) {
-                return shareError([23, 'invalid version bit']);
+                return shareError([20, 'invalid version bit']);
             }
             version = (version & ~vMask) | (vBit & vMask);
         }
@@ -204,7 +204,7 @@ const Manager = function(options) {
                     difficulty = previousDifficulty;
                 }
                 else {
-                    return shareError([24, 'low difficulty share of ' + shareDiff]);
+                    return shareError([23, 'low difficulty share of ' + shareDiff]);
                 }
             }
         }

@@ -225,7 +225,7 @@ describe('Test manager functionality', () => {
         const time = "6036c54f".toString("hex");
         const nonce = "fe1a0000".toString("hex");
         const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, "ip_addr", "port", "worker", versionBits, versionMask, true);
-        expect(response.error[0]).toBe(23);
+        expect(response.error[0]).toBe(20);
         expect(response.error[1]).toBe('invalid version bit');
     });
 
@@ -241,7 +241,7 @@ describe('Test manager functionality', () => {
         const time = "6036c54f".toString("hex");
         const nonce = "fe1a0000".toString("hex");
         const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, "ip_addr", "port", "worker", versionBits, versionMask, true);
-        expect(response.error[0]).toBe(24);
+        expect(response.error[0]).toBe(23);
         expect(response.error[1].slice(0, 23)).toBe('low difficulty share of');
     });
 
