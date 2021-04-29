@@ -33,7 +33,7 @@ describe('Test peer functionality', () => {
     test('Test initialization of peer socket', () => {
         const optionsCopy = Object.assign({}, options);
         const peer = new Peer(optionsCopy);
-        const client = peer.start();
+        const client = peer.setupPeer();
         expect(typeof client).toBe("object");
         expect(Object.keys(client._events).length).toBe(5);
     });
@@ -43,7 +43,7 @@ describe('Test peer functionality', () => {
         optionsCopy.verack = true;
         const peer = new Peer(optionsCopy);
         peer.on('disconnected', () => output1 = "Disconnected");
-        const client = peer.start();
+        const client = peer.setupPeer();
         client.emit('close');
         expect(output1).toBe('Disconnected');
     });
@@ -53,7 +53,7 @@ describe('Test peer functionality', () => {
         optionsCopy.validConnectionConfig = true;
         const peer = new Peer(optionsCopy);
         peer.on('connectionRejected', () => output1 = "Connection Rejected");
-        const client = peer.start();
+        const client = peer.setupPeer();
         client.emit('close');
         expect(output1).toBe('Connection Rejected');
     });
@@ -62,7 +62,7 @@ describe('Test peer functionality', () => {
         const optionsCopy = Object.assign({}, options);
         const peer = new Peer(optionsCopy);
         peer.on('connectionFailed', () => output1 = "Connection Failed");
-        const client = peer.start();
+        const client = peer.setupPeer();
         client.emit('error', { code: "ECONNREFUSED" });
         expect(output1).toBe('Connection Failed');
     });
@@ -71,7 +71,7 @@ describe('Test peer functionality', () => {
         const optionsCopy = Object.assign({}, options);
         const peer = new Peer(optionsCopy);
         peer.on('socketError', () => output1 = "Socket Error");
-        const client = peer.start();
+        const client = peer.setupPeer();
         client.emit('error', {});
         expect(output1).toBe('Socket Error');
     });

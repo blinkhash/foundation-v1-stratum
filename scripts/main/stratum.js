@@ -68,7 +68,7 @@ const StratumClient = function(options) {
     };
 
     // Establish Stratum Connection
-    this.start = function() {
+    this.setupClient = function() {
 
         // Setup Main Socket Connection
         let dataBuffer = '';
@@ -366,7 +366,7 @@ const StratumNetwork = function(options, authorizeFn) {
     const bannedMS = options.banning ? options.banning.time * 1000 : null;
 
     // Start Stratum Capabilities
-    this.start = function() {
+    this.setupNetwork = function() {
 
         // Interval to Clear Old Bans from BannedIPs
         if (options.banning && options.banning.enabled) {
@@ -468,7 +468,7 @@ const StratumNetwork = function(options, authorizeFn) {
             _this.emit('client.banned', client);
         });
 
-        client.start();
+        client.setupClient();
         return subscriptionId;
     };
 
@@ -489,7 +489,7 @@ const StratumNetwork = function(options, authorizeFn) {
         _this.bannedIPs[ipAddress] = Date.now();
     };
 
-    _this.start();
+    _this.setupNetwork();
 };
 
 exports.network = StratumNetwork;

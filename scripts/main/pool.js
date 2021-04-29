@@ -62,7 +62,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     };
 
     // Start Pool Capabilities
-    this.start = function(callback) {
+    this.setupPool = function(callback) {
         _this.setupDifficulty();
         _this.setupDaemonInterface(function() {
             _this.setupPoolData(function() {

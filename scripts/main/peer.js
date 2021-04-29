@@ -63,14 +63,8 @@ const Peer = function(options) {
         getblocks: utils.commandStringBuffer('getblocks')
     };
 
-    // Start Peer Capabilities
-    this.start = function() {
-        const client = _this.connectPeer();
-        return client;
-    };
-
     // Establish Peer Connection
-    this.connectPeer = function() {
+    this.setupPeer = function() {
         client = net.connect({
             host: options.p2p.host,
             port: options.p2p.port
@@ -81,7 +75,7 @@ const Peer = function(options) {
             if (verack) {
                 _this.emit('disconnected');
                 verack = false;
-                _this.connectPeer();
+                _this.setupPeer();
             }
             else if (validConnectionConfig) {
                 _this.emit('connectionRejected');
@@ -212,7 +206,7 @@ const Peer = function(options) {
         _this.sendMessage(commands.version, payload);
     };
 
-    _this.start();
+    _this.setupPeer();
 };
 
 module.exports = Peer;
