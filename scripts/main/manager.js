@@ -166,8 +166,8 @@ const Manager = function(options) {
         // Check for AsicBoost Support
         let version = job.rpcData.version;
         if (asicBoost && versionBit !== undefined) {
-            const vBit = parseInt("0x" + versionBit);
-            const vMask = parseInt("0x" + versionMask);
+            const vBit = parseInt('0x' + versionBit);
+            const vMask = parseInt('0x' + versionMask);
             if ((vBit & ~vMask) !== 0) {
                 return shareError([20, 'invalid version bit']);
             }

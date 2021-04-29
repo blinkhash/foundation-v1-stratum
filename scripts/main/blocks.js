@@ -111,7 +111,7 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
 
     // Push Submissions to Array
     this.registerSubmit = function(header) {
-        const submission = header.join("").toLowerCase();
+        const submission = header.join('').toLowerCase();
         if (this.submits.indexOf(submission) === -1) {
             this.submits.push(submission);
             return true;

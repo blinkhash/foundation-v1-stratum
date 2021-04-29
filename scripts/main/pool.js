@@ -16,8 +16,8 @@ const Stratum = require('./stratum.js');
 const Pool = function(options, authorizeFn, responseFn) {
 
     const _this = this;
-    this.authorizeFn = authorizeFn
-    this.responseFn = responseFn
+    this.authorizeFn = authorizeFn;
+    this.responseFn = responseFn;
 
     const emitLog = function(text) { _this.emit('log', 'debug', text); };
     const emitWarningLog = function(text) { _this.emit('log', 'warning', text); };
@@ -62,7 +62,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     };
 
     // Start Pool Capabilities
-    this.setupPool = function(callback) {
+    this.setupPool = function() {
         _this.setupDifficulty();
         _this.setupDaemonInterface(function() {
             _this.setupPoolData(function() {
@@ -265,14 +265,14 @@ const Pool = function(options, authorizeFn, responseFn) {
     // Load Current Block Template
     this.getBlockTemplate = function(callback) {
         const callConfig = {
-            "capabilities": [
-                "coinbasetxn",
-                "workid",
-                "coinbase/append"
+            'capabilities': [
+                'coinbasetxn',
+                'workid',
+                'coinbase/append'
             ]
         };
         if (options.coin.segwit) {
-            callConfig.rules = ["segwit"];
+            callConfig.rules = ['segwit'];
         }
 
         // Handle Block Templates/Subsidy
@@ -336,14 +336,14 @@ const Pool = function(options, authorizeFn, responseFn) {
     // Wait Until Blockchain is Fully Synced
     this.setupBlockchain = function(callback) {
         const callConfig = {
-            "capabilities": [
-                "coinbasetxn",
-                "workid",
-                "coinbase/append"
+            'capabilities': [
+                'coinbasetxn',
+                'workid',
+                'coinbase/append'
             ]
         };
         if (options.coin.segwit) {
-            callConfig.rules = ["segwit"];
+            callConfig.rules = ['segwit'];
         }
 
         // Calculate Current Progress on Sync
@@ -419,7 +419,7 @@ const Pool = function(options, authorizeFn, responseFn) {
 
     // Initialize Pool Block Polling
     this.setupBlockPolling = function() {
-        if (typeof options.blockRefreshInterval !== "number" || options.blockRefreshInterval <= 0) {
+        if (typeof options.blockRefreshInterval !== 'number' || options.blockRefreshInterval <= 0) {
             emitLog('Block template polling has been disabled');
             return;
         }
@@ -592,7 +592,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     };
 
     // Output Derived Pool Information
-    this.outputPoolInfo = function(callback) {
+    this.outputPoolInfo = function() {
         const startMessage = 'Stratum pool server started for ' + options.coin.name +
             ' [' + options.coin.symbol.toUpperCase() + '] {' + options.coin.algorithm + '}';
         if (process.env.forkId && process.env.forkId !== '0') {
@@ -608,7 +608,7 @@ const Pool = function(options, authorizeFn, responseFn) {
             'Stratum Port(s):\t' + _this.options.initStats.stratumPorts.join(', '),
             'Pool Fee Percentage:\t' + (_this.options.feePercentage * 100) + '%'
         ];
-        if (typeof options.blockRefreshInterval === "number" && options.blockRefreshInterval > 0) {
+        if (typeof options.blockRefreshInterval === 'number' && options.blockRefreshInterval > 0) {
             infoLines.push('Block Polling Every:\t' + options.blockRefreshInterval + ' ms');
         }
         emitSpecialLog(infoLines.join('\n\t\t\t\t\t\t'));

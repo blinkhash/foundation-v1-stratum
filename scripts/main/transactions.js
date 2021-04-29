@@ -16,7 +16,7 @@ const Transactions = function() {
         const txInSequence = 0;
         let txType = 0;
         let txExtraPayload;
-        const txInPrevOutHash = "";
+        const txInPrevOutHash = '';
         const txInPrevOutIndex = Math.pow(2, 32) - 1;
         const txOutputBuffers = [];
         let txVersion = options.coin.txMessages === true ? 2 : 1;
@@ -38,7 +38,7 @@ const Transactions = function() {
 
         let reward = rpcData.coinbasevalue;
         let rewardToPool = reward;
-        const poolIdentifier = options.identifier || "https://github.com/blinkhash/blinkhash-server";
+        const poolIdentifier = options.identifier || 'https://github.com/blinkhash/blinkhash-server';
         const poolAddressScript = utils.addressToScript(options.poolAddress, options.network);
         const coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
 
@@ -136,9 +136,9 @@ const Transactions = function() {
         // Handle Secondary Transactions
         switch (options.rewards) {
 
-            // No Founder Rewards
-            default:
-                break;
+        // No Founder Rewards
+        default:
+            break;
         }
 
         // Handle Recipient Transactions

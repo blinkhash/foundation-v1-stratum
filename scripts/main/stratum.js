@@ -135,42 +135,42 @@ const StratumClient = function(options) {
     this.handleMessage = function(message) {
         switch (message.method) {
 
-            // Supported Stratum Messages
-            case 'mining.subscribe':
-                _this.handleSubscribe(message);
-                break;
-            case 'mining.authorize':
-                _this.handleAuthorize(message, true);
-                break;
-            case 'mining.configure':
-                _this.handleConfigure(message)
-                break;
-            case 'mining.multi_version':
-                _this.handleMultiVersion(message)
-                break;
-            case 'mining.submit':
-                _this.lastActivity = Date.now();
-                _this.handleSubmit(message);
-                break;
+        // Supported Stratum Messages
+        case 'mining.subscribe':
+            _this.handleSubscribe(message);
+            break;
+        case 'mining.authorize':
+            _this.handleAuthorize(message, true);
+            break;
+        case 'mining.configure':
+            _this.handleConfigure(message);
+            break;
+        case 'mining.multi_version':
+            _this.handleMultiVersion(message);
+            break;
+        case 'mining.submit':
+            _this.lastActivity = Date.now();
+            _this.handleSubmit(message);
+            break;
 
             // Unsupported Stratum Messages
-            case 'mining.get_transactions':
-                _this.sendJson({
-                    id: message.id,
-                    result: [],
-                    error: [20, "Not supported.", null]
-                });
-                break;
-            case 'mining.extranonce.subscribe':
-                _this.sendJson({
-                    id: message.id,
-                    result: false,
-                    error: [20, "Not supported.", null]
-                });
-                break;
-            default:
-                _this.emit('unknownStratumMethod', message);
-                break;
+        case 'mining.get_transactions':
+            _this.sendJson({
+                id: message.id,
+                result: [],
+                error: [20, 'Not supported.', null]
+            });
+            break;
+        case 'mining.extranonce.subscribe':
+            _this.sendJson({
+                id: message.id,
+                result: false,
+                error: [20, 'Not supported.', null]
+            });
+            break;
+        default:
+            _this.emit('unknownStratumMethod', message);
+            break;
         }
     };
 
@@ -186,8 +186,8 @@ const StratumClient = function(options) {
                 id: message.id,
                 result: [
                     [
-                        ["mining.set_difficulty", options.subscriptionId],
-                        ["mining.notify", options.subscriptionId]
+                        ['mining.set_difficulty', options.subscriptionId],
+                        ['mining.notify', options.subscriptionId]
                     ],
                     extraNonce1,
                     extraNonce2Size
@@ -223,47 +223,47 @@ const StratumClient = function(options) {
             _this.sendJson({
                 id: message.id,
                 result: {
-                    "version-rolling": false
+                    'version-rolling': false
                 },
                 error: null
             });
             _this.asicBoost = false;
-            _this.versionMask = "00000000";
+            _this.versionMask = '00000000';
         }
         else {
             _this.sendJson({
                 id: message.id,
                 result: {
-                    "version-rolling": true,
-                    "version-rolling.mask": "1fffe000"
+                    'version-rolling': true,
+                    'version-rolling.mask': '1fffe000'
                 },
                 error: null
             });
             _this.asicBoost = true;
-            _this.versionMask = "1fffe000";
+            _this.versionMask = '1fffe000';
         }
         return true;
-    }
+    };
 
     // Manage Stratum Multi-Versions
     this.handleMultiVersion = function(message) {
         if (!options.asicBoost) {
             _this.asicBoost = false;
-            _this.versionMask = "00000000";
+            _this.versionMask = '00000000';
         }
         else {
             const mVersion = parseInt(message.params[0]);
             if (mVersion == 1) {
                 _this.asicBoost = false;
-                _this.versionMask = "00000000";
+                _this.versionMask = '00000000';
             }
             else if (mVersion > 1) {
                 _this.asicBoost = true;
-                _this.versionMask = "1fffe000";
+                _this.versionMask = '1fffe000';
             }
         }
         return true;
-    }
+    };
 
     // Manage Stratum Submission
     this.handleSubmit = function(message) {
@@ -271,7 +271,7 @@ const StratumClient = function(options) {
             _this.sendJson({
                 id: message.id,
                 result: null,
-                error: [24, "unauthorized worker", null]
+                error: [24, 'unauthorized worker', null]
             });
             _this.considerBan(false);
             return;
@@ -280,7 +280,7 @@ const StratumClient = function(options) {
             _this.sendJson({
                 id: message.id,
                 result: null,
-                error: [25, "not subscribed", null]
+                error: [25, 'not subscribed', null]
             });
             _this.considerBan(false);
             return;
@@ -316,7 +316,7 @@ const StratumClient = function(options) {
         _this.difficulty = difficulty;
         _this.sendJson({
             id: null,
-            method: "mining.set_difficulty",
+            method: 'mining.set_difficulty',
             params: [difficulty],
         });
         return true;
@@ -339,7 +339,7 @@ const StratumClient = function(options) {
         }
         _this.sendJson({
             id: null,
-            method: "mining.notify",
+            method: 'mining.notify',
             params: jobParams
         });
     };

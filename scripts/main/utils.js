@@ -17,7 +17,7 @@ exports.addressToScript = function(addr, network) {
         addr = bchaddr.toLegacyAddress(addr);
         return bitcoin.address.toOutputScript(addr, network);
     }
-    else if (typeof network.coin !== "undefined") {
+    else if (typeof network.coin !== 'undefined') {
         return bitcoin.address.toOutputScript(addr, network);
     }
     else {
@@ -51,7 +51,7 @@ exports.commandStringBuffer = function(s) {
     buff.fill(0);
     buff.write(s);
     return buff;
-}
+};
 
 // Generate String Buffer from Variable Length
 exports.fixedLenStringBuffer = function(s, len) {
@@ -59,7 +59,7 @@ exports.fixedLenStringBuffer = function(s, len) {
     buff.fill(0);
     buff.write(s);
     return buff;
-}
+};
 
 // Alloc/Write UInt16LE
 exports.packUInt16LE = function(num) {
@@ -236,7 +236,7 @@ exports.subscriptionCounter = function() {
 // Truncate to Fixed Decimal Places
 exports.toFixed = function(num, len) {
     return parseFloat(num.toFixed(len));
-}
+};
 
 // Generate Reverse Buffer from Input Hash
 exports.uint256BufferFromHash = function(hex) {

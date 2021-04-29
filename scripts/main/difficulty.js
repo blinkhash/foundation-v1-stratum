@@ -47,7 +47,7 @@ const RingBuffer = function(maxSize) {
         cursor = 0;
         isFull = false;
     };
-}
+};
 
 // Main Difficulty Function
 const Difficulty = function(port, difficultyOptions, showLogs) {
@@ -65,7 +65,7 @@ const Difficulty = function(port, difficultyOptions, showLogs) {
         // Check if Client is Connected to VarDiff Port
         const stratumPort = client.socket.localPort;
         if (stratumPort != port) {
-            console.error("Handling a client which is not of this vardiff?");
+            console.error('Handling a client which is not of this vardiff?');
         }
 
         const options = difficultyOptions;
@@ -79,7 +79,7 @@ const Difficulty = function(port, difficultyOptions, showLogs) {
                 lastTs = ts;
                 timeBuffer = new RingBuffer(bufferSize);
                 if (logging) {
-                    console.log("Setting difficulty on client initialization");
+                    console.log('Setting difficulty on client initialization');
                 }
                 return;
             }
@@ -90,7 +90,7 @@ const Difficulty = function(port, difficultyOptions, showLogs) {
             let ddiff = options.targetTime / avg;
             if ((ts - lastRtc) < options.retargetTime && timeBuffer.size() > 0) {
                 if (logging) {
-                    console.log("No difficulty update required");
+                    console.log('No difficulty update required');
                 }
                 return;
             }
@@ -103,7 +103,7 @@ const Difficulty = function(port, difficultyOptions, showLogs) {
                     ddiff = options.minDiff / client.difficulty;
                 }
                 if (logging) {
-                    console.log("Decreasing current difficulty");
+                    console.log('Decreasing current difficulty');
                 }
             }
             else if (avg < tMin && client.difficulty < options.maxDiff) {
@@ -114,12 +114,12 @@ const Difficulty = function(port, difficultyOptions, showLogs) {
                     ddiff = options.maxDiff / client.difficulty;
                 }
                 if (logging) {
-                    console.log("Increasing current difficulty");
+                    console.log('Increasing current difficulty');
                 }
             }
             else {
                 if (logging) {
-                    console.log("No difficulty update required");
+                    console.log('No difficulty update required');
                 }
                 return;
             }
