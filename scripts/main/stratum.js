@@ -8,6 +8,8 @@ const net = require('net');
 const events = require('events');
 const utils = require('./utils.js');
 
+////////////////////////////////////////////////////////////////////////////////
+
 /**
  * Defining each client that connects to the stratum server.
  * Emits:

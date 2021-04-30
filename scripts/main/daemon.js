@@ -8,6 +8,8 @@ const http = require('http');
 const events = require('events');
 const async = require('async');
 
+////////////////////////////////////////////////////////////////////////////////
+
 /**
  * The Daemon interface interacts with the coin Daemon by using the RPC interface.
  * in order to make it work it needs, as constructor, an array of objects containing

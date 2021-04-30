@@ -12,6 +12,8 @@ const Transactions = require('./transactions.js');
 // Max Difficulty
 const diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
 
+////////////////////////////////////////////////////////////////////////////////
+
 // Main BlockTemplate Function
 const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
 

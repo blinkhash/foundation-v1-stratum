@@ -7,6 +7,8 @@
 const multiHashing = require('multi-hashing');
 const utils = require('./utils.js');
 
+////////////////////////////////////////////////////////////////////////////////
+
 // Main Algorithms Function
 const Algorithms = {
     'sha256d': {

@@ -14,6 +14,8 @@ const BlockTemplate = require('./blocks.js');
 // Max Difficulty
 const diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
 
+////////////////////////////////////////////////////////////////////////////////
+
 // Generate Unique ExtraNonce for each Subscriber
 const ExtraNonceCounter = function(configInstanceId) {
     const instanceId = configInstanceId || crypto.randomBytes(4).readUInt32LE(0);

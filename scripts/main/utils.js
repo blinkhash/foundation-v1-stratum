@@ -10,6 +10,8 @@ const bignum = require('bignum');
 const bitcoin = require('blinkhash-utxo-lib');
 const crypto = require('crypto');
 
+////////////////////////////////////////////////////////////////////////////////
+
 // Convert Address to Script
 exports.addressToScript = function(addr, network) {
     network = network || {};

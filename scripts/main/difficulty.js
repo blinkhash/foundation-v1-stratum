@@ -7,6 +7,8 @@
 const events = require('events');
 const utils = require('./utils.js');
 
+////////////////////////////////////////////////////////////////////////////////
+
 // Main RingBuffer Function
 const RingBuffer = function(maxSize) {
 

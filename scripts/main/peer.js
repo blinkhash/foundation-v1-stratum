@@ -9,6 +9,8 @@ const crypto = require('crypto');
 const events = require('events');
 const utils = require('./utils.js');
 
+////////////////////////////////////////////////////////////////////////////////
+
 /**
  * Reads a set amount of bytes from a flowing stream, argument descriptions:
  * - stream to read from, must have data emitter

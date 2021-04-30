@@ -12,6 +12,8 @@ const Manager = require('./manager.js');
 const Peer = require('./peer.js');
 const Stratum = require('./stratum.js');
 
+////////////////////////////////////////////////////////////////////////////////
+
 // Main Pool Function
 const Pool = function(options, authorizeFn, responseFn) {
 

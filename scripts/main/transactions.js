@@ -6,6 +6,8 @@
 
 const utils = require('./utils.js');
 
+////////////////////////////////////////////////////////////////////////////////
+
 // Main Transactions Function
 const Transactions = function() {
 
