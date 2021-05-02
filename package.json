@@ -49,7 +49,7 @@
     "nock": "^13.0.10"
   },
   "engines": {
-    "node": ">=0.10"
+    "node": ">=12.16"
   },
   "readmeFilename": "README.md"
 }
