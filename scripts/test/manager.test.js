@@ -248,6 +248,22 @@ describe('Test manager functionality', () => {
     test('Test share submission process [10]', () => {
         const transactionData = JSON.parse(JSON.stringify(rpcData));
         manager.processTemplate(transactionData);
+        const previousDifficulty = 1;
+        const difficulty = 1;
+        const extraNonce1 = '00000001'.toString('hex');
+        const extraNonce2 = '00000000'.toString('hex');
+        const versionBits = '00000000';
+        const versionMask = '1fffe000';
+        const time = '6036c54f'.toString('hex');
+        const nonce = 'fe1a0000'.toString('hex');
+        const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'worker', versionBits, versionMask, false);
+        expect(response.error[0]).toBe(23);
+        expect(response.error[1].slice(0, 23)).toBe('low difficulty share of');
+    });
+
+    test('Test share submission process [11]', () => {
+        const transactionData = JSON.parse(JSON.stringify(rpcData));
+        manager.processTemplate(transactionData);
         const previousDifficulty = 0.0000001;
         const difficulty = 1;
         const extraNonce1 = '00000001'.toString('hex');

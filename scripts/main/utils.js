@@ -10,8 +10,6 @@ const bignum = require('bignum');
 const bitcoin = require('blinkhash-utxo-lib');
 const crypto = require('crypto');
 
-////////////////////////////////////////////////////////////////////////////////
-
 // Convert Address to Script
 exports.addressToScript = function(addr, network) {
     network = network || {};
@@ -50,14 +48,6 @@ exports.bignumFromBitsHex = function(bitsString) {
 // Generate String Buffer from Fixed Length
 exports.commandStringBuffer = function(s) {
     const buff = Buffer.alloc(12);
-    buff.fill(0);
-    buff.write(s);
-    return buff;
-};
-
-// Generate String Buffer from Variable Length
-exports.fixedLenStringBuffer = function(s, len) {
-    const buff = Buffer.alloc(len);
     buff.fill(0);
     buff.write(s);
     return buff;
@@ -180,6 +170,7 @@ exports.serializeNumber = function(n) {
 };
 
 // Serialize Strings used for Signature
+/* istanbul ignore next */
 exports.serializeString = function(s) {
     if (s.length < 253) {
         return Buffer.concat([
@@ -223,6 +214,7 @@ exports.sha256d = function(buffer) {
 };
 
 // Increment Count for Each Subscription
+/* istanbul ignore next */
 exports.subscriptionCounter = function() {
     let count = 0;
     const padding = 'deadbeefcafebabe';

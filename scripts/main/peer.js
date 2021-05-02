@@ -19,22 +19,6 @@ const utils = require('./utils.js');
  * - callback returns 1) data buffer and 2) lopped/over-read data
 **/
 
-// Read Bytes Functionality
-function readFlowingBytes(stream, amount, preRead, callback) {
-    let buff = preRead ? preRead : Buffer.from([]);
-    const readData = function (data) {
-        buff = Buffer.concat([buff, data]);
-        if (buff.length >= amount) {
-            const returnData = buff.slice(0, amount);
-            const lopped = buff.length > amount ? buff.slice(amount) : null;
-            callback(returnData, lopped);
-        }
-        else
-            stream.once('data', readData);
-    };
-    readData(Buffer.from([]));
-}
-
 // Main Peer Function
 const Peer = function(options) {
 
@@ -42,14 +26,14 @@ const Peer = function(options) {
     let client;
     let verack = options.verack;
     let validConnectionConfig = options.validConnectionConfig;
-    const magic = Buffer.from(options.testnet ? options.coin.testnet.peerMagic : options.coin.mainnet.peerMagic, 'hex');
-    const magicInt = magic.readUInt32LE(0);
 
-    const networkServices = Buffer.from('0100000000000000', 'hex'); // NODE_NETWORK services (value 1 packed as uint64)
-    const emptyNetAddress = Buffer.from('010000000000000000000000000000000000ffff000000000000', 'hex');
-    const userAgent = utils.varStringBuffer('/node-stratum/');
-    const blockStartHeight = Buffer.from('00000000', 'hex'); // block start_height, can be empty
-    const relayTransactions = options.p2p.disableTransactions === true ? Buffer.from([false]) : Buffer.from([]);
+    this.networkServices = Buffer.from('0100000000000000', 'hex'); // NODE_NETWORK services (value 1 packed as uint64)
+    this.emptyNetAddress = Buffer.from('010000000000000000000000000000000000ffff000000000000', 'hex');
+    this.userAgent = utils.varStringBuffer('/node-stratum/');
+    this.blockStartHeight = Buffer.from('00000000', 'hex'); // block start_height, can be empty
+    this.relayTransactions = options.p2p.disableTransactions === true ? Buffer.from([false]) : Buffer.from([]);
+    this.magic = Buffer.from(options.testnet ? options.coin.testnet.peerMagic : options.coin.mainnet.peerMagic, 'hex');
+    this.magicInt = _this.magic.readUInt32LE(0);
 
     const invCodes = {
         error: 0,
@@ -66,10 +50,11 @@ const Peer = function(options) {
     };
 
     // Establish Peer Connection
+    /* istanbul ignore next */
     this.setupPeer = function() {
         client = net.connect({
-            host: options.p2p.host,
-            port: options.p2p.port
+          host: options.p2p.host,
+          port: options.p2p.port
         }, function () {
             _this.sendVersion();
         });
@@ -96,17 +81,35 @@ const Peer = function(options) {
         return client;
     };
 
+    // Read Bytes Functionality
+    /* istanbul ignore next */
+    this.readFlowingBytes = function(stream, amount, preRead, callback) {
+        let buff = preRead ? preRead : Buffer.from([]);
+        const readData = function (data) {
+            buff = Buffer.concat([buff, data]);
+            if (buff.length >= amount) {
+                const returnData = buff.slice(0, amount);
+                const lopped = buff.length > amount ? buff.slice(amount) : null;
+                callback(returnData, lopped);
+            }
+            else
+                stream.once('data', readData);
+        };
+        readData(Buffer.from([]));
+    };
+
     // Establish Peer Message Parser
+    /* istanbul ignore next */
     this.setupMessageParser = function(client) {
         const beginReadingMessage = function (preRead) {
-            readFlowingBytes(client, 24, preRead, function (header, lopped) {
+            _this.readFlowingBytes(client, 24, preRead, function (header, lopped) {
                 const msgMagic = header.readUInt32LE(0);
-                if (msgMagic !== magicInt) {
+                if (msgMagic !== _this.magicInt) {
                     _this.emit('error', 'bad magic number from peer');
-                    while (header.readUInt32LE(0) !== magicInt && header.length >= 4) {
+                    while (header.readUInt32LE(0) !== _this.magicInt && header.length >= 4) {
                         header = header.slice(1);
                     }
-                    if (header.readUInt32LE(0) === magicInt) {
+                    if (header.readUInt32LE(0) === _this.magicInt) {
                         beginReadingMessage(header);
                     }
                     else {
@@ -117,7 +120,7 @@ const Peer = function(options) {
                 const msgCommand = header.slice(4, 16).toString();
                 const msgLength = header.readUInt32LE(16);
                 const msgChecksum = header.readUInt32LE(20);
-                readFlowingBytes(client, msgLength, lopped, function (payload, lopped) {
+                _this.readFlowingBytes(client, msgLength, lopped, function (payload, lopped) {
                     if (utils.sha256d(payload).readUInt32LE(0) !== msgChecksum) {
                         _this.emit('error', 'bad payload - failed checksum');
                         beginReadingMessage(null);
@@ -132,6 +135,7 @@ const Peer = function(options) {
     };
 
     // Handle Peer Inventory
+    /* istanbul ignore next */
     this.handleInventory = function(payload) {
         let count = payload.readUInt8(0);
         payload = payload.slice(1);
@@ -143,21 +147,21 @@ const Peer = function(options) {
             switch (payload.readUInt32LE(0)) {
             case invCodes.error:
                 break;
-            case invCodes.tx: {
+            case invCodes.tx:
                 // eslint-disable-next-line no-unused-vars
                 const tx = payload.slice(4, 36).toString('hex');
                 break;
-            }
-            case invCodes.block: {
+            case invCodes.block:
                 const block = payload.slice(4, 36).toString('hex');
                 _this.emit('blockFound', block);
                 break;
-            }}
+            }
             payload = payload.slice(36);
         }
     };
 
     // Handle Peer Messages
+    /* istanbul ignore next */
     this.handleMessage = function(command, payload) {
         _this.emit('peerMessage', {command: command, payload: payload});
         switch (command) {
@@ -176,13 +180,12 @@ const Peer = function(options) {
         default:
             break;
         }
-
     };
 
     // Broadcast/Send Peer Messages
     this.sendMessage = function(command, payload) {
         const message = Buffer.concat([
-            magic,
+            _this.magic,
             command,
             utils.packUInt32LE(payload.length),
             utils.sha256d(payload).slice(0, 4),
@@ -196,14 +199,14 @@ const Peer = function(options) {
     this.sendVersion = function() {
         const payload = Buffer.concat([
             utils.packUInt32LE(options.protocolVersion),
-            networkServices,
+            _this.networkServices,
             utils.packUInt64LE(Date.now() / 1000 | 0),
-            emptyNetAddress,
-            emptyNetAddress,
+            _this.emptyNetAddress,
+            _this.emptyNetAddress,
             crypto.pseudoRandomBytes(8),
-            userAgent,
-            blockStartHeight,
-            relayTransactions
+            _this.userAgent,
+            _this.blockStartHeight,
+            _this.relayTransactions
         ]);
         _this.sendMessage(commands.version, payload);
     };

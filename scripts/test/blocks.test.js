@@ -70,21 +70,30 @@ const options = {
 const jobId = 1;
 const extraNonce = Buffer.from('f000000ff111111f', 'hex');
 const manager = new JobManager(options);
-const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
 
 ////////////////////////////////////////////////////////////////////////////////
 
 describe('Test block functionality', () => {
 
-    test('Test current bignum implementation', () => {
+    test('Test current bignum implementation [1]', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
+        expect(block.target.toNumber().toFixed(9)).toBe('1.1042625655198232e+71');
+    });
+
+    test('Test current bignum implementation [2]', () => {
+        const rpcDataCopy = Object.assign({}, rpcData);
+        rpcDataCopy.target = null;
+        const block = new BlockTemplate(jobId.toString(16), rpcDataCopy, extraNonce, options);
         expect(block.target.toNumber().toFixed(9)).toBe('1.1042625655198232e+71');
     });
 
     test('Test block difficulty calculation', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         expect(block.difficulty.toFixed(9)).toBe('0.000244141');
     });
 
     test('Test merkle step calculation', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         const merkleSteps = block.merkle.steps;
         const merkleHashes = block.getMerkleHashes(merkleSteps);
         expect(merkleHashes.length).toBe(1);
@@ -92,6 +101,7 @@ describe('Test block functionality', () => {
     });
 
     test('Test merkle buffer calculation', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         const transactions = block.rpcData.transactions;
         const merkleBuffers = block.getTransactionBuffers(transactions);
         expect(merkleBuffers.length).toBe(2);
@@ -99,12 +109,14 @@ describe('Test block functionality', () => {
         expect(merkleBuffers[1]).toStrictEqual(Buffer.from('17a35a38e70cd01488e0d5ece6ded04a9bc8125865471d36b9d5c47a08a5907c', 'hex'));
     });
 
+    // No Voting Data in the Testing Block
     test('Test voting data', () => {
-        // No Voting Data in the Testing Block
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         expect(block.getVoteData()).toStrictEqual(Buffer.from([]));
     });
 
     test('Test generation transaction creation', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         const generation = block.createGeneration(block.rpcData, extraNonce, options);
         expect(generation.length).toBe(2);
         expect(generation[0].slice(0, -5)).toStrictEqual(Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff3d5104', 'hex'));
@@ -112,16 +124,19 @@ describe('Test block functionality', () => {
     });
 
     test('Test merkle creation', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         const merkle = block.createMerkle(block.rpcData, block.generation, options);
         expect(merkle.steps.length).toBe(1);
         expect(merkle.steps[0]).toStrictEqual(Buffer.from('17a35a38e70cd01488e0d5ece6ded04a9bc8125865471d36b9d5c47a08a5907c', 'hex'));
     });
 
     test('Test reversing of hashes', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         expect(block.previousblockhash).toBe('bc7727e2ee0395305fc6e36b29a60b37be7d49b6bd4c808b83ef65839719aefb');
     });
 
     test('Test coinbase serialization [1]', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         const extraNonce1 = Buffer.from('01', 'hex');
         const extraNonce2 = Buffer.from('00', 'hex');
         const coinbase = block.serializeCoinbase(extraNonce1, extraNonce2);
@@ -137,6 +152,7 @@ describe('Test block functionality', () => {
     });
 
     test('Test merkle root generation', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         const coinbase = Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff020101ffffffff0100f2052a010000001976a914614ca2f0f4baccdd63f45a0e0e0ff7ffb88041fb88ac00000000', 'hex');
         const coinbaseHash = manager.coinbaseHasher(coinbase);
         const merkleRoot = utils.reverseBuffer(block.merkle.withFirst(coinbaseHash)).toString('hex');
@@ -144,6 +160,7 @@ describe('Test block functionality', () => {
     });
 
     test('Test header serialization [1]', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         const merkleRoot = '3130b519a5914d1eea42022f592802c2d6b3e08b71f101aca985ff0b1031d0af';
         const time = '6036c54f'.toString('hex');
         const nonce = 'fe1a0000'.toString('hex');
@@ -159,6 +176,7 @@ describe('Test block functionality', () => {
     });
 
     test('Test block serialization [1]', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         const headerBuffer = Buffer.from('00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b530314fc53660f0ff0f1e00001afe', 'hex');
         const coinbase = Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff020101ffffffff0100f2052a010000001976a914614ca2f0f4baccdd63f45a0e0e0ff7ffb88041fb88ac00000000', 'hex');
         const blockHex = block.serializeBlock(headerBuffer, coinbase);
@@ -172,6 +190,7 @@ describe('Test block functionality', () => {
     });
 
     test('Test block submission', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         const extraNonce1 = Buffer.from('01', 'hex');
         const extraNonce2 = Buffer.from('00', 'hex');
         const time = '6036c54f'.toString('hex');
@@ -183,6 +202,7 @@ describe('Test block functionality', () => {
     });
 
     test('Test current job parameters', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         const jobParams = [
             block.jobId,
             block.previousblockhash,
@@ -204,6 +224,7 @@ describe('Test block functionality', () => {
 describe('Test miscellaneous features of block implementation', () => {
 
     test('Test if target is not defined', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         const rpcTarget = JSON.parse(JSON.stringify(rpcData));
         delete rpcTarget.target;
         expect(block.target.toNumber().toFixed(9)).toBe('1.1042625655198232e+71');
@@ -211,6 +232,7 @@ describe('Test miscellaneous features of block implementation', () => {
     });
 
     test('Test if txid is defined in the transaction', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         const rpcTxid = JSON.parse(JSON.stringify(rpcData));
         rpcTxid.transactions[0].txid = rpcTxid.transactions[0].hash;
         const merkleBuffers = block.getTransactionBuffers(rpcTxid.transactions);
@@ -220,6 +242,7 @@ describe('Test miscellaneous features of block implementation', () => {
     });
 
     test('Test if block jobParams already exists', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
         const jobParams = [
             block.jobId,
             block.previousblockhash,

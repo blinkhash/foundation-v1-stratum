@@ -137,7 +137,7 @@ const DaemonInterface = function(daemons, logger) {
         async.each(this.instances, function(instance, eachCallback) {
 
             // Build Output Request Data
-            let itemFinished = function(error, result, data) {
+            const itemFinished = function(error, result, data) {
                 const returnObj = {
                     error: error,
                     response: (result || {}).result,
@@ -147,7 +147,6 @@ const DaemonInterface = function(daemons, logger) {
                 if (streamResults) callback(returnObj);
                 else results.push(returnObj);
                 eachCallback();
-                itemFinished = function() {};
             };
 
             // Build Input Request Data

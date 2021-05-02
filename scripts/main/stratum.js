@@ -30,13 +30,8 @@ const StratumClient = function(options) {
     this.shares = { valid: 0, invalid: 0 };
     this.socket = options.socket;
 
-    // Helper Function if Banning is Disabled
-    this.banningDisabled = function() {
-        return false;
-    };
-
     // Helper Function if Banning is Enabled
-    this.banningEnabled = function(shareValid) {
+    this.considerBan = function(shareValid) {
         if (shareValid === true) {
             _this.shares.valid += 1;
         }
@@ -58,8 +53,6 @@ const StratumClient = function(options) {
         return false;
     };
 
-    this.considerBan = (!_this.banning || !_this.banning.enabled) ? _this.banningDisabled : _this.banningEnabled;
-
     // Manage JSON Functionality
     this.sendJson = function() {
         let response = '';
@@ -70,6 +63,7 @@ const StratumClient = function(options) {
     };
 
     // Establish Stratum Connection
+    /* istanbul ignore next */
     this.setupClient = function() {
 
         // Setup Main Socket Connection
@@ -155,7 +149,7 @@ const StratumClient = function(options) {
             _this.handleSubmit(message);
             break;
 
-            // Unsupported Stratum Messages
+        // Unsupported Stratum Messages
         case 'mining.get_transactions':
             _this.sendJson({
                 id: message.id,
@@ -200,19 +194,17 @@ const StratumClient = function(options) {
     };
 
     // Manage Stratum Authorization
-    this.handleAuthorize = function(message, replyToSocket) {
+    this.handleAuthorize = function(message) {
         _this.workerName = message.params[0];
         _this.workerPass = message.params[1];
 
         options.authorizeFn(_this.remoteAddress, options.socket.localPort, message.params[0], message.params[1], function(result) {
             _this.authorized = (!result.error && result.authorized);
-            if (replyToSocket) {
-                _this.sendJson({
-                    id: message.id,
-                    result: _this.authorized,
-                    error: result.error
-                });
-            }
+            _this.sendJson({
+                id: message.id,
+                result: _this.authorized,
+                error: result.error
+            });
             if (result.disconnect === true) {
                 options.socket.destroy();
             }
@@ -255,19 +247,20 @@ const StratumClient = function(options) {
         }
         else {
             const mVersion = parseInt(message.params[0]);
-            if (mVersion == 1) {
-                _this.asicBoost = false;
-                _this.versionMask = '00000000';
-            }
-            else if (mVersion > 1) {
+            if (mVersion > 1) {
                 _this.asicBoost = true;
                 _this.versionMask = '1fffe000';
+            }
+            else {
+                _this.asicBoost = false;
+                _this.versionMask = '00000000';
             }
         }
         return true;
     };
 
     // Manage Stratum Submission
+    /* istanbul ignore next */
     this.handleSubmit = function(message) {
         if (!_this.authorized) {
             _this.sendJson({
@@ -325,6 +318,7 @@ const StratumClient = function(options) {
     };
 
     // Broadcast Mining Job to Stratum Client
+    /* istanbul ignore next */
     this.sendMiningJob = function(jobParams) {
         const lastActivityAgo = Date.now() - _this.lastActivity;
         if (lastActivityAgo > options.connectionTimeout * 1000) {
@@ -365,22 +359,21 @@ const StratumNetwork = function(options, authorizeFn) {
 
     let rebroadcastTimeout;
     const subscriptionCounter = utils.subscriptionCounter();
-    const bannedMS = options.banning ? options.banning.time * 1000 : null;
+    const bannedMS = options.banning.time * 1000;
 
     // Start Stratum Capabilities
+    /* istanbul ignore next */
     this.setupNetwork = function() {
 
         // Interval to Clear Old Bans from BannedIPs
-        if (options.banning && options.banning.enabled) {
-            setInterval(function() {
-                Object.keys(_this.bannedIPs).forEach(ip => {
-                    const banTime = _this.bannedIPs[ip];
-                    if (Date.now() - banTime > options.banning.time) {
-                        delete _this.bannedIPs[ip];
-                    }
-                });
-            }, 1000 * options.banning.purgeInterval);
-        }
+        setInterval(function() {
+            Object.keys(_this.bannedIPs).forEach(ip => {
+                const banTime = _this.bannedIPs[ip];
+                if (Date.now() - banTime > options.banning.time) {
+                    delete _this.bannedIPs[ip];
+                }
+            });
+        }, 1000 * options.banning.purgeInterval);
 
         // Filter Individual Stratum Ports
         let stratumPorts = Object.keys(options.ports);
@@ -424,7 +417,7 @@ const StratumNetwork = function(options, authorizeFn) {
 
     // Check Regarding Banned Clients
     this.checkBan = function(client) {
-        if (options.banning && options.banning.enabled && client.remoteAddress in _this.bannedIPs) {
+        if (client.remoteAddress in _this.bannedIPs) {
             const bannedTime = _this.bannedIPs[client.remoteAddress];
             const bannedTimeAgo = Date.now() - bannedTime;
             const timeLeft = bannedMS - bannedTimeAgo;
@@ -475,6 +468,7 @@ const StratumNetwork = function(options, authorizeFn) {
     };
 
     // Broadcast New Jobs to Clients
+    /* istanbul ignore next */
     this.broadcastMiningJobs = function(jobParams) {
         Object.keys(_this.stratumClients).forEach(clientId => {
             const client = _this.stratumClients[clientId];

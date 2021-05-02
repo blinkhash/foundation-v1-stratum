@@ -651,7 +651,7 @@ describe('Test pool functionality', () => {
             expect(shareValid).toBe(true);
             expect(blockValid).toBe(false);
             expect(shareData.job).toBe(1);
-            expect(shareData.blockHashInvalid).toBe('example blockhash');
+            expect(shareData.hashInvalid).toBe('example blockhash');
             done();
         });
         mockSetupDaemon(pool, () => {
@@ -661,15 +661,15 @@ describe('Test pool functionality', () => {
                     job: 1,
                     ip: 'ip_addr',
                     port: 'port',
-                    worker: 'worker',
-                    height: 1,
-                    blockReward: 5000000000,
-                    difficulty: 1,
-                    shareDiff: 1,
                     blockDiff : 1,
                     blockDiffActual: 1,
-                    blockHash: null,
-                    blockHashInvalid: 'example blockhash',
+                    difficulty: 1,
+                    hash: null,
+                    hashInvalid: 'example blockhash',
+                    height: 1,
+                    reward: 5000000000,
+                    shareDiff: 1,
+                    worker: 'worker',
                 };
                 pool.manager.emit('share', shareData, null);
             });
@@ -698,15 +698,15 @@ describe('Test pool functionality', () => {
                     job: 1,
                     ip: 'ip_addr',
                     port: 'port',
-                    worker: 'worker',
-                    height: 1,
-                    blockReward: 5000000000,
-                    difficulty: 1,
-                    shareDiff: 1,
                     blockDiff : 1,
                     blockDiffActual: 1,
-                    blockHash: 'example blockhash',
-                    blockHashInvalid: null,
+                    difficulty: 1,
+                    hash: 'example blockhash',
+                    hashInvalid: null,
+                    height: 1,
+                    reward: 5000000000,
+                    shareDiff: 1,
+                    worker: 'worker',
                 };
                 const blockHex = Buffer.from('000011110000111100001111', 'hex');
                 pool.manager.emit('share', shareData, blockHex);
@@ -736,15 +736,15 @@ describe('Test pool functionality', () => {
                     job: 1,
                     ip: 'ip_addr',
                     port: 'port',
-                    worker: 'worker',
-                    height: 1,
-                    blockReward: 5000000000,
-                    difficulty: 1,
-                    shareDiff: 1,
                     blockDiff : 1,
                     blockDiffActual: 1,
-                    blockHash: 'example blockhash',
-                    blockHashInvalid: null,
+                    difficulty: 1,
+                    hash: 'example blockhash',
+                    hashInvalid: null,
+                    height: 1,
+                    reward: 5000000000,
+                    shareDiff: 1,
+                    worker: 'worker',
                 };
                 const blockHex = Buffer.from('000011110000111100001111', 'hex');
                 pool.manager.emit('share', shareData, blockHex);
@@ -799,15 +799,15 @@ describe('Test pool functionality', () => {
                     job: 1,
                     ip: 'ip_addr',
                     port: 'port',
-                    worker: 'worker',
-                    height: 1,
-                    blockReward: 5000000000,
-                    difficulty: 1,
-                    shareDiff: 1,
                     blockDiff : 1,
                     blockDiffActual: 1,
-                    blockHash: 'example blockhash',
-                    blockHashInvalid: null,
+                    difficulty: 1,
+                    hash: 'example blockhash',
+                    hashInvalid: null,
+                    height: 1,
+                    reward: 5000000000,
+                    shareDiff: 1,
+                    worker: 'worker',
                 };
                 const blockHex = Buffer.from('000011110000111100001111', 'hex');
                 pool.manager.emit('share', shareData, blockHex);
@@ -870,15 +870,15 @@ describe('Test pool functionality', () => {
                     job: 1,
                     ip: 'ip_addr',
                     port: 'port',
-                    worker: 'worker',
-                    height: 1,
-                    blockReward: 5000000000,
-                    difficulty: 1,
-                    shareDiff: 1,
                     blockDiff : 1,
                     blockDiffActual: 1,
-                    blockHash: 'example blockhash',
-                    blockHashInvalid: null,
+                    difficulty: 1,
+                    hash: 'example blockhash',
+                    hashInvalid: null,
+                    height: 1,
+                    reward: 5000000000,
+                    shareDiff: 1,
+                    worker: 'worker',
                 };
                 const blockHex = Buffer.from('000011110000111100001111', 'hex');
                 pool.manager.emit('share', shareData, blockHex);
@@ -887,6 +887,79 @@ describe('Test pool functionality', () => {
     });
 
     test('Test pool manager events [8]', (done) => {
+        const response = [];
+        const optionsCopy = Object.assign({}, options);
+        optionsCopy.coin = Object.assign({}, options.coin);
+        optionsCopy.coin.segwit = false;
+        const rpcDataCopy = Object.assign({}, rpcData);
+        const pool = new Pool(optionsCopy, null, () => {});
+        pool.on('log', (type, text) => {
+            response.push([type, text]);
+            if (response.length === 3) {
+                expect(response[0][0]).toBe('debug');
+                expect(response[0][1]).toBe('Submitted Block using getblocktemplate successfully to daemon instance(s)');
+                expect(response[1][0]).toBe('error');
+                expect(response[1][1]).toBe('Block was rejected by the network');
+                expect(response[2][0]).toBe('debug');
+                expect(response[2][1]).toBe('Block notification via RPC after block submission');
+                done();
+            }
+        });
+        pool.on('share', () => {
+            nock('http://127.0.0.1:8332')
+                .post('/', body => body.method === 'getblocktemplate')
+                .reply(200, JSON.stringify({
+                    id: 'nocktest',
+                    error: null,
+                    result: rpcDataCopy,
+                }));
+        });
+        mockSetupDaemon(pool, () => {
+            nock('http://127.0.0.1:8332')
+                .post('/').reply(200, JSON.stringify([
+                    { id: 'nocktest', error: null, result: { isvalid: true, address: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq' }},
+                    { id: 'nocktest', error: null, result: { networkhashps: 0 }},
+                    { id: 'nocktest', error: true, result: { message: 'Method not found' }},
+                    { id: 'nocktest', error: null, result: { chain: 'main', difficulty: 0 }},
+                    { id: 'nocktest', error: null, result: { protocolversion: 1, connections: 1 }},
+                ]));
+            pool.setupPoolData(() => {
+                nock('http://127.0.0.1:8332')
+                    .post('/', body => body.method === 'getblocktemplate')
+                    .reply(200, JSON.stringify({
+                        id: 'nocktest',
+                        error: null,
+                        result: null,
+                    }));
+                nock('http://127.0.0.1:8332')
+                    .post('/', body => body.method === 'getblock')
+                    .reply(200, JSON.stringify({
+                        id: 'nocktest',
+                        error: null,
+                        result: null,
+                    }));
+                pool.setupJobManager();
+                const shareData = {
+                    job: 1,
+                    ip: 'ip_addr',
+                    port: 'port',
+                    blockDiff : 1,
+                    blockDiffActual: 1,
+                    difficulty: 1,
+                    hash: 'example blockhash',
+                    hashInvalid: null,
+                    height: 1,
+                    reward: 5000000000,
+                    shareDiff: 1,
+                    worker: 'worker',
+                };
+                const blockHex = Buffer.from('000011110000111100001111', 'hex');
+                pool.manager.emit('share', shareData, blockHex);
+            });
+        });
+    });
+
+    test('Test pool manager events [9]', (done) => {
         const response = [];
         const optionsCopy = Object.assign({}, options);
         const rpcDataCopy = Object.assign({}, rpcData);
@@ -953,7 +1026,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool manager events [9]', (done) => {
+    test('Test pool manager events [10]', (done) => {
         const response = [];
         const optionsCopy = Object.assign({}, options);
         const rpcDataCopy = Object.assign({}, rpcData);
@@ -1004,15 +1077,15 @@ describe('Test pool functionality', () => {
                     job: 1,
                     ip: 'ip_addr',
                     port: 'port',
-                    worker: 'worker',
-                    height: 1,
-                    blockReward: 5000000000,
-                    difficulty: 1,
-                    shareDiff: 1,
                     blockDiff : 1,
                     blockDiffActual: 1,
-                    blockHash: 'example blockhash',
-                    blockHashInvalid: null,
+                    difficulty: 1,
+                    hash: 'example blockhash',
+                    hashInvalid: null,
+                    height: 1,
+                    reward: 5000000000,
+                    shareDiff: 1,
+                    worker: 'worker',
                 };
                 const blockHex = Buffer.from('000011110000111100001111', 'hex');
                 pool.manager.emit('share', shareData, blockHex);
@@ -1020,7 +1093,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool manager events [10]', (done) => {
+    test('Test pool manager events [11]', (done) => {
         const response = [];
         const optionsCopy = Object.assign({}, options);
         const pool = new Pool(optionsCopy, null, () => {});
@@ -1070,15 +1143,15 @@ describe('Test pool functionality', () => {
                     job: 1,
                     ip: 'ip_addr',
                     port: 'port',
-                    worker: 'worker',
-                    height: 1,
-                    blockReward: 5000000000,
-                    difficulty: 1,
-                    shareDiff: 1,
                     blockDiff : 1,
                     blockDiffActual: 1,
-                    blockHash: 'example blockhash',
-                    blockHashInvalid: null,
+                    difficulty: 1,
+                    hash: 'example blockhash',
+                    hashInvalid: null,
+                    height: 1,
+                    reward: 5000000000,
+                    shareDiff: 1,
+                    worker: 'worker',
                 };
                 const blockHex = Buffer.from('000011110000111100001111', 'hex');
                 pool.manager.emit('share', shareData, blockHex);
@@ -1464,7 +1537,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool peer events [7]', (done) => {
+    test('Test pool peer events [8]', (done) => {
         const response = [];
         const optionsCopy = Object.assign({}, options);
         const rpcDataCopy = Object.assign({}, rpcData);
@@ -1473,13 +1546,11 @@ describe('Test pool functionality', () => {
         const pool = new Pool(optionsCopy, null, () => {});
         pool.on('log', (type, text) => {
             response.push([type, text]);
-            if (response.length === 4) {
+            if (response.length === 3) {
                 expect(response[0][0]).toBe('warning');
                 expect(response[0][1]).toBe('Network diff of 0 is lower than port 3001 w/ diff 32');
-                expect(response[1][0]).toBe('debug');
-                expect(response[1][1]).toBe('Block notification via p2p');
-                expect(response[3][0]).toBe('debug');
-                expect(response[3][1]).toBe('Block template for Bitcoin updated successfully');
+                expect(response[2][0]).toBe('debug');
+                expect(response[2][1]).toBe('Block template for Bitcoin updated successfully');
                 done();
             }
         });
@@ -1497,7 +1568,7 @@ describe('Test pool functionality', () => {
                                     error: null,
                                     result: rpcDataCopy,
                                 }));
-                            pool.processBlockNotify(hash, 'p2p');
+                            pool.processBlockNotify(hash);
                         });
                         pool.peer.emit('blockNotify', 'example hash');
                     });
@@ -1506,19 +1577,17 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool peer events [8]', (done) => {
+    test('Test pool peer events [9]', (done) => {
         const response = [];
         const optionsCopy = Object.assign({}, options);
         const pool = new Pool(optionsCopy, null, () => {});
         pool.on('log', (type, text) => {
             response.push([type, text]);
-            if (response.length === 5) {
+            if (response.length === 4) {
                 expect(response[0][0]).toBe('warning');
                 expect(response[0][1]).toBe('Network diff of 0 is lower than port 3001 w/ diff 32');
-                expect(response[1][0]).toBe('debug');
-                expect(response[1][1]).toBe('Block notification via p2p');
-                expect(response[4][0]).toBe('error');
-                expect(response[4][1]).toBe('Block notify error getting block template for Bitcoin');
+                expect(response[3][0]).toBe('error');
+                expect(response[3][1]).toBe('Block notify error getting block template for Bitcoin');
                 done();
             }
         });
@@ -1536,7 +1605,7 @@ describe('Test pool functionality', () => {
                                     error: true,
                                     result: null,
                                 }));
-                            pool.processBlockNotify(hash, 'p2p');
+                            pool.processBlockNotify(hash);
                         });
                         pool.peer.emit('blockNotify', 'example hash');
                     });
@@ -1545,7 +1614,7 @@ describe('Test pool functionality', () => {
         });
     });
 
-    test('Test pool peer events [9]', (done) => {
+    test('Test pool peer events [10]', (done) => {
         const response = [];
         const optionsCopy = Object.assign({}, options);
         const pool = new Pool(optionsCopy, null, () => {});

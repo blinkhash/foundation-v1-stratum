@@ -38,6 +38,21 @@ describe('Test peer functionality', () => {
         expect(Object.keys(client._events).length).toBe(5);
     });
 
+    test('Test peer relayTransactions functionality', () => {
+        const optionsCopy = Object.assign({}, options);
+        optionsCopy.p2p = Object.assign({}, options.p2p);
+        optionsCopy.p2p.disableTransactions = false;
+        const peer = new Peer(optionsCopy);
+        expect(peer.relayTransactions).toStrictEqual(Buffer.from([]));
+    });
+
+    test('Test peer magic functionality', () => {
+        const optionsCopy = Object.assign({}, options);
+        optionsCopy.testnet = true;
+        const peer = new Peer(optionsCopy);
+        expect(peer.magic).toEqual(Buffer.from(optionsCopy.coin.testnet.peerMagic, 'hex'));
+    });
+
     test('Test peer socket events [1]', () => {
         const optionsCopy = Object.assign({}, options);
         optionsCopy.verack = true;

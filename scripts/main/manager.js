@@ -193,6 +193,7 @@ const Manager = function(options) {
         const blockDiffAdjusted = job.difficulty * shareMultiplier;
 
         // Check if Share is Valid Block Candidate
+        /* istanbul ignore next */
         if (job.target.ge(headerBigNum)) {
             blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer).toString('hex');
             blockHash = this.blockHasher(headerBuffer, nTime).toString('hex');

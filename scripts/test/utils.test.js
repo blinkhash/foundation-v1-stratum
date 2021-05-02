@@ -109,6 +109,9 @@ describe('Test utility functionality', () => {
         expect(utils.range(10)).toStrictEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
         expect(utils.range(0, 5)).toStrictEqual([0, 1, 2, 3, 4]);
         expect(utils.range(3, 15, 3)).toStrictEqual([3, 6, 9, 12]);
+        expect(utils.range(10, 8, 1)).toStrictEqual([]);
+        expect(utils.range(8, 10, -1)).toStrictEqual([]);
+        expect(utils.range(10, 8, -1)).toStrictEqual([10, 9]);
     });
 
     test('Test implemented reverseBuffer', () => {
