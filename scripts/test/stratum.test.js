@@ -11,7 +11,6 @@ const options = {
     'address': '',
     'asicBoost': true,
     'banning': {
-        'enabled': true,
         'time': 600,
         'invalidPercent': 50,
         'checkThreshold': 5,
@@ -156,19 +155,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum banning capabilities [3]', (done) => {
         const optionsCopy = Object.assign({}, options);
-        optionsCopy.banning = Object.assign({}, options.banning);
-        optionsCopy.banning.enabled = false;
-        const stratum = new Stratum.network(optionsCopy, () => {});
-        const socket = mockSocket();
-        stratum.handleNewClient(socket);
-        const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-        expect(client.considerBan(true)).toBe(false);
-        stratum.on('stopped', () => done());
-        stratum.stopServer();
-    });
-
-    test('Test stratum banning capabilities [4]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -180,7 +166,7 @@ describe('Test stratum functionality', () => {
         stratum.stopServer();
     });
 
-    test('Test stratum banning capabilities [5]', (done) => {
+    test('Test stratum banning capabilities [4]', (done) => {
         const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
@@ -195,7 +181,7 @@ describe('Test stratum functionality', () => {
         stratum.stopServer();
     });
 
-    test('Test stratum banning capabilities [6]', (done) => {
+    test('Test stratum banning capabilities [5]', (done) => {
         const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
@@ -210,7 +196,7 @@ describe('Test stratum functionality', () => {
         stratum.stopServer();
     });
 
-    test('Test stratum banning capabilities [7]', (done) => {
+    test('Test stratum banning capabilities [6]', (done) => {
         const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
@@ -226,7 +212,7 @@ describe('Test stratum functionality', () => {
         stratum.stopServer();
     });
 
-    test('Test stratum banning capabilities [8]', (done) => {
+    test('Test stratum banning capabilities [7]', (done) => {
         const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();

@@ -18,6 +18,7 @@ const Stratum = require('./stratum.js');
 const Pool = function(options, authorizeFn, responseFn) {
 
     const _this = this;
+    this.options = options;
     this.authorizeFn = authorizeFn;
     this.responseFn = responseFn;
 
@@ -30,7 +31,6 @@ const Pool = function(options, authorizeFn, responseFn) {
     };
 
     // Check if Algorithm is Supported
-    this.options = options;
     if (!(_this.options.coin.algorithm in Algorithms)) {
         emitErrorLog('The ' + _this.options.coin.algorithm + ' hashing algorithm is not supported.');
         throw new Error();
