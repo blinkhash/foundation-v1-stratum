@@ -49,8 +49,7 @@ const DaemonInterface = function(daemons, logger) {
             }
             try {
                 dataJson = JSON.parse(data);
-            }
-            catch(e) {
+            } catch(e) {
                 _this.logger('error', 'Could not parse RPC data from daemon instance ' + instance.index
                     + '\nRequest Data: ' + jsonData
                     + '\nReponse Data: ' + data);
@@ -73,10 +72,11 @@ const DaemonInterface = function(daemons, logger) {
         });
 
         req.on('error', (e) => {
-            if (e.code === 'ECONNREFUSED')
+            if (e.code === 'ECONNREFUSED') {
                 callback({type: 'offline', message: e.message}, null);
-            else
+            } else {
                 callback({type: 'request error', message: e.message}, null);
+            }
         });
 
         req.end(jsonData);

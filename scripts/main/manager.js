@@ -197,16 +197,14 @@ const Manager = function(options) {
         if (job.target.ge(headerBigNum)) {
             blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer).toString('hex');
             blockHash = this.blockHasher(headerBuffer, nTime).toString('hex');
-        }
-        else {
+        } else {
             if (options.settings.emitInvalidBlockHashes) {
                 blockHashInvalid = utils.reverseBuffer(utils.sha256d(headerBuffer)).toString('hex');
             }
             if (shareDiff / difficulty < 0.99) {
                 if (previousDifficulty && shareDiff >= previousDifficulty) {
                     difficulty = previousDifficulty;
-                }
-                else {
+                } else {
                     return shareError([23, 'low difficulty share of ' + shareDiff]);
                 }
             }

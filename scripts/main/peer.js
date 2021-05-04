@@ -70,8 +70,7 @@ const Peer = function(options) {
             if (e.code === 'ECONNREFUSED') {
                 validConnectionConfig = false;
                 _this.emit('connectionFailed');
-            }
-            else {
+            } else {
                 _this.emit('socketError', e);
             }
         });
@@ -80,13 +79,12 @@ const Peer = function(options) {
                 verack = false;
                 _this.emit('disconnected');
                 _this.setupPeer();
-            }
-            else if (validConnectionConfig) {
+            } else if (validConnectionConfig) {
                 _this.emit('connectionRejected');
             }
         });
         return client;
-    }
+    };
 
     // Read Bytes Functionality
     /* istanbul ignore next */
@@ -98,9 +96,9 @@ const Peer = function(options) {
                 const returnData = buff.slice(0, amount);
                 const lopped = buff.length > amount ? buff.slice(amount) : null;
                 callback(returnData, lopped);
-            }
-            else
+            } else {
                 stream.once('data', readData);
+            }
         };
         readData(Buffer.from([]));
     };
@@ -118,8 +116,7 @@ const Peer = function(options) {
                     }
                     if (header.readUInt32LE(0) === _this.magicInt) {
                         beginReadingMessage(header);
-                    }
-                    else {
+                    } else {
                         beginReadingMessage(Buffer.from([]));
                     }
                     return;

@@ -21,8 +21,7 @@ const RingBuffer = function(maxSize) {
         if (isFull) {
             data[cursor] = x;
             cursor = (cursor + 1) % maxSize;
-        }
-        else {
+        } else {
             data.push(x);
             cursor += 1;
             if (data.length === maxSize) {
@@ -34,7 +33,9 @@ const RingBuffer = function(maxSize) {
 
     // Average Ring Buffer
     this.avg = function() {
-        const sum = data.reduce((a, b) => { return a + b; });
+        const sum = data.reduce((a, b) => {
+            return a + b; 
+        });
         return sum / (isFull ? maxSize : cursor);
     };
 
@@ -55,80 +56,77 @@ const RingBuffer = function(maxSize) {
 const Difficulty = function(port, difficultyOptions, showLogs) {
 
     const _this = this;
+    _this.options = difficultyOptions;
+
     const logging = showLogs;
+    let lastTs, lastRtc, timeBuffer;
     const variance = difficultyOptions.targetTime * (difficultyOptions.variance / 100);
     const bufferSize = difficultyOptions.retargetTime / difficultyOptions.targetTime * 4;
     const tMin = difficultyOptions.targetTime - variance;
     const tMax = difficultyOptions.targetTime + variance;
 
+    // Update Difficulty on Share Submission
+    this.updateDifficulty = function(client) {
+        const ts = (Date.now() / 1000) | 0;
+        if (!lastRtc) {
+            lastRtc = ts - _this.options.retargetTime / 2;
+            lastTs = ts;
+            timeBuffer = new RingBuffer(bufferSize);
+            if (logging) {
+                console.log('Setting difficulty on client initialization');
+            }
+            return;
+        }
+        const sinceLast = ts - lastTs;
+        timeBuffer.append(sinceLast);
+        lastTs = ts;
+        const avg = timeBuffer.avg();
+        let ddiff = _this.options.targetTime / avg;
+        if ((ts - lastRtc) < _this.options.retargetTime && timeBuffer.size() > 0) {
+            if (logging) {
+                console.log('No difficulty update required');
+            }
+            return;
+        }
+        lastRtc = ts;
+        if (avg > tMax && client.difficulty > _this.options.minimum) {
+            if (_this.options.x2mode) {
+                ddiff = 0.5;
+            }
+            if (ddiff * client.difficulty < _this.options.minimum) {
+                ddiff = _this.options.minimum / client.difficulty;
+            }
+            if (logging) {
+                console.log('Decreasing current difficulty');
+            }
+        } else if (avg < tMin && client.difficulty < _this.options.maximum) {
+            if (_this.options.x2mode) {
+                ddiff = 2;
+            }
+            if (ddiff * client.difficulty > _this.options.maximum) {
+                ddiff = _this.options.maximum / client.difficulty;
+            }
+            if (logging) {
+                console.log('Increasing current difficulty');
+            }
+        } else {
+            if (logging) {
+                console.log('No difficulty update required');
+            }
+            return;
+        }
+        const newDiff = utils.toFixed(client.difficulty * ddiff, 8);
+        timeBuffer.clear();
+        _this.emit('newDifficulty', client, newDiff);
+    };
+
     // Manage Individual Clients
     this.manageClient = function(client) {
-
-        // Check if Client is Connected to VarDiff Port
         const stratumPort = client.socket.localPort;
         if (stratumPort != port) {
             console.error('Handling a client which is not of this vardiff?');
         }
-
-        const options = difficultyOptions;
-        let lastTs, lastRtc, timeBuffer;
-
-        // Handle Difficulty Updates on Submission
-        client.on('submit', () => {
-            const ts = (Date.now() / 1000) | 0;
-            if (!lastRtc) {
-                lastRtc = ts - options.retargetTime / 2;
-                lastTs = ts;
-                timeBuffer = new RingBuffer(bufferSize);
-                if (logging) {
-                    console.log('Setting difficulty on client initialization');
-                }
-                return;
-            }
-            const sinceLast = ts - lastTs;
-            timeBuffer.append(sinceLast);
-            lastTs = ts;
-            const avg = timeBuffer.avg();
-            let ddiff = options.targetTime / avg;
-            if ((ts - lastRtc) < options.retargetTime && timeBuffer.size() > 0) {
-                if (logging) {
-                    console.log('No difficulty update required');
-                }
-                return;
-            }
-            lastRtc = ts;
-            if (avg > tMax && client.difficulty > options.minimum) {
-                if (options.x2mode) {
-                    ddiff = 0.5;
-                }
-                if (ddiff * client.difficulty < options.minimum) {
-                    ddiff = options.minimum / client.difficulty;
-                }
-                if (logging) {
-                    console.log('Decreasing current difficulty');
-                }
-            }
-            else if (avg < tMin && client.difficulty < options.maximum) {
-                if (options.x2mode) {
-                    ddiff = 2;
-                }
-                if (ddiff * client.difficulty > options.maximum) {
-                    ddiff = options.maximum / client.difficulty;
-                }
-                if (logging) {
-                    console.log('Increasing current difficulty');
-                }
-            }
-            else {
-                if (logging) {
-                    console.log('No difficulty update required');
-                }
-                return;
-            }
-            const newDiff = utils.toFixed(client.difficulty * ddiff, 8);
-            timeBuffer.clear();
-            _this.emit('newDifficulty', client, newDiff);
-        });
+        client.on('submit', () => _this.updateDifficulty(client));
     };
 };
 

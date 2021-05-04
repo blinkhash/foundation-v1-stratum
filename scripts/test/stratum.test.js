@@ -91,14 +91,18 @@ function mockClient() {
     socket.destroy = () => {};
     socket.setEncoding = () => {};
     socket.setKeepAlive = () => {};
-    socket.write = (data) => { socket.emit('log', data); };
+    socket.write = (data) => {
+        socket.emit('log', data); 
+    };
     const client = new events.EventEmitter();
     client.previousDifficulty = 0;
     client.difficulty = 1,
     client.extraNonce1 = 0,
     client.socket = socket;
     client.socket.localPort = 3001;
-    client.getLabel = () => { return 'client [example]'; };
+    client.getLabel = () => {
+        return 'client [example]'; 
+    };
     client.sendDifficulty = () => {};
     client.sendMiningJob = () => {};
     return client;
@@ -110,7 +114,9 @@ function mockSocket() {
     socket.destroy = () => {};
     socket.setEncoding = () => {};
     socket.setKeepAlive = () => {};
-    socket.write = (data) => { socket.emit('log', data); };
+    socket.write = (data) => {
+        socket.emit('log', data); 
+    };
     return socket;
 }
 
@@ -223,8 +229,7 @@ describe('Test stratum functionality', () => {
         for (let step = 0; step < 5; step += 1) {
             if (step === 4) {
                 expect(client.considerBan(false)).toBe(true);
-            }
-            else {
+            } else {
                 expect(client.considerBan(false)).toBe(false);
             }
         }

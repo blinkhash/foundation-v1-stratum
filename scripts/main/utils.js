@@ -16,11 +16,9 @@ exports.addressToScript = function(addr, network) {
     if (network.coin === 'bch' && bchaddr.isCashAddress(addr)) {
         addr = bchaddr.toLegacyAddress(addr);
         return bitcoin.address.toOutputScript(addr, network);
-    }
-    else if (typeof network.coin !== 'undefined') {
+    } else if (typeof network.coin !== 'undefined') {
         return bitcoin.address.toOutputScript(addr, network);
-    }
-    else {
+    } else {
         return Buffer.concat([Buffer.from([0x76, 0xa9, 0x14]), bitcoin.address.fromBase58Check(addr).hash, Buffer.from([0x88, 0xac])]);
     }
 };
@@ -159,8 +157,7 @@ exports.serializeNumber = function(n) {
     }
     let l = 1;
     const buff = Buffer.alloc(9);
-    while (n > 0x7f)
-    {
+    while (n > 0x7f) {
         buff.writeUInt8(n & 0xff, l++);
         n >>= 8;
     }
@@ -177,22 +174,19 @@ exports.serializeString = function(s) {
             Buffer.from([s.length]),
             Buffer.from(s)
         ]);
-    }
-    else if (s.length < 0x10000) {
+    } else if (s.length < 0x10000) {
         return Buffer.concat([
             Buffer.from([253]),
             exports.packUInt16LE(s.length),
             Buffer.from(s)
         ]);
-    }
-    else if (s.length < 0x100000000) {
+    } else if (s.length < 0x100000000) {
         return Buffer.concat([
             Buffer.from([254]),
             exports.packUInt32LE(s.length),
             Buffer.from(s)
         ]);
-    }
-    else {
+    } else {
         return Buffer.concat([
             Buffer.from([255]),
             exports.packUInt16LE(s.length),
@@ -246,21 +240,19 @@ exports.uint256BufferFromHash = function(hex) {
 
 // Generate VarInt Buffer
 exports.varIntBuffer = function(n) {
-    if (n < 0xfd)
+    if (n < 0xfd) {
         return Buffer.from([n]);
-    else if (n <= 0xffff) {
+    } else if (n <= 0xffff) {
         const buff = Buffer.alloc(3);
         buff[0] = 0xfd;
         exports.packUInt16LE(n).copy(buff, 1);
         return buff;
-    }
-    else if (n <= 0xffffffff) {
+    } else if (n <= 0xffffffff) {
         const buff = Buffer.alloc(5);
         buff[0] = 0xfe;
         exports.packUInt32LE(n).copy(buff, 1);
         return buff;
-    }
-    else {
+    } else {
         const buff = Buffer.alloc(9);
         buff[0] = 0xff;
         exports.packUInt64LE(n).copy(buff, 1);

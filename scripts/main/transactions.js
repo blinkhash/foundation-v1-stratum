@@ -35,8 +35,7 @@ const Transactions = function() {
         // Handle Version w/ CoinbaseTxn
         if (rpcData.coinbasetxn && rpcData.coinbasetxn.data) {
             txVersion = parseInt(utils.reverseHex(rpcData.coinbasetxn.data.slice(0, 8)), 16);
-        }
-        else {
+        } else {
             txVersion = txVersion + (txType << 16);
         }
 
@@ -81,15 +80,13 @@ const Transactions = function() {
                     utils.varIntBuffer(payeeScript.length),
                     payeeScript,
                 ]));
-            }
-            else if (rpcData.masternode.length > 0) {
+            } else if (rpcData.masternode.length > 0) {
                 rpcData.masternode.forEach(payee => {
                     const payeeReward = payee.amount;
                     let payeeScript;
                     if (payee.script) {
                         payeeScript = Buffer.from(payee.script, 'hex');
-                    }
-                    else {
+                    } else {
                         payeeScript = utils.addressToScript(payee.payee, network);
                     }
                     reward -= payeeReward;
@@ -110,8 +107,7 @@ const Transactions = function() {
                 let payeeScript;
                 if (payee.script) {
                     payeeScript = Buffer.from(payee.script, 'hex');
-                }
-                else {
+                } else {
                     payeeScript = utils.addressToScript(payee.payee, network);
                 }
                 reward -= payeeReward;

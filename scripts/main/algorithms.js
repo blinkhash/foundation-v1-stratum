@@ -115,8 +115,7 @@ const Algorithms = {
                 return function(data, nTimeInt) {
                     return multiHashing.keccak(multiHashing.keccak(Buffer.concat([data, Buffer.from(nTimeInt.toString(16), 'hex')])));
                 };
-            }
-            else {
+            } else {
                 return function() {
                     return multiHashing.keccak.apply(this, arguments);
                 };

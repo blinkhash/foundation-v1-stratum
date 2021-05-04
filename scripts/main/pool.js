@@ -39,12 +39,12 @@ const Pool = function(options, authorizeFn, responseFn) {
     // Process Block when Found
     /* istanbul ignore next */
     this.processBlockNotify = function(blockHash) {
-        if (typeof(_this.manager.currentJob) !== 'undefined' && blockHash !== _this.manager.currentJob.rpcData.previousblockhash) {
+        const currentJob = _this.manager.currentJob;
+        if ((typeof(currentJob) !== 'undefined') && (blockHash !== currentJob.rpcData.previousblockhash)) {
             _this.getBlockTemplate((error) => {
                 if (error) {
                     emitErrorLog('Block notify error getting block template for ' + _this.options.coin.name);
-                }
-                else {
+                } else {
                     emitLog('Block template for ' + _this.options.coin.name + ' updated successfully');
                 }
             });
@@ -132,8 +132,7 @@ const Pool = function(options, authorizeFn, responseFn) {
         // Check if Coin has GetInfo Defined
         if (_this.options.coin.hasGetInfo) {
             batchRPCCommand.push(['getinfo', []]);
-        }
-        else {
+        } else {
             batchRPCCommand.push(['getblockchaininfo', []], ['getnetworkinfo', []]);
         }
 
@@ -164,8 +163,7 @@ const Pool = function(options, authorizeFn, responseFn) {
             // Check if Mainnet/Testnet is Active
             if (_this.options.coin.hasGetInfo) {
                 _this.options.settings.testnet = (rpcResults.getinfo.testnet === true) ? true : false;
-            }
-            else {
+            } else {
                 _this.options.settings.testnet = (rpcResults.getblockchaininfo.chain === 'test') ? true : false;
             }
 
@@ -186,11 +184,9 @@ const Pool = function(options, authorizeFn, responseFn) {
             // Check if Pool is Able to Submit Blocks
             if (rpcResults.submitblock.message === 'Method not found') {
                 _this.options.settings.hasSubmitMethod = false;
-            }
-            else if (rpcResults.submitblock.code === -1) {
+            } else if (rpcResults.submitblock.code === -1) {
                 _this.options.settings.hasSubmitMethod = true;
-            }
-            else {
+            } else {
                 emitErrorLog('Could not detect block submission RPC method');
                 return;
             }
@@ -218,8 +214,7 @@ const Pool = function(options, authorizeFn, responseFn) {
         if (_this.options.settings.hasSubmitMethod) {
             rpcCommand = 'submitblock';
             rpcArgs = [blockHex];
-        }
-        else {
+        } else {
             rpcCommand = 'getblocktemplate';
             rpcArgs = [{'mode': 'submit', 'data': blockHex}];
         }
@@ -234,8 +229,7 @@ const Pool = function(options, authorizeFn, responseFn) {
                             JSON.stringify(result.error)
                     );
                     return;
-                }
-                else if (result.response === 'rejected') {
+                } else if (result.response === 'rejected') {
                     emitErrorLog('Daemon instance ' + result.instance.index + ' rejected a supposedly valid block');
                     return;
                 }
@@ -255,13 +249,11 @@ const Pool = function(options, authorizeFn, responseFn) {
                 if (validResults[0].response.confirmations >= 0) {
                     emitLog('Block was accepted by the network with ' + validResults[0].response.confirmations + ' confirmations');
                     callback(true, validResults[0].response.tx[0]);
-                }
-                else {
+                } else {
                     emitErrorLog('Block was rejected by the network');
                     callback(false);
                 }
-            }
-            else {
+            } else {
                 emitErrorLog('Block was rejected by the network');
                 callback(false);
             }
@@ -287,8 +279,7 @@ const Pool = function(options, authorizeFn, responseFn) {
                 emitErrorLog('getblocktemplate call failed for daemon instance ' +
                     result.instance.index + ' with error ' + JSON.stringify(result.error));
                 callback(result.error);
-            }
-            else {
+            } else {
                 const processedNewBlock = _this.manager.processTemplate(result.response);
                 callback(null, result.response, processedNewBlock);
             }
@@ -310,6 +301,7 @@ const Pool = function(options, authorizeFn, responseFn) {
             }
         });
 
+        // Handle Share Submissions
         _this.manager.on('share', (shareData, blockHex) => {
             const shareValid = !shareData.error;
             let blockValid = !!blockHex;
@@ -330,6 +322,7 @@ const Pool = function(options, authorizeFn, responseFn) {
             }
         });
 
+        // Handle Block Submissions
         _this.manager.on('updatedBlock', (blockTemplate) => {
             if (_this.stratum) {
                 const job = blockTemplate.getJobParams();
@@ -380,8 +373,7 @@ const Pool = function(options, authorizeFn, responseFn) {
                 });
                 if (synced) {
                     callback();
-                }
-                else {
+                } else {
                     if (displayNotSynced) {
                         displayNotSynced();
                     }
@@ -450,6 +442,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     };
 
     // Initialize Pool Peers
+    /* istanbul ignore next */
     this.setupPeer = function() {
 
         // Establish Peer Settings
@@ -464,8 +457,7 @@ const Pool = function(options, authorizeFn, responseFn) {
         if (_this.options.settings.testnet && !_this.options.coin.testnet.peerMagic) {
             emitErrorLog('p2p cannot be enabled in testnet without peerMagic set in testnet configuration');
             return;
-        }
-        else if (!_this.options.coin.mainnet.peerMagic) {
+        } else if (!_this.options.coin.mainnet.peerMagic) {
             emitErrorLog('p2p cannot be enabled without peerMagic set in mainnet configuration');
             return;
         }
@@ -539,8 +531,7 @@ const Pool = function(options, authorizeFn, responseFn) {
                     .filter(port => typeof port.difficulty.initial !== undefined);
                 if (validPorts.length >= 1) {
                     client.sendDifficulty(validPorts[0].difficulty.initial);
-                }
-                else {
+                } else {
                     client.sendDifficulty(8);
                 }
                 client.sendMiningJob(_this.manager.currentJob.getJobParams());

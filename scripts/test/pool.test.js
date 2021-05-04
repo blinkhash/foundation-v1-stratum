@@ -1808,7 +1808,9 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -1848,7 +1850,9 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -1888,7 +1892,9 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -1928,7 +1934,9 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -1969,7 +1977,9 @@ describe('Test pool functionality', () => {
                             client.socket = socket;
                             client.socket.localPort = 3001;
                             client.remoteAddress = '127.0.0.1';
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2010,7 +2020,9 @@ describe('Test pool functionality', () => {
                             client.socket = socket;
                             client.socket.localPort = 3001;
                             client.remoteAddress = '127.0.0.1';
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2050,7 +2062,9 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2090,7 +2104,9 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2130,7 +2146,9 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2170,7 +2188,9 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2214,7 +2234,9 @@ describe('Test pool functionality', () => {
                             client.socket = socket;
                             client.socket.localPort = 3001;
                             client.workerName = 'worker1';
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             pool.stratum.emit('client.connected', client);
                         });
                     });
@@ -2256,7 +2278,9 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             client.sendDifficulty = () => {};
                             client.sendMiningJob = () => {};
                             pool.stratum.emit('client.connected', client);
@@ -2299,7 +2323,9 @@ describe('Test pool functionality', () => {
                             client = new events.EventEmitter();
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             client.sendDifficulty = () => {};
                             client.sendMiningJob = () => {};
                             pool.stratum.emit('client.connected', client);
@@ -2347,7 +2373,9 @@ describe('Test pool functionality', () => {
                             client.remoteAddress = '127.0.0.1';
                             client.socket = socket;
                             client.socket.localPort = 3001;
-                            client.getLabel = () => { return 'client [example]'; };
+                            client.getLabel = () => {
+                                return 'client [example]'; 
+                            };
                             client.sendDifficulty = () => {};
                             client.sendMiningJob = () => {};
                             client.asicBoost = true;

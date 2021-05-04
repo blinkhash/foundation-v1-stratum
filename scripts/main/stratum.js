@@ -34,8 +34,7 @@ const StratumClient = function(options) {
     this.considerBan = function(shareValid) {
         if (shareValid === true) {
             _this.shares.valid += 1;
-        }
-        else {
+        } else {
             _this.shares.invalid += 1;
         }
         const totalShares = _this.shares.valid + _this.shares.invalid;
@@ -43,8 +42,7 @@ const StratumClient = function(options) {
             const percentBad = (_this.shares.invalid / totalShares) * 100;
             if (percentBad < _this.options.banning.invalidPercent) {
                 this.shares = { valid: 0, invalid: 0 };
-            }
-            else {
+            } else {
                 _this.emit('triggerBan', _this.shares.invalid + ' out of the last ' + totalShares + ' shares were invalid');
                 _this.socket.destroy();
                 return true;
@@ -74,14 +72,12 @@ const StratumClient = function(options) {
             socket.once('data', (d) => {
                 if (d.indexOf('PROXY') === 0) {
                     _this.remoteAddress = d.split(' ')[2];
-                }
-                else {
+                } else {
                     _this.emit('tcpProxyError', d);
                 }
                 _this.emit('checkBan');
             });
-        }
-        else {
+        } else {
             _this.emit('checkBan');
         }
 
@@ -101,8 +97,7 @@ const StratumClient = function(options) {
                     let messageJson;
                     try {
                         messageJson = JSON.parse(message);
-                    }
-                    catch(e) {
+                    } catch(e) {
                         if (_this.options.tcpProxyProtocol !== true || d.indexOf('PROXY') !== 0) {
                             _this.emit('malformedMessage', message);
                             socket.destroy();
@@ -223,8 +218,7 @@ const StratumClient = function(options) {
             });
             _this.asicBoost = false;
             _this.versionMask = '00000000';
-        }
-        else {
+        } else {
             _this.sendJson({
                 id: message.id,
                 result: {
@@ -244,14 +238,12 @@ const StratumClient = function(options) {
         if (!_this.options.asicBoost) {
             _this.asicBoost = false;
             _this.versionMask = '00000000';
-        }
-        else {
+        } else {
             const mVersion = parseInt(message.params[0]);
             if (mVersion > 1) {
                 _this.asicBoost = true;
                 _this.versionMask = '1fffe000';
-            }
-            else {
+            } else {
                 _this.asicBoost = false;
                 _this.versionMask = '00000000';
             }
@@ -414,8 +406,7 @@ const StratumNetwork = function(options, authorizeFn) {
             if (timeLeft > 0) {
                 client.socket.destroy();
                 client.emit('kickedBannedIP', timeLeft / 1000 | 0);
-            }
-            else {
+            } else {
                 delete _this.bannedIPs[client.remoteAddress];
                 client.emit('forgaveBannedIP');
             }
