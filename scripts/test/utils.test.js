@@ -6,7 +6,7 @@
 
 const utils = require('../main/utils');
 
-const network1 = {
+const network = {
     'bech32': 'bc',
     'bip32': {
         'public': 0x0488b21e,
@@ -18,26 +18,14 @@ const network1 = {
     'coin': 'btc',
 };
 
-const network2 = {
-    'bip32': {
-        'public': 0x0488b21e,
-        'private': 0x0488ade4,
-    },
-    'pubKeyHash': 0x00,
-    'scriptHash': 0x05,
-    'wif': 0x80,
-    'coin': 'bch',
-    'forkId': 0x00
-};
-
 ////////////////////////////////////////////////////////////////////////////////
 
 describe('Test utility functionality', () => {
 
     test('Test implemented addressToScript [1]', () => {
-        const script1 = utils.addressToScript('1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2', network1);
-        const script2 = utils.addressToScript('3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy', network1);
-        const script3 = utils.addressToScript('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq', network1);
+        const script1 = utils.addressToScript('1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2', network);
+        const script2 = utils.addressToScript('3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy', network);
+        const script3 = utils.addressToScript('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq', network);
         const script4 = utils.addressToScript('1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2');
         expect(script1).toStrictEqual(Buffer.from('76a91477bff20c60e522dfaa3350c39b030a5d004e839a88ac', 'hex'));
         expect(script2).toStrictEqual(Buffer.from('a914b472a266d0bd89c13706a4132ccfb16f7c3b9fcb87', 'hex'));
@@ -46,8 +34,11 @@ describe('Test utility functionality', () => {
     });
 
     test('Test implemented addressToScript [2]', () => {
-        const script1 = utils.addressToScript('35qL43qYwLdKtnR7yMfGNDvzv6WyZ8yT2n', network2);
-        const script2 = utils.addressToScript('bitcoincash:pqkh9ahfj069qv8l6eysyufazpe4fdjq3u4hna323j', network2);
+        const networkCopy = Object.assign({}, network);
+        networkCopy.coin = 'bch';
+        networkCopy.forkId = 0x00;
+        const script1 = utils.addressToScript('35qL43qYwLdKtnR7yMfGNDvzv6WyZ8yT2n', networkCopy);
+        const script2 = utils.addressToScript('bitcoincash:pqkh9ahfj069qv8l6eysyufazpe4fdjq3u4hna323j', networkCopy);
         expect(script1).toStrictEqual(Buffer.from('a9142d72f6e993f45030ffd64902713d107354b6408f87', 'hex'));
         expect(script2).toStrictEqual(Buffer.from('a9142d72f6e993f45030ffd64902713d107354b6408f87', 'hex'));
     });

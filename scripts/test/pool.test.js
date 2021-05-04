@@ -149,20 +149,15 @@ const peerData = {
 };
 
 const options = {
-    'address': '',
-    'banning': {
-        'enabled': true,
-        'time': 600,
-        'invalidPercent': 50,
-        'checkThreshold': 500,
-        'purgeInterval': 300
-    },
+    'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
+    'debug': true,
     'coin': {
         'name': 'Bitcoin',
         'symbol': 'BTC',
         'algorithm': 'sha256d',
         'hasGetInfo': false,
         'segwit': true,
+        'rewards': '',
         'mainnet': {
             'bech32': 'bc',
             'bip32': {
@@ -188,41 +183,46 @@ const options = {
             'coin': 'btc',
         }
     },
-    'connectionTimeout': 600,
     'daemons': [{
         'host': '127.0.0.1',
         'port': 8332,
         'user': '',
         'password': ''
     }],
-    'debug': true,
-    'jobRebroadcastTimeout': 60,
-    'ports': {
-        '3001': {
-            'enabled': true,
-            'initial': 32,
-            'difficulty': {
-                'minDiff': 8,
-                'maxDiff': 512,
-                'targetTime': 15,
-                'retargetTime': 90,
-                'variancePercent': 30
-            }
-        }
+    'banning': {
+        'enabled': true,
+        'time': 600,
+        'invalidPercent': 50,
+        'checkThreshold': 500,
+        'purgeInterval': 300
     },
-    'poolAddress': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
+    'ports': [{
+        'port': 3001,
+        'enabled': true,
+        'difficulty': {
+            'initial': 32,
+            'minimum': 8,
+            'maximum': 512,
+            'targetTime': 15,
+            'retargetTime': 90,
+            'variance': 30
+        }
+    }],
+    'recipients': [{
+        'address': '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        'percentage': 0.05,
+    }],
     'p2p': {
         'enabled': true,
         'host': '127.0.0.1',
         'port': 8333,
         'disableTransactions': true
     },
-    'recipients': [{
-        'address': '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
-        'percentage': 0.05,
-    }],
-    'rewards': '',
-    'tcpProxyProtocol': false,
+    'settings': {
+        'connectionTimeout': 600,
+        'jobRebroadcastTimeout': 60,
+        'tcpProxyProtocol': false,
+    }
 };
 
 nock.disableNetConnect();
@@ -427,12 +427,11 @@ describe('Test pool functionality', () => {
                     { id: 'nocktest', error: null, result: { protocolversion: 1, connections: 1 }},
                 ]));
             pool.setupPoolData(() => {
-                expect(optionsCopy.testnet).toBe(false);
-                expect(typeof optionsCopy.network).toBe('object');
-                expect(optionsCopy.poolAddress).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
-                expect(optionsCopy.protocolVersion).toBe(1);
-                expect(typeof optionsCopy.initStats).toBe('object');
-                expect(optionsCopy.hasSubmitMethod).toBe(true);
+                expect(optionsCopy.address).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
+                expect(optionsCopy.settings.testnet).toBe(false);
+                expect(optionsCopy.settings.protocolVersion).toBe(1);
+                expect(optionsCopy.settings.hasSubmitMethod).toBe(true);
+                expect(typeof optionsCopy.statistics).toBe('object');
                 done();
             });
         });
@@ -493,12 +492,11 @@ describe('Test pool functionality', () => {
                     { id: 'nocktest', error: null, result: { testnet: false, difficulty: { 'proof-of-work': 0 }, protocolversion: 1, connections: 0 }},
                 ]));
             pool.setupPoolData(() => {
-                expect(optionsCopy.testnet).toBe(false);
-                expect(typeof optionsCopy.network).toBe('object');
-                expect(optionsCopy.poolAddress).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
-                expect(optionsCopy.protocolVersion).toBe(1);
-                expect(typeof optionsCopy.initStats).toBe('object');
-                expect(optionsCopy.hasSubmitMethod).toBe(true);
+                expect(optionsCopy.address).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
+                expect(optionsCopy.settings.testnet).toBe(false);
+                expect(optionsCopy.settings.protocolVersion).toBe(1);
+                expect(optionsCopy.settings.hasSubmitMethod).toBe(true);
+                expect(typeof optionsCopy.statistics).toBe('object');
                 done();
             });
         });
@@ -518,12 +516,11 @@ describe('Test pool functionality', () => {
                     { id: 'nocktest', error: null, result: { protocolversion: 1, connections: 1 }},
                 ]));
             pool.setupPoolData(() => {
-                expect(optionsCopy.testnet).toBe(true);
-                expect(typeof optionsCopy.network).toBe('object');
-                expect(optionsCopy.poolAddress).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
-                expect(optionsCopy.protocolVersion).toBe(1);
-                expect(typeof optionsCopy.initStats).toBe('object');
-                expect(optionsCopy.hasSubmitMethod).toBe(true);
+                expect(optionsCopy.address).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
+                expect(optionsCopy.settings.testnet).toBe(true);
+                expect(optionsCopy.settings.protocolVersion).toBe(1);
+                expect(optionsCopy.settings.hasSubmitMethod).toBe(true);
+                expect(typeof optionsCopy.statistics).toBe('object');
                 done();
             });
         });
@@ -542,12 +539,11 @@ describe('Test pool functionality', () => {
                     { id: 'nocktest', error: null, result: { protocolversion: 1, connections: 1 }},
                 ]));
             pool.setupPoolData(() => {
-                expect(optionsCopy.testnet).toBe(false);
-                expect(typeof optionsCopy.network).toBe('object');
-                expect(optionsCopy.poolAddress).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
-                expect(optionsCopy.protocolVersion).toBe(1);
-                expect(typeof optionsCopy.initStats).toBe('object');
-                expect(optionsCopy.hasSubmitMethod).toBe(false);
+                expect(optionsCopy.address).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
+                expect(optionsCopy.settings.testnet).toBe(false);
+                expect(optionsCopy.settings.protocolVersion).toBe(1);
+                expect(optionsCopy.settings.hasSubmitMethod).toBe(false);
+                expect(typeof optionsCopy.statistics).toBe('object');
                 done();
             });
         });
@@ -580,7 +576,7 @@ describe('Test pool functionality', () => {
         mockSetupDaemon(pool, () => {
             mockSetupData(pool, () => {
                 pool.setupRecipients();
-                expect(optionsCopy.feePercentage).toBe(0.05);
+                expect(optionsCopy.settings.feePercentage).toBe(0.05);
                 done();
             });
         });
@@ -592,7 +588,7 @@ describe('Test pool functionality', () => {
         const pool = new Pool(optionsCopy, null, () => {});
         pool.on('log', (type, text) => {
             expect(type).toBe('error');
-            expect(text).toBe('No rewardRecipients have been setup which means no fees will be taken');
+            expect(text).toBe('No recipients have been added which means that no fees will be taken');
             done();
         });
         mockSetupDaemon(pool, () => {
@@ -1307,7 +1303,7 @@ describe('Test pool functionality', () => {
         const response = [];
         const optionsCopy = Object.assign({}, options);
         const rpcDataCopy = Object.assign({}, rpcData);
-        optionsCopy.blockRefreshInterval = 600;
+        optionsCopy.settings.blockRefreshInterval = 600;
         rpcDataCopy.previousblockhash = '1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769';
         rpcDataCopy.height = 2;
         const pool = new Pool(optionsCopy, null, () => {});
@@ -1370,12 +1366,8 @@ describe('Test pool functionality', () => {
 
     test('Test pool peer events [2]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
-        optionsCopy.coin = Object.assign({}, options.coin);
-        optionsCopy.coin.testnet = Object.assign({}, options.coin.testnet);
+        const optionsCopy = JSON.parse(JSON.stringify(options));
         optionsCopy.coin.testnet.peerMagic = false;
-        optionsCopy.recipients = Object.assign([], options.recipients);
-        optionsCopy.recipients[0] = Object.assign({}, options.recipients[0]);
         optionsCopy.recipients[0].address = 'tb1qnc0z4696tusrgscws5gvc7g2hhz99m6lrssfc2';
         const pool = new Pool(optionsCopy, null, () => {});
         pool.on('log', (type, text) => {
@@ -1402,9 +1394,7 @@ describe('Test pool functionality', () => {
 
     test('Test pool peer events [3]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
-        optionsCopy.coin = Object.assign({}, options.coin);
-        optionsCopy.coin.mainnet = Object.assign({}, options.coin.mainnet);
+        const optionsCopy = JSON.parse(JSON.stringify(options));
         optionsCopy.coin.mainnet.peerMagic = false;
         const pool = new Pool(optionsCopy, null, () => {});
         pool.on('log', (type, text) => {
@@ -1560,7 +1550,7 @@ describe('Test pool functionality', () => {
                 mockSetupBlockchain(pool, () => {
                     mockSetupFirstJob(pool, () => {
                         pool.setupPeer();
-                        pool.peer.on('blockNotify', function(hash) {
+                        pool.peer.on('blockNotify', (hash) => {
                             nock('http://127.0.0.1:8332')
                                 .post('/', body => body.method === 'getblocktemplate')
                                 .reply(200, JSON.stringify({
@@ -1597,7 +1587,7 @@ describe('Test pool functionality', () => {
                 mockSetupBlockchain(pool, () => {
                     mockSetupFirstJob(pool, () => {
                         pool.setupPeer();
-                        pool.peer.on('blockNotify', function(hash) {
+                        pool.peer.on('blockNotify', (hash) => {
                             nock('http://127.0.0.1:8332')
                                 .post('/', body => body.method === 'getblocktemplate')
                                 .reply(200, JSON.stringify({
@@ -2280,10 +2270,8 @@ describe('Test pool functionality', () => {
     test('Test pool stratum events [17]', (done) => {
         let client;
         const response = [];
-        const optionsCopy = Object.assign({}, options);
-        optionsCopy.ports = Object.assign({}, options.ports);
-        optionsCopy.ports['3001'] = Object.assign({}, options.ports['3001']);
-        delete optionsCopy.ports['3001'].initial;
+        const optionsCopy = JSON.parse(JSON.stringify(options));
+        delete optionsCopy.ports[0].difficulty.initial;
         const pool = new Pool(optionsCopy, () => {}, () => {});
         pool.on('log', (type, text) => {
             response.push([type, text]);
@@ -2378,14 +2366,12 @@ describe('Test pool functionality', () => {
         const pool = new Pool(optionsCopy, () => {}, () => {});
         pool.on('log', (type, text) => {
             response.push([type, text]);
-            if (response.length === 3) {
+            if (response.length === 2) {
                 pool.stratum.on('stopped', () => done());
                 expect(response[0][0]).toBe('warning');
                 expect(response[0][1]).toBe('Network diff of 0 is lower than port 3001 w/ diff 32');
-                expect(response[1][0]).toBe('debug');
-                expect(response[1][1]).toBe('Block template polling has been disabled');
-                expect(response[2][0]).toBe('special');
-                expect(response[2][1]).toBe('Stratum pool server started for Bitcoin [BTC] {sha256d}\n\t\t\t\t\t\tNetwork Connected:	Mainnet\n\t\t\t\t\t\tCurrent Block Height:	1\n\t\t\t\t\t\tCurrent Connect Peers:	1\n\t\t\t\t\t\tCurrent Block Diff:	0.000244141\n\t\t\t\t\t\tNetwork Difficulty:	0\n\t\t\t\t\t\tStratum Port(s):	3001\n\t\t\t\t\t\tPool Fee Percentage:	5%');
+                expect(response[1][0]).toBe('special');
+                expect(response[1][1]).toBe('Stratum pool server started for Bitcoin [BTC] {sha256d}\n\t\t\t\t\t\tNetwork Connected:	Mainnet\n\t\t\t\t\t\tCurrent Block Height:	1\n\t\t\t\t\t\tCurrent Connect Peers:	1\n\t\t\t\t\t\tCurrent Block Diff:	0.000244141\n\t\t\t\t\t\tNetwork Difficulty:	0\n\t\t\t\t\t\tStratum Port(s):	3001\n\t\t\t\t\t\tPool Fee Percentage:	5%');
                 pool.stratum.stopServer();
             }
         });

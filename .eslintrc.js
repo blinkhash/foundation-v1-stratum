@@ -19,6 +19,7 @@ module.exports = {
         'quotes': [2, 'single'],
         'no-multiple-empty-lines': 2,
         'prefer-const': 2,
+        'prefer-arrow-callback': 2,
         'no-use-before-define': 2
     }
 };

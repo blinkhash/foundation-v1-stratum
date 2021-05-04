@@ -199,7 +199,7 @@ const Manager = function(options) {
             blockHash = this.blockHasher(headerBuffer, nTime).toString('hex');
         }
         else {
-            if (options.emitInvalidBlockHashes) {
+            if (options.settings.emitInvalidBlockHashes) {
                 blockHashInvalid = utils.reverseBuffer(utils.sha256d(headerBuffer)).toString('hex');
             }
             if (shareDiff / difficulty < 0.99) {

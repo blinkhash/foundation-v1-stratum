@@ -34,7 +34,7 @@ const RingBuffer = function(maxSize) {
 
     // Average Ring Buffer
     this.avg = function() {
-        const sum = data.reduce(function(a, b) { return a + b; });
+        const sum = data.reduce((a, b) => { return a + b; });
         return sum / (isFull ? maxSize : cursor);
     };
 
@@ -56,7 +56,7 @@ const Difficulty = function(port, difficultyOptions, showLogs) {
 
     const _this = this;
     const logging = showLogs;
-    const variance = difficultyOptions.targetTime * (difficultyOptions.variancePercent / 100);
+    const variance = difficultyOptions.targetTime * (difficultyOptions.variance / 100);
     const bufferSize = difficultyOptions.retargetTime / difficultyOptions.targetTime * 4;
     const tMin = difficultyOptions.targetTime - variance;
     const tMax = difficultyOptions.targetTime + variance;
@@ -74,7 +74,7 @@ const Difficulty = function(port, difficultyOptions, showLogs) {
         let lastTs, lastRtc, timeBuffer;
 
         // Handle Difficulty Updates on Submission
-        client.on('submit', function() {
+        client.on('submit', () => {
             const ts = (Date.now() / 1000) | 0;
             if (!lastRtc) {
                 lastRtc = ts - options.retargetTime / 2;
@@ -97,23 +97,23 @@ const Difficulty = function(port, difficultyOptions, showLogs) {
                 return;
             }
             lastRtc = ts;
-            if (avg > tMax && client.difficulty > options.minDiff) {
+            if (avg > tMax && client.difficulty > options.minimum) {
                 if (options.x2mode) {
                     ddiff = 0.5;
                 }
-                if (ddiff * client.difficulty < options.minDiff) {
-                    ddiff = options.minDiff / client.difficulty;
+                if (ddiff * client.difficulty < options.minimum) {
+                    ddiff = options.minimum / client.difficulty;
                 }
                 if (logging) {
                     console.log('Decreasing current difficulty');
                 }
             }
-            else if (avg < tMin && client.difficulty < options.maxDiff) {
+            else if (avg < tMin && client.difficulty < options.maximum) {
                 if (options.x2mode) {
                     ddiff = 2;
                 }
-                if (ddiff * client.difficulty > options.maxDiff) {
-                    ddiff = options.maxDiff / client.difficulty;
+                if (ddiff * client.difficulty > options.maximum) {
+                    ddiff = options.maximum / client.difficulty;
                 }
                 if (logging) {
                     console.log('Increasing current difficulty');

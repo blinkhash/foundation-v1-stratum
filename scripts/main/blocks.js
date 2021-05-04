@@ -26,14 +26,14 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
 
     // Calculate Merkle Hashes
     this.getMerkleHashes = function(steps) {
-        return steps.map(function(step) {
+        return steps.map((step) => {
             return step.toString('hex');
         });
     };
 
     // Calculate Transaction Buffers
     this.getTransactionBuffers = function(txs) {
-        const txHashes = txs.map(function(tx) {
+        const txHashes = txs.map((tx) => {
             if (tx.txid !== undefined) {
                 return utils.uint256BufferFromHash(tx.txid);
             }
@@ -49,7 +49,7 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
         }
         return Buffer.concat(
             [utils.varIntBuffer(this.rpcData.votes.length)].concat(
-                this.rpcData.votes.map(function (vt) {
+                this.rpcData.votes.map((vt) => {
                     return Buffer.from(vt, 'hex');
                 })
             )
@@ -70,7 +70,7 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
     this.generation = this.createGeneration(this.rpcData, extraNoncePlaceholder, options);
     this.merkle = this.createMerkle(this.rpcData);
     this.previousblockhash = utils.reverseByteOrder(Buffer.from(this.rpcData.previousblockhash, 'hex')).toString('hex');
-    this.transactions = Buffer.concat(this.rpcData.transactions.map(function(tx) {
+    this.transactions = Buffer.concat(this.rpcData.transactions.map((tx) => {
         return Buffer.from(tx.data, 'hex');
     }));
 

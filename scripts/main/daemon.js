@@ -61,18 +61,18 @@ const DaemonInterface = function(daemons, logger) {
         };
 
         // Establish HTTP Request
-        const req = http.request(options, function(res) {
+        const req = http.request(options, (res) => {
             let data = '';
             res.setEncoding('utf8');
-            res.on('data', function(chunk) {
+            res.on('data', (chunk) => {
                 data += chunk;
             });
-            res.on('end', function() {
+            res.on('end', () => {
                 parseJson(res, data);
             });
         });
 
-        req.on('error', function(e) {
+        req.on('error', (e) => {
             if (e.code === 'ECONNREFUSED')
                 callback({type: 'offline', message: e.message}, null);
             else
@@ -94,8 +94,8 @@ const DaemonInterface = function(daemons, logger) {
 
     // Check if All Daemons are Online
     this.isOnline = function(callback) {
-        this.cmd('getpeerinfo', [], function(results) {
-            const allOnline = results.every(function(result) {
+        this.cmd('getpeerinfo', [], (results) => {
+            const allOnline = results.every((result) => {
                 return !result.error;
             });
             callback(allOnline);
@@ -107,7 +107,7 @@ const DaemonInterface = function(daemons, logger) {
 
     // Initialize Daemons
     this.initDaemons = function(callback) {
-        this.isOnline(function(online) {
+        this.isOnline((online) => {
             if (online) {
                 _this.emit('online');
             }
@@ -126,7 +126,7 @@ const DaemonInterface = function(daemons, logger) {
             });
         });
         const serializedRequest = JSON.stringify(requestJson);
-        _this.performHttpRequest(this.instances[0], serializedRequest, function(error, result) {
+        _this.performHttpRequest(this.instances[0], serializedRequest, (error, result) => {
             callback(error, result);
         });
     };
@@ -134,7 +134,7 @@ const DaemonInterface = function(daemons, logger) {
     // Handle Single RPC Command
     this.cmd = function(method, params, callback, streamResults, returnRawData) {
         const results = [];
-        async.each(this.instances, function(instance, eachCallback) {
+        async.each(this.instances, (instance, eachCallback) => {
 
             // Build Output Request Data
             const itemFinished = function(error, result, data) {
@@ -156,10 +156,10 @@ const DaemonInterface = function(daemons, logger) {
                 id: Date.now() + Math.floor(Math.random() * 10)
             });
 
-            _this.performHttpRequest(instance, requestJson, function(error, result, data) {
+            _this.performHttpRequest(instance, requestJson, (error, result, data) => {
                 itemFinished(error, result, data);
             });
-        }, function() {
+        }, () => {
             if (!streamResults) {
                 callback(results);
             }

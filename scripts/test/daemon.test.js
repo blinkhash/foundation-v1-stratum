@@ -99,7 +99,7 @@ describe('Test daemon functionality', () => {
                 response: null,
                 instance: 'nocktest',
             }));
-        daemon.cmd('getinfo', [], function(results) {
+        daemon.cmd('getinfo', [], (results) => {
             const response = '{"error":null,"response":null,"instance":"nocktest"}';
             expect(results[0].data).toBe(response);
             done();
@@ -114,7 +114,7 @@ describe('Test daemon functionality', () => {
                 response: null,
                 instance: 'nocktest',
             }));
-        daemon.cmd('getinfo', [], function(results) {
+        daemon.cmd('getinfo', [], (results) => {
             expect(results.error).toBe(null);
             done();
         }, true, false);
@@ -125,7 +125,7 @@ describe('Test daemon functionality', () => {
         nock('http://127.0.0.1:8332')
             .post('/', body => body.method === 'getinfo')
             .reply(401, {});
-        daemon.cmd('getinfo', [], function() {
+        daemon.cmd('getinfo', [], () => {
             expect(consoleSpy).toHaveBeenCalledWith('error: Unauthorized RPC access - invalid RPC username or password');
             console.log.mockClear();
             done();
@@ -138,7 +138,7 @@ describe('Test daemon functionality', () => {
             .post('/', body => body.method === 'getinfo')
             .reply(200, 'this is an example of bad data {/13');
         const request = JSON.stringify({ 'method': 'getinfo', 'params': [], 'id': 1615071070849 });
-        daemon.performHttpRequest(daemon.instances[0], request, function() {
+        daemon.performHttpRequest(daemon.instances[0], request, () => {
             const output = 'error: Could not parse RPC data from daemon instance 0\nRequest Data: {"method":"getinfo","params":[],"id":1615071070849}\nReponse Data: this is an example of bad data {/13';
             expect(consoleSpy).toHaveBeenCalledWith(output);
             console.log.mockClear();
@@ -150,7 +150,7 @@ describe('Test daemon functionality', () => {
         nock('http://127.0.0.1:8332')
             .post('/', body => body.method === 'getinfo')
             .replyWithError({ code: 'ECONNREFUSED' });
-        daemon.cmd('getinfo', [], function(results) {
+        daemon.cmd('getinfo', [], (results) => {
             expect(results[0].error.type).toBe('offline');
             done();
         });
@@ -160,7 +160,7 @@ describe('Test daemon functionality', () => {
         nock('http://127.0.0.1:8332')
             .post('/', body => body.method === 'getinfo')
             .replyWithError({ code: 'ALTERNATE' });
-        daemon.cmd('getinfo', [], function(results) {
+        daemon.cmd('getinfo', [], (results) => {
             expect(results[0].error.type).toBe('request error');
             done();
         });
@@ -173,7 +173,7 @@ describe('Test daemon functionality', () => {
                 { id: 'nocktest', error: null, result: null },
                 { id: 'nocktest', error: null, result: null },
             ]));
-        daemon.batchCmd(commands, function(error, results) {
+        daemon.batchCmd(commands, (error, results) => {
             expect(results.length).toBe(2);
             expect(results[0].id).toBe('nocktest');
             expect(results[0].error).toBe(null);

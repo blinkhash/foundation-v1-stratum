@@ -47,24 +47,27 @@ const rpcData = {
 };
 
 const options = {
-    'asicBoost': true,
+    'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
     'coin': {
         'algorithm': 'scrypt',
-    },
-    'network': {
-        'bech32': 'bc',
-        'bip32': {
-            'public': 0x0488b21e,
-            'private': 0x0488ade4,
+        'asicBoost': true,
+        'rewards': '',
+        'mainnet': {
+            'bech32': 'bc',
+            'bip32': {
+                'public': 0x0488b21e,
+                'private': 0x0488ade4,
+            },
+            'pubKeyHash': 0x00,
+            'scriptHash': 0x05,
+            'wif': 0x80,
+            'coin': 'btc',
         },
-        'pubKeyHash': 0x00,
-        'scriptHash': 0x05,
-        'wif': 0x80,
-        'coin': 'btc',
     },
-    'poolAddress': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
     'recipients': [],
-    'rewards': '',
+    'settings': {
+        'testnet': false
+    }
 };
 
 const jobId = 1;
@@ -85,6 +88,14 @@ describe('Test block functionality', () => {
         rpcDataCopy.target = null;
         const block = new BlockTemplate(jobId.toString(16), rpcDataCopy, extraNonce, options);
         expect(block.target.toNumber().toFixed(9)).toBe('1.1042625655198232e+71');
+    });
+
+    test('Test if target is not defined', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
+        const rpcTarget = JSON.parse(JSON.stringify(rpcData));
+        delete rpcTarget.target;
+        expect(block.target.toNumber().toFixed(9)).toBe('1.1042625655198232e+71');
+        expect(block.difficulty.toFixed(9)).toBe('0.000244141');
     });
 
     test('Test block difficulty calculation', () => {
@@ -121,6 +132,25 @@ describe('Test block functionality', () => {
         expect(generation.length).toBe(2);
         expect(generation[0].slice(0, -5)).toStrictEqual(Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff3d5104', 'hex'));
         expect(generation[1]).toStrictEqual(Buffer.from('2d68747470733a2f2f6769746875622e636f6d2f626c696e6b686173682f626c696e6b686173682d73657276657200000000020000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900f2052a01000000160014e8df018c7e326cc253faac7e46cdc51e68542c4200000000', 'hex'));
+    });
+
+    test('Test if txid is defined in the transaction', () => {
+        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
+        const rpcTxid = JSON.parse(JSON.stringify(rpcData));
+        rpcTxid.transactions[0].txid = rpcTxid.transactions[0].hash;
+        const merkleBuffers = block.getTransactionBuffers(rpcTxid.transactions);
+        expect(merkleBuffers.length).toBe(2);
+        expect(merkleBuffers[0]).toBe(null);
+        expect(merkleBuffers[1]).toStrictEqual(Buffer.from('17a35a38e70cd01488e0d5ece6ded04a9bc8125865471d36b9d5c47a08a5907c', 'hex'));
+    });
+
+    test('Test if masternode voting data exists', () => {
+        const rpcMasternodes = JSON.parse(JSON.stringify(rpcData));
+        rpcMasternodes.masternode_payments = true;
+        rpcMasternodes.votes = ['17a35a38e70cd01488e0d5ece6ded04a9bc8125865471d36b9d5c47a08a5907c'];
+        const blockVoting = new BlockTemplate(jobId.toString(16), rpcMasternodes, extraNonce, options);
+        const blockVotes = blockVoting.getVoteData();
+        expect(blockVotes).toStrictEqual(Buffer.from('0117a35a38e70cd01488e0d5ece6ded04a9bc8125865471d36b9d5c47a08a5907c', 'hex'));
     });
 
     test('Test merkle creation', () => {
@@ -217,29 +247,6 @@ describe('Test block functionality', () => {
         const currentParams = block.getJobParams();
         expect(currentParams).toStrictEqual(jobParams);
     });
-});
-
-////////////////////////////////////////////////////////////////////////////////
-
-describe('Test miscellaneous features of block implementation', () => {
-
-    test('Test if target is not defined', () => {
-        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
-        const rpcTarget = JSON.parse(JSON.stringify(rpcData));
-        delete rpcTarget.target;
-        expect(block.target.toNumber().toFixed(9)).toBe('1.1042625655198232e+71');
-        expect(block.difficulty.toFixed(9)).toBe('0.000244141');
-    });
-
-    test('Test if txid is defined in the transaction', () => {
-        const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
-        const rpcTxid = JSON.parse(JSON.stringify(rpcData));
-        rpcTxid.transactions[0].txid = rpcTxid.transactions[0].hash;
-        const merkleBuffers = block.getTransactionBuffers(rpcTxid.transactions);
-        expect(merkleBuffers.length).toBe(2);
-        expect(merkleBuffers[0]).toBe(null);
-        expect(merkleBuffers[1]).toStrictEqual(Buffer.from('17a35a38e70cd01488e0d5ece6ded04a9bc8125865471d36b9d5c47a08a5907c', 'hex'));
-    });
 
     test('Test if block jobParams already exists', () => {
         const block = new BlockTemplate(jobId.toString(16), rpcData, extraNonce, options);
@@ -257,14 +264,5 @@ describe('Test miscellaneous features of block implementation', () => {
         block.jobParams = jobParams;
         const currentParams = block.getJobParams();
         expect(currentParams).toStrictEqual(jobParams);
-    });
-
-    test('Test if masternode voting data exists', () => {
-        const rpcMasternodes = JSON.parse(JSON.stringify(rpcData));
-        rpcMasternodes.masternode_payments = true;
-        rpcMasternodes.votes = ['17a35a38e70cd01488e0d5ece6ded04a9bc8125865471d36b9d5c47a08a5907c'];
-        const blockVoting = new BlockTemplate(jobId.toString(16), rpcMasternodes, extraNonce, options);
-        const blockVotes = blockVoting.getVoteData();
-        expect(blockVotes).toStrictEqual(Buffer.from('0117a35a38e70cd01488e0d5ece6ded04a9bc8125865471d36b9d5c47a08a5907c', 'hex'));
     });
 });

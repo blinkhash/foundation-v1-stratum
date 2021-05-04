@@ -16,12 +16,14 @@ const Transactions = function() {
 
         const txLockTime = 0;
         const txInSequence = 0;
-        let txType = 0;
-        let txExtraPayload;
         const txInPrevOutHash = '';
         const txInPrevOutIndex = Math.pow(2, 32) - 1;
         const txOutputBuffers = [];
+
+        let txType = 0;
+        let txExtraPayload;
         let txVersion = options.coin.txMessages === true ? 2 : 1;
+        const network = !options.settings.testnet ? options.coin.mainnet : options.coin.testnet;
 
         // Support Coinbase v3 Block Template
         if (rpcData.coinbase_payload && rpcData.coinbase_payload.length > 0) {
@@ -41,7 +43,7 @@ const Transactions = function() {
         let reward = rpcData.coinbasevalue;
         let rewardToPool = reward;
         const poolIdentifier = options.identifier || 'https://github.com/blinkhash/blinkhash-server';
-        const poolAddressScript = utils.addressToScript(options.poolAddress, options.network);
+        const poolAddressScript = utils.addressToScript(options.address, network);
         const coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
 
         // Handle Comments if Necessary
@@ -71,7 +73,7 @@ const Transactions = function() {
         if (rpcData.masternode) {
             if (rpcData.masternode.payee) {
                 const payeeReward = rpcData.masternode.amount;
-                const payeeScript = utils.addressToScript(rpcData.masternode.payee, options.network);
+                const payeeScript = utils.addressToScript(rpcData.masternode.payee, network);
                 reward -= payeeReward;
                 rewardToPool -= payeeReward;
                 txOutputBuffers.push(Buffer.concat([
@@ -88,7 +90,7 @@ const Transactions = function() {
                         payeeScript = Buffer.from(payee.script, 'hex');
                     }
                     else {
-                        payeeScript = utils.addressToScript(payee.payee, options.network);
+                        payeeScript = utils.addressToScript(payee.payee, network);
                     }
                     reward -= payeeReward;
                     rewardToPool -= payeeReward;
@@ -110,7 +112,7 @@ const Transactions = function() {
                     payeeScript = Buffer.from(payee.script, 'hex');
                 }
                 else {
-                    payeeScript = utils.addressToScript(payee.payee, options.network);
+                    payeeScript = utils.addressToScript(payee.payee, network);
                 }
                 reward -= payeeReward;
                 rewardToPool -= payeeReward;
@@ -125,7 +127,7 @@ const Transactions = function() {
         // Handle Other Given Payees
         if (rpcData.payee) {
             const payeeReward = rpcData.payee_amount || Math.ceil(reward / 5);
-            const payeeScript = utils.addressToScript(rpcData.payee, options.network);
+            const payeeScript = utils.addressToScript(rpcData.payee, network);
             reward -= payeeReward;
             rewardToPool -= payeeReward;
             txOutputBuffers.push(Buffer.concat([
@@ -136,7 +138,7 @@ const Transactions = function() {
         }
 
         // Handle Secondary Transactions
-        switch (options.rewards) {
+        switch (options.coin.rewards) {
         default:
             break;
         }
@@ -144,7 +146,7 @@ const Transactions = function() {
         // Handle Recipient Transactions
         options.recipients.forEach(recipient => {
             const recipientReward = Math.floor(recipient.percentage * reward);
-            const recipientScript = utils.addressToScript(recipient.address, options.network);
+            const recipientScript = utils.addressToScript(recipient.address, network);
             reward -= recipientReward;
             rewardToPool -= recipientReward;
             txOutputBuffers.push(Buffer.concat([

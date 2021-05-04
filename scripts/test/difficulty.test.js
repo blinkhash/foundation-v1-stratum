@@ -10,18 +10,18 @@ const Difficulty = require('../main/difficulty');
 // Bad Settings
 const port = 3001;
 const vardiff1 = {
-    'minDiff': 8,
-    'maxDiff': 8,
+    'minimum': 8,
+    'maximum': 8,
     'targetTime': 1,
     'retargetTime': 1,
-    'variancePercent': -0.1,
+    'variance': -0.1,
 };
 const vardiff2 = {
-    'minDiff': 8,
-    'maxDiff': 8,
+    'minimum': 8,
+    'maximum': 8,
     'targetTime': 1,
     'retargetTime': 1,
-    'variancePercent': -0.1,
+    'variance': -0.1,
     'x2mode': true,
 };
 
@@ -88,7 +88,7 @@ describe('Test difficulty functionality', () => {
         difficulty1.manageClient(client);
         difficulty2.manageClient(client);
         client.emit('submit');
-        setTimeout(function() {
+        setTimeout(() => {
             client.emit('submit');
             expect(consoleSpy).toHaveBeenCalledWith('No difficulty update required');
             console.log.mockClear();
@@ -102,7 +102,7 @@ describe('Test difficulty functionality', () => {
         difficulty1.manageClient(client);
         difficulty2.manageClient(client);
         client.emit('submit');
-        setTimeout(function() {
+        setTimeout(() => {
             client.emit('submit');
             expect(consoleSpy).toHaveBeenCalledWith('Increasing current difficulty');
             console.log.mockClear();
@@ -116,7 +116,7 @@ describe('Test difficulty functionality', () => {
         difficulty1.manageClient(client);
         difficulty2.manageClient(client);
         client.emit('submit');
-        setTimeout(function() {
+        setTimeout(() => {
             client.emit('submit');
             expect(consoleSpy).toHaveBeenCalledWith('Decreasing current difficulty');
             console.log.mockClear();
@@ -130,7 +130,7 @@ describe('Test difficulty functionality', () => {
         difficulty1.manageClient(client);
         difficulty2.manageClient(client);
         client.emit('submit');
-        setTimeout(function() {
+        setTimeout(() => {
             client.emit('submit');
             expect(consoleSpy).toHaveBeenCalledWith('Decreasing current difficulty');
             console.log.mockClear();

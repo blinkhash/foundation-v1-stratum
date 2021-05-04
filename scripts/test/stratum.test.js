@@ -8,20 +8,15 @@ const events = require('events');
 const Stratum = require('../main/stratum');
 
 const options = {
-    'address': '',
-    'asicBoost': true,
-    'banning': {
-        'time': 600,
-        'invalidPercent': 50,
-        'checkThreshold': 5,
-        'purgeInterval': 300
-    },
+    'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
     'coin': {
         'name': 'Bitcoin',
         'symbol': 'BTC',
         'algorithm': 'sha256d',
+        'asicBoost': true,
         'hasGetInfo': false,
         'segwit': true,
+        'rewards': '',
         'mainnet': {
             'bech32': 'bc',
             'bip32': {
@@ -47,28 +42,30 @@ const options = {
             'coin': 'btc',
         }
     },
-    'connectionTimeout': 600,
     'daemons': [{
         'host': '127.0.0.1',
         'port': 8332,
         'user': '',
         'password': ''
     }],
-    'jobRebroadcastTimeout': 60,
-    'ports': {
-        '3001': {
-            'enabled': true,
-            'initial': 32,
-            'difficulty': {
-                'minDiff': 8,
-                'maxDiff': 512,
-                'targetTime': 15,
-                'retargetTime': 90,
-                'variancePercent': 30
-            }
-        }
+    'banning': {
+        'time': 600,
+        'invalidPercent': 50,
+        'checkThreshold': 5,
+        'purgeInterval': 300
     },
-    'poolAddress': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
+    'ports': [{
+        'port': 3001,
+        'enabled': true,
+        'difficulty': {
+            'initial': 32,
+            'minimum': 8,
+            'maximum': 512,
+            'targetTime': 15,
+            'retargetTime': 90,
+            'variance': 30
+        }
+    }],
     'p2p': {
         'enabled': true,
         'host': '127.0.0.1',
@@ -79,8 +76,11 @@ const options = {
         'address': '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
         'percentage': 0.05,
     }],
-    'rewards': '',
-    'tcpProxyProtocol': false,
+    'settings': {
+        'connectionTimeout': 600,
+        'jobRebroadcastTimeout': 60,
+        'tcpProxyProtocol': false,
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -118,8 +118,12 @@ function mockSocket() {
 
 describe('Test stratum functionality', () => {
 
+    let optionsCopy;
+    beforeEach(() => {
+        optionsCopy = Object.assign({}, options);
+    });
+
     test('Test initialization of stratum network', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         expect(typeof stratum).toBe('object');
         stratum.on('stopped', () => done());
@@ -127,7 +131,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum banning capabilities [1]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const client = mockClient();
         client.on('kickedBannedIP', timeLeft => {
@@ -140,7 +143,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum banning capabilities [2]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         optionsCopy.banning = Object.assign({}, options.banning);
         optionsCopy.banning.time = -1;
         const stratum = new Stratum.network(optionsCopy, () => {});
@@ -154,7 +156,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum banning capabilities [3]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -167,7 +168,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum banning capabilities [4]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -182,7 +182,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum banning capabilities [5]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -197,7 +196,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum banning capabilities [6]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -213,7 +211,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum banning capabilities [7]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -234,7 +231,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum handling of new clients [1]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         const subscriptionId = stratum.handleNewClient(socket);
@@ -245,7 +241,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum handling of new clients [2]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -259,7 +254,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum handling of new clients [3]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -274,8 +268,8 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum job broadcasting [1]', (done) => {
-        const optionsCopy = Object.assign({}, options);
-        optionsCopy.connectionTimeout = -1;
+        optionsCopy.settings = Object.assign({}, options.settings);
+        optionsCopy.settings.connectionTimeout = -1;
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -290,7 +284,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum job broadcasting [2]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -310,7 +303,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum job broadcasting [3]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -327,7 +319,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum client labelling [1]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -339,7 +330,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum client labelling [2]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -350,7 +340,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum client difficulty queueing', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -363,7 +352,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum client difficulty management', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -382,7 +370,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum message handling [1]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -396,7 +383,7 @@ describe('Test stratum functionality', () => {
                 stratum.stopServer();
             }
         });
-        client.on('subscription', function(params, resultCallback) {
+        client.on('subscription', (params, resultCallback) => {
             resultCallback(null, 'extraNonce1', 'extraNonce2Size');
         });
         client.handleMessage({ id: null, method: 'mining.subscribe' });
@@ -404,7 +391,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum message handling [2]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -418,7 +404,7 @@ describe('Test stratum functionality', () => {
                 stratum.stopServer();
             }
         });
-        client.on('subscription', function(params, resultCallback) {
+        client.on('subscription', (params, resultCallback) => {
             resultCallback(true, null, null);
         });
         client.handleMessage({ id: null, method: 'mining.subscribe' });
@@ -426,7 +412,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum message handling [3]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, (addr, port, username, password, callback) => {
             callback({ error: null, authorized: true, disconnect: true });
         });
@@ -447,7 +432,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum message handling [4]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, (addr, port, username, password, callback) => {
             callback({ error: null, authorized: true, disconnect: false });
         });
@@ -468,8 +452,8 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum message handling [5]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
-        optionsCopy.asicBoost = false;
+        optionsCopy.coin = Object.assign({}, options.coin);
+        optionsCopy.coin.asicBoost = false;
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -489,7 +473,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum message handling [6]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -508,8 +491,8 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum message handling [7]', () => {
-        const optionsCopy = Object.assign({}, options);
-        optionsCopy.asicBoost = false;
+        optionsCopy.coin = Object.assign({}, options.coin);
+        optionsCopy.coin.asicBoost = false;
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -521,7 +504,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum message handling [8]', () => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -533,7 +515,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum message handling [9]', () => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -546,7 +527,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum message handling [10]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -565,7 +545,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum message handling [11]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -585,7 +564,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum message handling [12]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -600,7 +578,7 @@ describe('Test stratum functionality', () => {
                 stratum.stopServer();
             }
         });
-        client.on('submit', function(params, resultCallback) {
+        client.on('submit', (params, resultCallback) => {
             resultCallback(null, true);
         });
         client.handleMessage({ id: null, method: 'mining.submit' });
@@ -609,7 +587,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum message handling [13]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -627,7 +604,6 @@ describe('Test stratum functionality', () => {
 
     test('Test stratum message handling [14]', (done) => {
         const response = [];
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);
@@ -644,7 +620,6 @@ describe('Test stratum functionality', () => {
     });
 
     test('Test stratum message handling [15]', (done) => {
-        const optionsCopy = Object.assign({}, options);
         const stratum = new Stratum.network(optionsCopy, () => {});
         const socket = mockSocket();
         stratum.handleNewClient(socket);

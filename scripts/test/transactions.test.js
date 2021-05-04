@@ -38,23 +38,37 @@ const rpcData = {
 };
 
 const options = {
+    'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
     'coin': {
         'algorithm': 'scrypt',
-    },
-    'network': {
-        'bech32': 'bc',
-        'bip32': {
-            'public': 0x0488b21e,
-            'private': 0x0488ade4,
+        'rewards': '',
+        'mainnet': {
+            'bech32': 'bc',
+            'bip32': {
+                'public': 0x0488b21e,
+                'private': 0x0488ade4,
+            },
+            'pubKeyHash': 0x00,
+            'scriptHash': 0x05,
+            'wif': 0x80,
+            'coin': 'btc',
         },
-        'pubKeyHash': 0x00,
-        'scriptHash': 0x05,
-        'wif': 0x80,
-        'coin': 'btc',
+        'testnet': {
+            'bech32': 'tbc',
+            'bip32': {
+                'public': 0x0488b21e,
+                'private': 0x0488ade4,
+            },
+            'pubKeyHash': 0x00,
+            'scriptHash': 0x05,
+            'wif': 0x80,
+            'coin': 'btc',
+        },
     },
-    'poolAddress': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
     'recipients': [],
-    'rewards': '',
+    'settings': {
+        'testnet': false,
+    }
 };
 
 const extraNonce = Buffer.from('f000000ff111111f', 'hex');

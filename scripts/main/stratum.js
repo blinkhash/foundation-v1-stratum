@@ -71,7 +71,7 @@ const StratumClient = function(options) {
         const socket = _this.options.socket;
         socket.setEncoding('utf8');
         if (_this.options.tcpProxyProtocol === true) {
-            socket.once('data', function (d) {
+            socket.once('data', (d) => {
                 if (d.indexOf('PROXY') === 0) {
                     _this.remoteAddress = d.split(' ')[2];
                 }
@@ -85,7 +85,7 @@ const StratumClient = function(options) {
             _this.emit('checkBan');
         }
 
-        socket.on('data', function(d) {
+        socket.on('data', (d) => {
             dataBuffer += d;
             if (Buffer.byteLength(dataBuffer, 'utf8') > 10240) {
                 dataBuffer = '';
@@ -96,7 +96,7 @@ const StratumClient = function(options) {
             if (dataBuffer.indexOf('\n') !== -1) {
                 const messages = dataBuffer.split('\n');
                 const incomplete = dataBuffer.slice(-1) === '\n' ? '' : messages.pop();
-                messages.forEach(function(message) {
+                messages.forEach((message) => {
                     if (message === '') return;
                     let messageJson;
                     try {
@@ -117,11 +117,11 @@ const StratumClient = function(options) {
             }
         });
 
-        socket.on('close', function() {
+        socket.on('close', () => {
             _this.emit('socketDisconnect');
         });
 
-        socket.on('error', function(e) {
+        socket.on('error', (e) => {
             if (e.code !== 'ECONNRESET')
                 _this.emit('socketError', e);
         });
@@ -172,7 +172,7 @@ const StratumClient = function(options) {
 
     // Manage Stratum Subscription
     this.handleSubscribe = function(message) {
-        _this.emit('subscription', {}, function(error, extraNonce1, extraNonce2Size) {
+        _this.emit('subscription', {}, (error, extraNonce1, extraNonce2Size) => {
             if (error) {
                 _this.sendJson({ id: message.id, result: null, error: error });
                 return;
@@ -198,7 +198,7 @@ const StratumClient = function(options) {
         _this.workerName = message.params[0];
         _this.workerPass = message.params[1];
 
-        _this.options.authorizeFn(_this.remoteAddress, _this.options.socket.localPort, message.params[0], message.params[1], function(result) {
+        _this.options.authorizeFn(_this.remoteAddress, _this.options.socket.localPort, message.params[0], message.params[1], (result) => {
             _this.authorized = (!result.error && result.authorized);
             _this.sendJson({
                 id: message.id,
@@ -280,7 +280,7 @@ const StratumClient = function(options) {
             _this.considerBan(false);
             return;
         }
-        _this.emit('submit', message, function(error, result) {
+        _this.emit('submit', message, (error, result) => {
             if (!_this.considerBan(result)) {
                 _this.sendJson({
                     id: message.id,
@@ -360,14 +360,14 @@ const StratumNetwork = function(options, authorizeFn) {
 
     let rebroadcastTimeout;
     const subscriptionCounter = utils.subscriptionCounter();
-    const bannedMS = _this.options.banning.time * 1000
+    const bannedMS = _this.options.banning.time * 1000;
 
     // Start Stratum Capabilities
     /* istanbul ignore next */
     this.setupNetwork = function() {
 
         // Interval to Clear Old Bans from BannedIPs
-        setInterval(function() {
+        setInterval(() => {
             Object.keys(_this.bannedIPs).forEach(ip => {
                 const banTime = _this.bannedIPs[ip];
                 if (Date.now() - banTime > _this.options.banning.time) {
@@ -376,43 +376,32 @@ const StratumNetwork = function(options, authorizeFn) {
             });
         }, 1000 * _this.options.banning.purgeInterval);
 
-        // Filter Individual Stratum Ports
-        let stratumPorts = Object.keys(_this.options.ports);
-        stratumPorts = stratumPorts.filter(function(port) {
-            return _this.options.ports[port].enabled === true;
-        });
-
         // Start Individual Stratum Servers
         let serversStarted = 0;
-        stratumPorts.forEach(function(port) {
-            const server = net.createServer({allowHalfOpen: false}, function(socket) {
+        const stratumPorts = _this.options.ports.filter(port => port.enabled);
+        stratumPorts.forEach((port) => {
+            const currentPort = port.port;
+            const server = net.createServer({ allowHalfOpen: false }, (socket) => {
                 _this.handleNewClient(socket);
             });
-            server.listen(parseInt(port), function() {
+            server.listen(parseInt(currentPort), () => {
                 serversStarted += 1;
                 if (serversStarted == stratumPorts.length) {
                     _this.emit('started');
                 }
             });
-            _this.stratumServers[port] = server;
+            _this.stratumServers[currentPort] = server;
         });
     };
 
     // Stop Stratum Connection
     this.stopServer = function() {
-
-        // Filter Individual Stratum Ports
-        let stratumPorts = Object.keys(_this.options.ports);
-        stratumPorts = stratumPorts.filter(function(port) {
-            return _this.options.ports[port].enabled === true;
-        });
-
-        // Start Individual Stratum Servers
-        stratumPorts.forEach(function(port) {
-            const server = _this.stratumServers[port];
+        const stratumPorts = _this.options.ports.filter(port => port.enabled);
+        stratumPorts.forEach((port) => {
+            const currentPort = port.port;
+            const server = _this.stratumServers[currentPort];
             server.close();
         });
-
         _this.emit('stopped');
     };
 
@@ -443,23 +432,23 @@ const StratumNetwork = function(options, authorizeFn) {
             subscriptionId: subscriptionId,
             authorizeFn: authorizeFn,
             socket: socket,
-            asicBoost: _this.options.asicBoost,
+            asicBoost: _this.options.coin.asicBoost,
             banning: _this.options.banning,
-            connectionTimeout: _this.options.connectionTimeout,
-            tcpProxyProtocol: _this.options.tcpProxyProtocol
+            connectionTimeout: _this.options.settings.connectionTimeout,
+            tcpProxyProtocol: _this.options.settings.tcpProxyProtocol
         });
         _this.stratumClients[subscriptionId] = client;
 
         // Manage Client Behaviors
         _this.emit('client.connected', client);
-        client.on('socketDisconnect', function() {
+        client.on('socketDisconnect', () => {
             delete _this.stratumClients[subscriptionId];
             _this.emit('client.disconnected', client);
         });
-        client.on('checkBan', function() {
+        client.on('checkBan', () => {
             _this.checkBan(client);
         });
-        client.on('triggerBan', function() {
+        client.on('triggerBan', () => {
             _this.addBannedIP(client.remoteAddress);
             _this.emit('client.banned', client);
         });
@@ -476,9 +465,9 @@ const StratumNetwork = function(options, authorizeFn) {
             client.sendMiningJob(jobParams);
         });
         clearTimeout(rebroadcastTimeout);
-        rebroadcastTimeout = setTimeout(function() {
+        rebroadcastTimeout = setTimeout(() => {
             _this.emit('broadcastTimeout');
-        }, _this.options.jobRebroadcastTimeout * 1000);
+        }, _this.options.settings.jobRebroadcastTimeout * 1000);
     };
 
     // Add Banned IP to List of Banned IPs

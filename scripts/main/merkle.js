@@ -34,7 +34,7 @@ const Merkle = function(data) {
                     L.push(L[L.length - 1]);
                 const Ld = [];
                 const r = utils.range(StartL, Ll, 2);
-                r.forEach(function(i) {
+                r.forEach((i) => {
                     Ld.push(_this.concatHash(L[i], L[i + 1]));
                 });
                 L = PreL.concat(Ld);
@@ -46,7 +46,7 @@ const Merkle = function(data) {
 
     // Hash Merkle Steps With Input
     this.withFirst = function(hash) {
-        _this.steps.forEach(function (step) {
+        _this.steps.forEach((step) => {
             hash = utils.sha256d(Buffer.concat([hash, step]));
         });
         return hash;

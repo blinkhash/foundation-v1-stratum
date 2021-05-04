@@ -23,17 +23,17 @@ const utils = require('./utils.js');
 const Peer = function(options) {
 
     const _this = this;
-    let client;
-    let verack = options.verack;
-    let validConnectionConfig = options.validConnectionConfig;
-
-    this.networkServices = Buffer.from('0100000000000000', 'hex'); // NODE_NETWORK services (value 1 packed as uint64)
+    this.networkServices = Buffer.from('0100000000000000', 'hex');
     this.emptyNetAddress = Buffer.from('010000000000000000000000000000000000ffff000000000000', 'hex');
     this.userAgent = utils.varStringBuffer('/node-stratum/');
-    this.blockStartHeight = Buffer.from('00000000', 'hex'); // block start_height, can be empty
+    this.blockStartHeight = Buffer.from('00000000', 'hex');
     this.relayTransactions = options.p2p.disableTransactions === true ? Buffer.from([false]) : Buffer.from([]);
-    this.magic = Buffer.from(options.testnet ? options.coin.testnet.peerMagic : options.coin.mainnet.peerMagic, 'hex');
+    this.magic = Buffer.from(options.settings.testnet ? options.coin.testnet.peerMagic : options.coin.mainnet.peerMagic, 'hex');
     this.magicInt = _this.magic.readUInt32LE(0);
+
+    let client;
+    let verack = options.settings.verack;
+    let validConnectionConfig = options.settings.validConnectionConfig;
 
     const invCodes = {
         error: 0,
@@ -53,22 +53,20 @@ const Peer = function(options) {
     /* istanbul ignore next */
     this.setupPeer = function() {
         client = net.connect({
-          host: options.p2p.host,
-          port: options.p2p.port
-        }, function () {
+            host: options.p2p.host,
+            port: options.p2p.port
+        }, () => {
             _this.sendVersion();
         });
-        client.on('close', function () {
-            if (verack) {
-                _this.emit('disconnected');
-                verack = false;
-                _this.setupPeer();
-            }
-            else if (validConnectionConfig) {
-                _this.emit('connectionRejected');
-            }
-        });
-        client.on('error', function (e) {
+        client = _this.handleEvents(client);
+        _this.setupMessageParser(client);
+        return client;
+    };
+
+    // Handle Peer Events
+    /* istanbul ignore next */
+    this.handleEvents = function(client) {
+        client.on('error', (e) => {
             if (e.code === 'ECONNREFUSED') {
                 validConnectionConfig = false;
                 _this.emit('connectionFailed');
@@ -77,9 +75,18 @@ const Peer = function(options) {
                 _this.emit('socketError', e);
             }
         });
-        _this.setupMessageParser(client);
+        client.on('close', () => {
+            if (verack) {
+                verack = false;
+                _this.emit('disconnected');
+                _this.setupPeer();
+            }
+            else if (validConnectionConfig) {
+                _this.emit('connectionRejected');
+            }
+        });
         return client;
-    };
+    }
 
     // Read Bytes Functionality
     /* istanbul ignore next */
@@ -102,7 +109,7 @@ const Peer = function(options) {
     /* istanbul ignore next */
     this.setupMessageParser = function(client) {
         const beginReadingMessage = function (preRead) {
-            _this.readFlowingBytes(client, 24, preRead, function (header, lopped) {
+            _this.readFlowingBytes(client, 24, preRead, (header, lopped) => {
                 const msgMagic = header.readUInt32LE(0);
                 if (msgMagic !== _this.magicInt) {
                     _this.emit('error', 'bad magic number from peer');
@@ -120,7 +127,7 @@ const Peer = function(options) {
                 const msgCommand = header.slice(4, 16).toString();
                 const msgLength = header.readUInt32LE(16);
                 const msgChecksum = header.readUInt32LE(20);
-                _this.readFlowingBytes(client, msgLength, lopped, function (payload, lopped) {
+                _this.readFlowingBytes(client, msgLength, lopped, (payload, lopped) => {
                     if (utils.sha256d(payload).readUInt32LE(0) !== msgChecksum) {
                         _this.emit('error', 'bad payload - failed checksum');
                         beginReadingMessage(null);
@@ -148,12 +155,9 @@ const Peer = function(options) {
             case invCodes.error:
                 break;
             case invCodes.tx:
-                // eslint-disable-next-line no-unused-vars
-                const tx = payload.slice(4, 36).toString('hex');
                 break;
             case invCodes.block:
-                const block = payload.slice(4, 36).toString('hex');
-                _this.emit('blockFound', block);
+                _this.emit('blockFound', payload.slice(4, 36).toString('hex'));
                 break;
             }
             payload = payload.slice(36);
@@ -198,7 +202,7 @@ const Peer = function(options) {
     // Broadcast/Send Peer Version
     this.sendVersion = function() {
         const payload = Buffer.concat([
-            utils.packUInt32LE(options.protocolVersion),
+            utils.packUInt32LE(options.settings.protocolVersion),
             _this.networkServices,
             utils.packUInt64LE(Date.now() / 1000 | 0),
             _this.emptyNetAddress,
