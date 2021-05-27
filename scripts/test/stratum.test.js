@@ -92,7 +92,7 @@ function mockClient() {
   socket.setEncoding = () => {};
   socket.setKeepAlive = () => {};
   socket.write = (data) => {
-    socket.emit('log', data); 
+    socket.emit('log', data);
   };
   const client = new events.EventEmitter();
   client.previousDifficulty = 0;
@@ -101,7 +101,7 @@ function mockClient() {
   client.socket = socket;
   client.socket.localPort = 3001;
   client.getLabel = () => {
-    return 'client [example]'; 
+    return 'client [example]';
   };
   client.sendDifficulty = () => {};
   client.sendMiningJob = () => {};
@@ -115,7 +115,7 @@ function mockSocket() {
   socket.setEncoding = () => {};
   socket.setKeepAlive = () => {};
   socket.write = (data) => {
-    socket.emit('log', data); 
+    socket.emit('log', data);
   };
   return socket;
 }
@@ -135,6 +135,30 @@ describe('Test stratum functionality', () => {
     stratum.on('stopped', () => done());
     stratum.stopServer();
   });
+
+  test('Text validation of worker name [1]', () => {
+    const socket = { socket: mockSocket() }
+    const client = new Stratum.client(socket);
+    expect(client.validateName("test")).toBe("test");
+  })
+
+  test('Text validation of worker name [2]', () => {
+    const socket = { socket: mockSocket() }
+    const client = new Stratum.client(socket);
+    expect(client.validateName("")).toBe("");
+  })
+
+  test('Text validation of worker name [3]', () => {
+    const socket = { socket: mockSocket() }
+    const client = new Stratum.client(socket);
+    expect(client.validateName("example!@#$%^&")).toBe("example");
+  })
+
+  test('Text validation of worker password', () => {
+    const socket = { socket: mockSocket() }
+    const client = new Stratum.client(socket);
+    expect(client.validatePassword("test")).toBe("test");
+  })
 
   test('Test stratum banning capabilities [1]', (done) => {
     const stratum = new Stratum.network(optionsCopy, () => {});

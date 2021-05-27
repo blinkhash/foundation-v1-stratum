@@ -30,6 +30,19 @@ const StratumClient = function(options) {
   this.shares = { valid: 0, invalid: 0 };
   this.socket = _this.options.socket;
 
+  // Validate Worker Name
+  this.validateName = function(name) {
+    if (name.length >= 1) {
+      name = name.toString().replace(/[^a-zA-Z0-9.]+/g, '');
+    }
+    return name;
+  }
+
+  // Validate Worker Password
+  this.validatePassword = function(password) {
+    return password
+  }
+
   // Check for Banning Users
   this.considerBan = function(shareValid) {
     if (shareValid === true) {
@@ -190,10 +203,9 @@ const StratumClient = function(options) {
 
   // Manage Stratum Authorization
   this.handleAuthorize = function(message) {
-    _this.workerName = message.params[0];
-    _this.workerPass = message.params[1];
-
-    _this.options.authorizeFn(_this.remoteAddress, _this.options.socket.localPort, message.params[0], message.params[1], (result) => {
+    _this.workerName = _this.validateName(message.params[0]);
+    _this.workerPassword = _this.validatePassword(message.params[1]);
+    _this.options.authorizeFn(_this.remoteAddress, _this.options.socket.localPort, _this.workerName, _this.workerPassword, (result) => {
       _this.authorized = (!result.error && result.authorized);
       _this.sendJson({
         id: message.id,
@@ -470,6 +482,7 @@ const StratumNetwork = function(options, authorizeFn) {
   _this.setupNetwork();
 };
 
+exports.client = StratumClient;
 exports.network = StratumNetwork;
 StratumClient.prototype.__proto__ = events.EventEmitter.prototype;
 StratumNetwork.prototype.__proto__ = events.EventEmitter.prototype;
