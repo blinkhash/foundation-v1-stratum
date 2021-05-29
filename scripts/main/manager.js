@@ -57,25 +57,24 @@ const Manager = function(options) {
   this.extraNonce2Size = this.extraNoncePlaceholder.length - this.extraNonceCounter.size;
 
   // Determine Block Hash Function
-  function blockHash() {
+  /* istanbul ignore next */
+  this.blockHasher = function() {
     switch (options.coin.algorithm) {
     default:
       return function (d) {
-        return utils.reverseBuffer(utils.sha256d(d));
+        return utils.reverseBuffer(hashDigest.apply(this, arguments));
       };
     }
-  }
+  }();
 
   // Determine Coinbase Hash Function
-  function coinbaseHash() {
+  /* istanbul ignore next */
+  this.coinbaseHasher = function() {
     switch (options.coin.algorithm) {
     default:
       return utils.sha256d;
     }
-  }
-
-  this.blockHasher = blockHash();
-  this.coinbaseHasher = coinbaseHash();
+  }();
 
   // Update Current Managed Job
   this.updateCurrentJob = function(rpcData) {

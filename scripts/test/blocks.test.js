@@ -216,7 +216,7 @@ describe('Test block functionality', () => {
   test('Test block serialization [2]', () => {
     const headerBuffer = Buffer.from('00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b530314fc53660f0ff0f1e00001afe', 'hex');
     const blockHash = manager.blockHasher(headerBuffer, 1614202191);
-    expect(blockHash).toStrictEqual(Buffer.from('1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769', 'hex'));
+    expect(blockHash).toStrictEqual(Buffer.from('00000471e1a6cf410a43b279a89cbb948f50fa128a022444a4a2aafd1b394837', 'hex'));
   });
 
   test('Test block submission', () => {
