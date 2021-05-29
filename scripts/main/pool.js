@@ -30,11 +30,19 @@ const Pool = function(options, authorizeFn, responseFn) {
     _this.responseFn(text);
   };
 
-  // Check if Algorithm is Supported
-  if (!(_this.options.coin.algorithm in Algorithms)) {
-    emitErrorLog('The ' + _this.options.coin.algorithm + ' hashing algorithm is not supported.');
-    throw new Error();
+  // Validate Pool Algorithms
+  /* istanbul ignore next */
+  this.checkAlgorithm = function(algorithm) {
+    if (!(algorithm in Algorithms)) {
+      emitErrorLog('The ' + algorithm + ' algorithm is not supported.');
+      throw new Error();
+    }
   }
+
+  // Check if Algorithms Supported
+  _this.checkAlgorithm(_this.options.coin.algorithms.mining);
+  _this.checkAlgorithm(_this.options.coin.algorithms.block);
+  _this.checkAlgorithm(_this.options.coin.algorithms.coinbase);
 
   // Process Block when Found
   /* istanbul ignore next */
@@ -178,7 +186,7 @@ const Pool = function(options, authorizeFn, responseFn) {
       // Establish Coin Initial Statistics
       _this.options.statistics = {
         connections: (_this.options.coin.hasGetInfo ? rpcResults.getinfo.connections : rpcResults.getnetworkinfo.connections),
-        difficulty: difficulty * Algorithms[_this.options.coin.algorithm].multiplier,
+        difficulty: difficulty * Algorithms[_this.options.coin.algorithms.mining].multiplier,
       };
 
       // Check if Pool is Able to Submit Blocks
@@ -598,7 +606,7 @@ const Pool = function(options, authorizeFn, responseFn) {
   /* istanbul ignore next */
   this.outputPoolInfo = function() {
     const startMessage = 'Stratum pool server started for ' + _this.options.coin.name +
-      ' [' + _this.options.coin.symbol.toUpperCase() + '] {' + _this.options.coin.algorithm + '}';
+      ' [' + _this.options.coin.symbol.toUpperCase() + '] {' + _this.options.coin.algorithms.mining + '}';
     if (process.env.forkId && process.env.forkId !== '0') {
       emitLog(startMessage);
       return;
@@ -607,7 +615,7 @@ const Pool = function(options, authorizeFn, responseFn) {
       'Network Connected:\t' + (_this.options.settings.testnet ? 'Testnet' : 'Mainnet'),
       'Current Block Height:\t' + _this.manager.currentJob.rpcData.height,
       'Current Connect Peers:\t' + _this.options.statistics.connections,
-      'Current Block Diff:\t' + _this.manager.currentJob.difficulty * Algorithms[_this.options.coin.algorithm].multiplier,
+      'Current Block Diff:\t' + _this.manager.currentJob.difficulty * Algorithms[_this.options.coin.algorithms.mining].multiplier,
       'Network Difficulty:\t' + _this.options.statistics.difficulty,
       'Stratum Port(s):\t' + _this.options.statistics.stratumPorts.join(', '),
       'Pool Fee Percentage:\t' + (_this.options.settings.feePercentage * 100) + '%'

@@ -40,8 +40,12 @@ const rpcData = {
 const options = {
   'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
   'coin': {
-    'algorithm': 'scrypt',
     'rewards': '',
+    'algorithms': {
+      'mining': 'scrypt',
+      'block': 'sha256d',
+      'coinbase': 'sha256d',
+    },
     'mainnet': {
       'bech32': 'bc',
       'bip32': {

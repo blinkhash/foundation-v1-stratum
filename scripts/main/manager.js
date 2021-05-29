@@ -46,8 +46,8 @@ const JobCounter = function() {
 const Manager = function(options) {
 
   const _this = this;
-  const shareMultiplier = Algorithms[options.coin.algorithm].multiplier;
-  const hashDigest = Algorithms[options.coin.algorithm].hash(options.coin);
+  const algorithm = options.coin.algorithms.mining;
+  const shareMultiplier = Algorithms[algorithm].multiplier;
 
   this.currentJob;
   this.validJobs = {};
@@ -59,21 +59,21 @@ const Manager = function(options) {
   // Determine Block Hash Function
   /* istanbul ignore next */
   this.blockHasher = function() {
-    switch (options.coin.algorithm) {
-    default:
-      return function (d) {
-        return utils.reverseBuffer(hashDigest.apply(this, arguments));
-      };
-    }
+    const algorithm = options.coin.algorithms.block;
+    const hashDigest = Algorithms[algorithm].hash(options.coin);
+    return function (d) {
+      return utils.reverseBuffer(hashDigest.apply(this, arguments));
+    };
   }();
 
   // Determine Coinbase Hash Function
   /* istanbul ignore next */
   this.coinbaseHasher = function() {
-    switch (options.coin.algorithm) {
-    default:
-      return utils.sha256d;
-    }
+    const algorithm = options.coin.algorithms.coinbase;
+    const hashDigest = Algorithms[algorithm].hash(options.coin);
+    return function (d) {
+      return hashDigest.apply(this, arguments);
+    };
   }();
 
   // Update Current Managed Job
@@ -185,8 +185,9 @@ const Manager = function(options) {
     const merkleRoot = utils.reverseBuffer(job.merkle.withFirst(coinbaseHash)).toString('hex');
 
     // Start Generating Block Hash
+    const headerDigest = Algorithms[algorithm].hash(options.coin);
     const headerBuffer = job.serializeHeader(merkleRoot, nTime, nonce, version);
-    const headerHash = hashDigest(headerBuffer, nTimeInt);
+    const headerHash = headerDigest(headerBuffer, nTimeInt);
     const headerBigNum = bignum.fromBuffer(headerHash, {endian: 'little', size: 32});
 
     // Calculate Share Difficulty

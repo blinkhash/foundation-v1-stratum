@@ -12,11 +12,15 @@ const options = {
   'coin': {
     'name': 'Bitcoin',
     'symbol': 'BTC',
-    'algorithm': 'sha256d',
     'asicBoost': true,
     'hasGetInfo': false,
     'segwit': true,
     'rewards': '',
+    'algorithms': {
+      'mining': 'sha256d',
+      'block': 'sha256d',
+      'coinbase': 'sha256d',
+    },
     'mainnet': {
       'bech32': 'bc',
       'bip32': {

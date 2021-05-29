@@ -154,10 +154,14 @@ const options = {
   'coin': {
     'name': 'Bitcoin',
     'symbol': 'BTC',
-    'algorithm': 'sha256d',
     'hasGetInfo': false,
     'segwit': true,
     'rewards': '',
+    'algorithms': {
+      'mining': 'sha256d',
+      'block': 'sha256d',
+      'coinbase': 'sha256d',
+    },
     'mainnet': {
       'bech32': 'bc',
       'bip32': {
@@ -297,13 +301,6 @@ describe('Test pool functionality', () => {
     const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     expect(typeof pool).toBe('object');
-  });
-
-  test('Test pool with invalid algorithm', () => {
-    const optionsCopy = Object.assign({}, options);
-    optionsCopy.coin = Object.assign({}, options.coin);
-    optionsCopy.coin.algorithm = 'invalid';
-    expect(() => new Pool(optionsCopy, null, () => {})).toThrow(Error);
   });
 
   test('Test initialization of port difficulty', () => {
@@ -1809,7 +1806,7 @@ describe('Test pool functionality', () => {
               client.socket = socket;
               client.socket.localPort = 3001;
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               pool.stratum.emit('client.connected', client);
             });
@@ -1851,7 +1848,7 @@ describe('Test pool functionality', () => {
               client.socket = socket;
               client.socket.localPort = 3001;
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               pool.stratum.emit('client.connected', client);
             });
@@ -1893,7 +1890,7 @@ describe('Test pool functionality', () => {
               client.socket = socket;
               client.socket.localPort = 3001;
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               pool.stratum.emit('client.connected', client);
             });
@@ -1935,7 +1932,7 @@ describe('Test pool functionality', () => {
               client.socket = socket;
               client.socket.localPort = 3001;
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               pool.stratum.emit('client.connected', client);
             });
@@ -1978,7 +1975,7 @@ describe('Test pool functionality', () => {
               client.socket.localPort = 3001;
               client.remoteAddress = '127.0.0.1';
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               pool.stratum.emit('client.connected', client);
             });
@@ -2021,7 +2018,7 @@ describe('Test pool functionality', () => {
               client.socket.localPort = 3001;
               client.remoteAddress = '127.0.0.1';
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               pool.stratum.emit('client.connected', client);
             });
@@ -2063,7 +2060,7 @@ describe('Test pool functionality', () => {
               client.socket = socket;
               client.socket.localPort = 3001;
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               pool.stratum.emit('client.connected', client);
             });
@@ -2105,7 +2102,7 @@ describe('Test pool functionality', () => {
               client.socket = socket;
               client.socket.localPort = 3001;
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               pool.stratum.emit('client.connected', client);
             });
@@ -2147,7 +2144,7 @@ describe('Test pool functionality', () => {
               client.socket = socket;
               client.socket.localPort = 3001;
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               pool.stratum.emit('client.connected', client);
             });
@@ -2189,7 +2186,7 @@ describe('Test pool functionality', () => {
               client.socket = socket;
               client.socket.localPort = 3001;
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               pool.stratum.emit('client.connected', client);
             });
@@ -2235,7 +2232,7 @@ describe('Test pool functionality', () => {
               client.socket.localPort = 3001;
               client.workerName = 'worker1';
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               pool.stratum.emit('client.connected', client);
             });
@@ -2279,7 +2276,7 @@ describe('Test pool functionality', () => {
               client.socket = socket;
               client.socket.localPort = 3001;
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               client.sendDifficulty = () => {};
               client.sendMiningJob = () => {};
@@ -2324,7 +2321,7 @@ describe('Test pool functionality', () => {
               client.socket = socket;
               client.socket.localPort = 3001;
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               client.sendDifficulty = () => {};
               client.sendMiningJob = () => {};
@@ -2374,7 +2371,7 @@ describe('Test pool functionality', () => {
               client.socket = socket;
               client.socket.localPort = 3001;
               client.getLabel = () => {
-                return 'client [example]'; 
+                return 'client [example]';
               };
               client.sendDifficulty = () => {};
               client.sendMiningJob = () => {};
