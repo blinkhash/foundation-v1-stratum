@@ -4,7 +4,7 @@
  *
  */
 
-const multiHashing = require('multi-hashing');
+const multiHashing = require('blinkhash-multi-hashing');
 const utils = require('./utils.js');
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -129,16 +129,6 @@ const Algorithms = {
     hash: function() {
       return function() {
         return multiHashing.blake.apply(this, arguments);
-      };
-    }
-  },
-
-  // Neoscrypt Algorithm
-  'neoscrypt': {
-    multiplier: Math.pow(2, 5),
-    hash: function() {
-      return function() {
-        return multiHashing.neoscrypt.apply(this, arguments);
       };
     }
   },

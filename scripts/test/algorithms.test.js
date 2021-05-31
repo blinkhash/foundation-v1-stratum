@@ -106,12 +106,6 @@ describe('Test algorithm functionality', () => {
     expect(Algorithms.blake.hash({}).apply(null, [start])).toStrictEqual(output);
   });
 
-  // Non-Deterministic
-  test('Test implemented neoscrypt algorithm', () => {
-    const start = Buffer.from('000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f');
-    expect(Algorithms.neoscrypt.hash({}).apply(null, [start, '']).length).toBe(32);
-  });
-
   // Deterministic
   test('Test implemented skein algorithm', () => {
     const start = Buffer.from('000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f');

@@ -3,42 +3,15 @@
 [![Codecov Coverage](https://img.shields.io/codecov/c/github/blinkhash/blinkhash-stratum.svg?style=flat-square)](https://codecov.io/gh/blinkhash/blinkhash-stratum/)
 [![Build Status](https://travis-ci.com/blinkhash/blinkhash-stratum.svg?branch=master)](https://travis-ci.com/blinkhash/blinkhash-stratum)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+[![Downloads](https://img.shields.io/npm/dm/blinkhash-stratum.svg)](https://www.npmjs.com/package/blinkhash-stratum)
+[![Version](https://img.shields.io/npm/v/blinkhash-stratum.svg)](https://www.npmjs.com/package/blinkhash-stratum)
+[![Discord](https://img.shields.io/discord/738590795384356904)](https://discord.gg/8xtHZFKJQY)
 
 This portal is a high performance Stratum server written entirely in Node.js. One instance of this software can startup and manage multiple coin pools, each with their own daemon and Stratum ports. This server itself was built to be efficient, transparent, and easy to setup, while still maintaining greater scalability than many of the other open-source Stratum servers. This repository itself, however, is simply a module. It will do nothing on its own. Unless you're a Node.js developer who would like to learn more regarding stratum authentication and raw share data, this module will not be of use to you. For a complete backend server that implements this module, see https://github.com/blinkhash/blinkhash-server. It handles payments, database integration, multi-coin/pool support, and more.
 
----
+#### Need Support?
 
-### Getting Started
-
-#### Requirements
-
-* Coin daemon(s) (Find the coin's repository and build the latest version from source)
-* [Node.js](http://nodejs.org/) v12.0+ (Tested with v12.16.1) ([Instructions](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager))
-
-Note: Those are legitimate requirements. If you use old versions of Node.js or Redis that may come with your system package manager then you will have problems. Follow the linked instructions to get the last stable versions.
-
-#### 1) Downloading & Installing
-
-This module is configured to primarily work with https://github.com/blinkhash/blinkhash-server. While you can install it just by following the instructions on its repository, you can also do so directly with the following instructions. These commands will assume that you already have downloaded and are located in the same folder as 'blinkhash-server/'.
-
-```bash
-git clone https://github.com/blinkhash/blinkhash-stratum blinkhash-server/node_modules/blinkhash-stratum
-cd blinkhash-server/node_modules/blinkhash-stratum
-npm update
-```
-
-#### 2) Setting up Coin Daemon
-
-Follow the build/install instructions for your coin daemon. Your coin.conf file should end up looking something like this:
-
-```
-daemon=1
-rpcuser=blinkhash
-rpcpassword=blinkhash
-rpcport=26710
-```
-
-For redundancy, it's recommended to have at least two daemon instances running in case one drops out-of-sync or offline. All instances listed will be polled for block/transaction updates and be used for submitting blocks. Creating a backup daemon involves spawning a daemon using the `-datadir=/backup` command-line argument which creates a new daemon instance with it's own config directory and coin.conf file. Learn about the daemon, how to use it and how it works if you want to be a good pool operator.
+If you need help with a code-related matter, the first place to look is our [Discord](https://discord.gg/8xtHZFKJQY), where the developers will be available to answer any questions. However, please do not come to me with issues regarding setup. Use Google and the existing documentation for that.
 
 ---
 
