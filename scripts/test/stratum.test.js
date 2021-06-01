@@ -572,7 +572,7 @@ describe('Test stratum functionality', () => {
         stratum.stopServer();
       }
     });
-    client.handleMessage({ id: null, method: 'mining.submit' });
+    client.handleMessage({ id: null, method: 'mining.submit', params: ["worker", "password"] });
     expect(client.shares.invalid).toBe(1);
   });
 
@@ -591,7 +591,7 @@ describe('Test stratum functionality', () => {
         stratum.stopServer();
       }
     });
-    client.handleMessage({ id: null, method: 'mining.submit' });
+    client.handleMessage({ id: null, method: 'mining.submit', params: ["worker", "password"] });
     expect(client.shares.invalid).toBe(1);
   });
 
@@ -614,7 +614,7 @@ describe('Test stratum functionality', () => {
     client.on('submit', (params, resultCallback) => {
       resultCallback(null, true);
     });
-    client.handleMessage({ id: null, method: 'mining.submit' });
+    client.handleMessage({ id: null, method: 'mining.submit', params: ["worker", "password"] });
     expect(client.shares.valid).toBe(1);
   });
 

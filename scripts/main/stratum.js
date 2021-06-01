@@ -266,6 +266,9 @@ const StratumClient = function(options) {
   // Manage Stratum Submission
   /* istanbul ignore next */
   this.handleSubmit = function(message) {
+    if (!_this.workerName) {
+      _this.workerName = _this.validateName(message.params[0]);
+    }
     if (!_this.authorized) {
       _this.sendJson({
         id: message.id,
@@ -284,6 +287,8 @@ const StratumClient = function(options) {
       _this.considerBan(false);
       return;
     }
+    message.params[0] = _this.validateName(message.params[0]);
+    message.params[1] = _this.validatePassword(message.params[1]);
     _this.emit('submit', message, (error, result) => {
       if (!_this.considerBan(result)) {
         _this.sendJson({
