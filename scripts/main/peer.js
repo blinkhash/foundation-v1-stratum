@@ -7,7 +7,7 @@
 const net = require('net');
 const crypto = require('crypto');
 const events = require('events');
-const utils = require('./utils.js');
+const utils = require('./utils');
 
 ////////////////////////////////////////////////////////////////////////////////
 

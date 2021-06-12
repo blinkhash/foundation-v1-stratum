@@ -5,7 +5,7 @@
  */
 
 const multiHashing = require('blinkhash-multi-hashing');
-const utils = require('./utils.js');
+const utils = require('./utils');
 
 ////////////////////////////////////////////////////////////////////////////////
 

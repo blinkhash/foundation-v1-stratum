@@ -5,7 +5,8 @@
  */
 
 const events = require('events');
-const Stratum = require('../main/stratum');
+const Client = require('../main/client');
+const Network = require('../main/network');
 
 const options = {
   'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
@@ -89,7 +90,7 @@ const options = {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-function mockClient() {
+function mockSocket() {
   const socket = new events.EventEmitter();
   socket.remoteAddress = '127.0.0.1',
   socket.destroy = () => {};
@@ -98,6 +99,11 @@ function mockClient() {
   socket.write = (data) => {
     socket.emit('log', data);
   };
+  return socket;
+}
+
+function mockClient() {
+  const socket = mockSocket();
   const client = new events.EventEmitter();
   client.previousDifficulty = 0;
   client.difficulty = 1,
@@ -112,18 +118,6 @@ function mockClient() {
   return client;
 }
 
-function mockSocket() {
-  const socket = new events.EventEmitter();
-  socket.remoteAddress = '127.0.0.1',
-  socket.destroy = () => {};
-  socket.setEncoding = () => {};
-  socket.setKeepAlive = () => {};
-  socket.write = (data) => {
-    socket.emit('log', data);
-  };
-  return socket;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 
 describe('Test stratum functionality', () => {
@@ -134,7 +128,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test initialization of stratum network', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     expect(typeof stratum).toBe('object');
     stratum.on('stopped', () => done());
     stratum.stopServer();
@@ -142,30 +136,30 @@ describe('Test stratum functionality', () => {
 
   test('Text validation of worker name [1]', () => {
     const socket = { socket: mockSocket() }
-    const client = new Stratum.client(socket);
+    const client = new Client(socket);
     expect(client.validateName("test")).toBe("test");
   })
 
   test('Text validation of worker name [2]', () => {
     const socket = { socket: mockSocket() }
-    const client = new Stratum.client(socket);
+    const client = new Client(socket);
     expect(client.validateName("")).toBe("");
   })
 
   test('Text validation of worker name [3]', () => {
     const socket = { socket: mockSocket() }
-    const client = new Stratum.client(socket);
+    const client = new Client(socket);
     expect(client.validateName("example!@#$%^&")).toBe("example");
   })
 
   test('Text validation of worker password', () => {
     const socket = { socket: mockSocket() }
-    const client = new Stratum.client(socket);
+    const client = new Client(socket);
     expect(client.validatePassword("test")).toBe("test");
   })
 
   test('Test stratum banning capabilities [1]', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const client = mockClient();
     client.on('kickedBannedIP', timeLeft => {
       stratum.on('stopped', () => done());
@@ -179,7 +173,7 @@ describe('Test stratum functionality', () => {
   test('Test stratum banning capabilities [2]', (done) => {
     optionsCopy.banning = Object.assign({}, options.banning);
     optionsCopy.banning.time = -1;
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const client = mockClient();
     client.on('forgaveBannedIP', () => {
       stratum.on('stopped', () => done());
@@ -190,7 +184,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum banning capabilities [3]', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -202,7 +196,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum banning capabilities [4]', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -216,7 +210,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum banning capabilities [5]', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -230,7 +224,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum banning capabilities [6]', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -245,7 +239,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum banning capabilities [7]', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -264,7 +258,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum handling of new clients [1]', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     const subscriptionId = stratum.handleNewClient(socket);
     expect(subscriptionId).toBe('deadbeefcafebabe0100000000000000');
@@ -274,7 +268,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum handling of new clients [2]', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -287,7 +281,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum handling of new clients [3]', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -303,7 +297,7 @@ describe('Test stratum functionality', () => {
   test('Test stratum job broadcasting [1]', (done) => {
     optionsCopy.settings = Object.assign({}, options.settings);
     optionsCopy.settings.connectionTimeout = -1;
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -317,7 +311,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum job broadcasting [2]', (done) => {
     const response = [];
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -336,7 +330,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum job broadcasting [3]', (done) => {
     const response = [];
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -352,7 +346,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum client labelling [1]', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -363,7 +357,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum client labelling [2]', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -373,7 +367,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum client difficulty queueing', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -385,7 +379,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum client difficulty management', (done) => {
     const response = [];
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -403,7 +397,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [1]', (done) => {
     const response = [];
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -424,7 +418,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [2]', (done) => {
     const response = [];
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -445,7 +439,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [3]', (done) => {
     const response = [];
-    const stratum = new Stratum.network(optionsCopy, (addr, port, username, password, callback) => {
+    const stratum = new Network(optionsCopy, (addr, port, username, password, callback) => {
       callback({ error: null, authorized: true, disconnect: true });
     });
     const socket = mockSocket();
@@ -465,7 +459,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [4]', (done) => {
     const response = [];
-    const stratum = new Stratum.network(optionsCopy, (addr, port, username, password, callback) => {
+    const stratum = new Network(optionsCopy, (addr, port, username, password, callback) => {
       callback({ error: null, authorized: true, disconnect: false });
     });
     const socket = mockSocket();
@@ -487,7 +481,7 @@ describe('Test stratum functionality', () => {
     const response = [];
     optionsCopy.coin = Object.assign({}, options.coin);
     optionsCopy.coin.asicBoost = false;
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -506,7 +500,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [6]', (done) => {
     const response = [];
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -526,7 +520,7 @@ describe('Test stratum functionality', () => {
   test('Test stratum message handling [7]', () => {
     optionsCopy.coin = Object.assign({}, options.coin);
     optionsCopy.coin.asicBoost = false;
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -537,7 +531,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum message handling [8]', () => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -548,7 +542,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum message handling [9]', () => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -560,7 +554,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [10]', (done) => {
     const response = [];
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -578,7 +572,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [11]', (done) => {
     const response = [];
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -597,7 +591,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [12]', (done) => {
     const response = [];
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -620,7 +614,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [13]', (done) => {
     const response = [];
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -637,7 +631,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [14]', (done) => {
     const response = [];
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -653,7 +647,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum message handling [15]', (done) => {
-    const stratum = new Stratum.network(optionsCopy, () => {});
+    const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];

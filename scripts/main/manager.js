@@ -7,9 +7,9 @@
 const events = require('events');
 const crypto = require('crypto');
 const bignum = require('bignum');
-const utils = require('./utils.js');
-const Algorithms = require('./algorithms.js');
-const BlockTemplate = require('./blocks.js');
+const utils = require('./utils');
+const Algorithms = require('./algorithms');
+const Template = require('./template');
 
 // Max Difficulty
 const diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
@@ -27,7 +27,7 @@ const ExtraNonceCounter = function(configInstanceId) {
   };
 };
 
-// Generate Unique Job for each BlockTemplate
+// Generate Unique Job for each Template
 const JobCounter = function() {
   this.counter = 0;
   this.next = function() {
@@ -78,15 +78,15 @@ const Manager = function(options) {
 
   // Update Current Managed Job
   this.updateCurrentJob = function(rpcData) {
-    const tmpBlockTemplate = new BlockTemplate(
+    const tmpTemplate = new Template(
       this.jobCounter.next(),
       Object.assign({}, rpcData),
       _this.extraNoncePlaceholder,
       options
     );
-    _this.currentJob = tmpBlockTemplate;
-    _this.emit('updatedBlock', tmpBlockTemplate);
-    _this.validJobs[tmpBlockTemplate.jobId] = tmpBlockTemplate;
+    _this.currentJob = tmpTemplate;
+    _this.emit('updatedBlock', tmpTemplate);
+    _this.validJobs[tmpTemplate.jobId] = tmpTemplate;
   };
 
   // Check if New Block is Processed
@@ -107,7 +107,7 @@ const Manager = function(options) {
     }
 
     // Build New Block Template
-    const tmpBlockTemplate = new BlockTemplate(
+    const tmpTemplate = new Template(
       this.jobCounter.next(),
       Object.assign({}, rpcData),
       _this.extraNoncePlaceholder,
@@ -115,9 +115,9 @@ const Manager = function(options) {
     );
 
     // Update Current Template
-    _this.currentJob = tmpBlockTemplate;
-    _this.emit('newBlock', tmpBlockTemplate);
-    _this.validJobs[tmpBlockTemplate.jobId] = tmpBlockTemplate;
+    _this.currentJob = tmpTemplate;
+    _this.emit('newBlock', tmpTemplate);
+    _this.validJobs[tmpTemplate.jobId] = tmpTemplate;
     return true;
   };
 

@@ -5,7 +5,7 @@
  */
 
 const events = require('events');
-const utils = require('./utils.js');
+const utils = require('./utils');
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -33,7 +33,7 @@ const RingBuffer = function(maxSize) {
 
   // Average Ring Buffer
   this.avg = function() {
-    const sum = data.reduce((a, b) => a + b); 
+    const sum = data.reduce((a, b) => a + b);
     return sum / (isFull ? maxSize : cursor);
   };
 

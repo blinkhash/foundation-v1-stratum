@@ -5,17 +5,17 @@
  */
 
 const bignum = require('bignum');
-const utils = require('./utils.js');
-const Merkle = require('./merkle.js');
-const Transactions = require('./transactions.js');
+const utils = require('./utils');
+const Merkle = require('./merkle');
+const Transactions = require('./transactions');
 
 // Max Difficulty
 const diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Main BlockTemplate Function
-const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
+// Main Template Function
+const Template = function(jobId, rpcData, extraNoncePlaceholder, options) {
 
   this.submits = [];
   this.rpcData = rpcData;
@@ -140,4 +140,4 @@ const BlockTemplate = function(jobId, rpcData, extraNoncePlaceholder, options) {
   };
 };
 
-module.exports = BlockTemplate;
+module.exports = Template;

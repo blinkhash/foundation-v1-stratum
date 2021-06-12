@@ -19,8 +19,8 @@ const async = require('async');
  * - 'password': password for the RPC interface of the coin
 **/
 
-// Main DaemonInterface Function
-const DaemonInterface = function(daemons, logger) {
+// Main Daemon Function
+const Daemon = function(daemons, logger) {
 
   const _this = this;
   this.logger = logger || function(severity, message) {
@@ -167,5 +167,5 @@ const DaemonInterface = function(daemons, logger) {
   };
 };
 
-module.exports = DaemonInterface;
-DaemonInterface.prototype.__proto__ = events.EventEmitter.prototype;
+module.exports = Daemon;
+Daemon.prototype.__proto__ = events.EventEmitter.prototype;

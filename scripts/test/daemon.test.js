@@ -5,7 +5,7 @@
  */
 
 const nock = require('nock');
-const DaemonInterface = require('../main/daemon');
+const Daemon = require('../main/daemon');
 
 const daemons = [{
   'host': '127.0.0.1',
@@ -16,7 +16,7 @@ const daemons = [{
 
 nock.disableNetConnect();
 nock.enableNetConnect('127.0.0.1');
-const daemon = new DaemonInterface(daemons);
+const daemon = new Daemon(daemons);
 
 ////////////////////////////////////////////////////////////////////////////////
 

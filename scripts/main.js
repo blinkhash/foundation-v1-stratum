@@ -4,13 +4,13 @@
  *
  */
 
-const Pool = require('./main/pool.js');
+const Pool = require('./main/pool');
 
 ////////////////////////////////////////////////////////////////////////////////
 
-exports.algorithms = require('./main/algorithms.js');
-exports.daemon = require('./main/daemon.js');
-exports.difficulty = require('./main/difficulty.js');
+exports.algorithms = require('./main/algorithms');
+exports.daemon = require('./main/daemon');
+exports.difficulty = require('./main/difficulty');
 exports.create = function(poolOptions, authorizeFn, responseFn) {
   return new Pool(poolOptions, authorizeFn, responseFn);
 };

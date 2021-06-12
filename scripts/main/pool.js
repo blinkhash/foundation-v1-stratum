@@ -5,12 +5,12 @@
  */
 
 const events = require('events');
-const Algorithms = require('../main/algorithms');
-const Difficulty = require('./difficulty.js');
-const DaemonInterface = require('./daemon.js');
-const Manager = require('./manager.js');
-const Peer = require('./peer.js');
-const Stratum = require('./stratum.js');
+const Algorithms = require('./algorithms');
+const Difficulty = require('./difficulty');
+const Daemon = require('./daemon');
+const Manager = require('./manager');
+const Network = require('./network');
+const Peer = require('./peer');
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -116,7 +116,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     }
 
     // Establish Daemon Interface
-    _this.daemon = new DaemonInterface(_this.options.daemons, ((severity, message) => {
+    _this.daemon = new Daemon(_this.options.daemons, ((severity, message) => {
       _this.emit('log', severity , message);
     }));
     _this.daemon.once('online', () => {
@@ -494,7 +494,7 @@ const Pool = function(options, authorizeFn, responseFn) {
   this.setupStratum = function(callback) {
 
     // Establish Stratum Server
-    _this.stratum = new Stratum.network(_this.options, _this.authorizeFn);
+    _this.stratum = new Network(_this.options, _this.authorizeFn);
     _this.stratum.on('started', () => {
       const stratumPorts = _this.options.ports
         .filter(port => port.enabled)
