@@ -1,6 +1,6 @@
 {
   "name": "blinkhash-stratum",
-  "version": "0.1.13",
+  "version": "0.1.16",
   "description": "High performance Stratum poolserver in Node.js",
   "main": "./scripts/main.js",
   "keywords": [

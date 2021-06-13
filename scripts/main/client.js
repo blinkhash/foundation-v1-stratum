@@ -203,8 +203,12 @@ const Client = function(options) {
   this.handleAuthorize = function(message) {
     _this.workerName = _this.validateName(message.params[0]);
     _this.workerPassword = _this.validatePassword(message.params[1]);
-    const addr = _this.workerName.split(".")[0];
-    _this.options.authorizeFn(_this.remoteAddress, _this.options.socket.localPort, addr, _this.workerPassword, (result) => {
+    _this.options.authorizeFn(
+      _this.remoteAddress,
+      _this.options.socket.localPort,
+      _this.workerName,
+      _this.workerPassword,
+    (result) => {
       _this.authorized = (!result.error && result.authorized);
       _this.sendJson({
         id: message.id,
