@@ -1,6 +1,6 @@
 {
   "name": "blinkhash-stratum",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "High performance Stratum poolserver in Node.js",
   "main": "./scripts/main.js",
   "keywords": [
@@ -39,8 +39,8 @@
     "async": "1.5.2",
     "bchaddrjs": "^0.4.9",
     "bignum": "0.13.1",
-    "blinkhash-utxo-lib": "0.0.2",
-    "blinkhash-multi-hashing": "0.0.4"
+    "blinkhash-utxo-lib": "0.0.3",
+    "blinkhash-multi-hashing": "0.0.5"
   },
   "devDependencies": {
     "codecov": "^3.8.1",
