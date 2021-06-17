@@ -1,7 +1,7 @@
 # Blinkhash Stratum
 
 [![Codecov Coverage](https://img.shields.io/codecov/c/github/blinkhash/blinkhash-stratum.svg?style=flat-square)](https://codecov.io/gh/blinkhash/blinkhash-stratum/)
-[![Build Status](https://travis-ci.com/blinkhash/blinkhash-stratum.svg?branch=master)](https://travis-ci.com/blinkhash/blinkhash-stratum)
+[![Blinkhash CI](https://github.com/blinkhash/blinkhash-stratum/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/blinkhash/blinkhash-stratum/actions/workflows/build.yml)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 [![Downloads](https://img.shields.io/npm/dm/blinkhash-stratum.svg)](https://www.npmjs.com/package/blinkhash-stratum)
 [![Version](https://img.shields.io/npm/v/blinkhash-stratum.svg)](https://www.npmjs.com/package/blinkhash-stratum)
