@@ -33,7 +33,7 @@ const Daemon = function(daemons, logger) {
       hostname: instance.host,
       port: instance.port,
       method: 'POST',
-      auth: instance.user + ':' + instance.password,
+      auth: instance.username + ':' + instance.password,
       headers: {
         'Content-Length': jsonData.length
       }
