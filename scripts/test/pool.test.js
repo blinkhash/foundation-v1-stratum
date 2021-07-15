@@ -154,7 +154,7 @@ const options = {
   'coin': {
     'name': 'Bitcoin',
     'symbol': 'BTC',
-    'hasGetInfo': false,
+    'getInfo': false,
     'segwit': true,
     'rewards': '',
     'algorithms': {
@@ -385,12 +385,12 @@ describe('Test pool functionality', () => {
   test('Test pool batch data events [1]', (done) => {
     const optionsCopy = Object.assign({}, options);
     optionsCopy.coin = Object.assign({}, options.coin);
-    optionsCopy.coin.hasGetInfo = true;
+    optionsCopy.coin.getInfo = true;
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
       expect(text).toBe('Could not start pool, error with init batch RPC call');
-      expect(optionsCopy.coin.hasGetInfo).toBe(true);
+      expect(optionsCopy.coin.getInfo).toBe(true);
       done();
     });
     mockSetupDaemon(pool, () => {
@@ -478,7 +478,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool batch data events [6]', (done) => {
     const optionsCopy = Object.assign({}, options);
-    optionsCopy.coin.hasGetInfo = true;
+    optionsCopy.coin.getInfo = true;
     const pool = new Pool(optionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       nock('http://127.0.0.1:8332')
@@ -501,7 +501,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool batch data events [7]', (done) => {
     const optionsCopy = Object.assign({}, options);
-    optionsCopy.coin.hasGetInfo = false;
+    optionsCopy.coin.getInfo = false;
     const pool = new Pool(optionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       nock('http://127.0.0.1:8332')

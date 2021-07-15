@@ -138,7 +138,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     ];
 
     // Check if Coin has GetInfo Defined
-    if (_this.options.coin.hasGetInfo) {
+    if (_this.options.coin.getInfo) {
       batchRPCCommand.push(['getinfo', []]);
     } else {
       batchRPCCommand.push(['getblockchaininfo', []], ['getnetworkinfo', []]);
@@ -169,7 +169,7 @@ const Pool = function(options, authorizeFn, responseFn) {
       }
 
       // Check if Mainnet/Testnet is Active
-      if (_this.options.coin.hasGetInfo) {
+      if (_this.options.coin.getInfo) {
         _this.options.settings.testnet = (rpcResults.getinfo.testnet === true) ? true : false;
       } else {
         _this.options.settings.testnet = (rpcResults.getblockchaininfo.chain === 'test') ? true : false;
@@ -177,15 +177,15 @@ const Pool = function(options, authorizeFn, responseFn) {
 
       // Establish Coin Protocol Version
       _this.options.address = rpcResults.validateaddress.address;
-      _this.options.settings.protocolVersion = _this.options.coin.hasGetInfo ? rpcResults.getinfo.protocolversion : rpcResults.getnetworkinfo.protocolversion;
-      let difficulty = _this.options.coin.hasGetInfo ? rpcResults.getinfo.difficulty : rpcResults.getblockchaininfo.difficulty;
+      _this.options.settings.protocolVersion = _this.options.coin.getInfo ? rpcResults.getinfo.protocolversion : rpcResults.getnetworkinfo.protocolversion;
+      let difficulty = _this.options.coin.getInfo ? rpcResults.getinfo.difficulty : rpcResults.getblockchaininfo.difficulty;
       if (typeof(difficulty) == 'object') {
         difficulty = difficulty['proof-of-work'];
       }
 
       // Establish Coin Initial Statistics
       _this.options.statistics = {
-        connections: (_this.options.coin.hasGetInfo ? rpcResults.getinfo.connections : rpcResults.getnetworkinfo.connections),
+        connections: (_this.options.coin.getInfo ? rpcResults.getinfo.connections : rpcResults.getnetworkinfo.connections),
         difficulty: difficulty * Algorithms[_this.options.coin.algorithms.mining].multiplier,
       };
 
@@ -355,7 +355,7 @@ const Pool = function(options, authorizeFn, responseFn) {
 
     // Calculate Current Progress on Sync
     const generateProgress = function() {
-      const cmd = _this.options.coin.hasGetInfo ? 'getinfo' : 'getblockchaininfo';
+      const cmd = _this.options.coin.getInfo ? 'getinfo' : 'getblockchaininfo';
       _this.daemon.cmd(cmd, [], (results) => {
         const blockCount = Math.max.apply(null, results
           .flatMap(result => result.response)

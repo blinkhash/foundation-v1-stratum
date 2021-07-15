@@ -14,7 +14,7 @@ const options = {
     'name': 'Bitcoin',
     'symbol': 'BTC',
     'asicBoost': true,
-    'hasGetInfo': false,
+    'getInfo': false,
     'segwit': true,
     'rewards': '',
     'algorithms': {
