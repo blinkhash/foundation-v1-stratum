@@ -209,7 +209,7 @@ const options = {
       'maximum': 512,
       'targetTime': 15,
       'retargetTime': 90,
-      'variance': 30
+      'variance': 0.3
     }
   }],
   'recipients': [{

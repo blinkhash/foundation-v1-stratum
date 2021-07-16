@@ -14,14 +14,14 @@ const vardiff1 = {
   'maximum': 8,
   'targetTime': 1,
   'retargetTime': 1,
-  'variance': -0.1,
+  'variance': -0.001,
 };
 const vardiff2 = {
   'minimum': 8,
   'maximum': 8,
   'targetTime': 1,
   'retargetTime': 1,
-  'variance': -0.1,
+  'variance': -0.001,
   'x2mode': true,
 };
 

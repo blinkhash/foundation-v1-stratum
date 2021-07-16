@@ -98,7 +98,6 @@ const Difficulty = function(port, difficultyOptions, showLogs) {
         console.log('Decreasing current difficulty');
       }
     } else if (avg < tMin && client.difficulty < _this.options.maximum) {
-    } else if (avg < tMin && client.difficulty < _this.options.maximum) {
       if (_this.options.x2mode) {
         ddiff = 2;
       }
