@@ -58,7 +58,7 @@ const Difficulty = function(port, difficultyOptions, showLogs) {
 
   const logging = showLogs;
   let lastTs, lastRtc, timeBuffer;
-  const variance = difficultyOptions.targetTime * (difficultyOptions.variance / 100);
+  const variance = difficultyOptions.targetTime * difficultyOptions.variance;
   const bufferSize = difficultyOptions.retargetTime / difficultyOptions.targetTime * 4;
   const tMin = difficultyOptions.targetTime - variance;
   const tMax = difficultyOptions.targetTime + variance;
@@ -97,6 +97,7 @@ const Difficulty = function(port, difficultyOptions, showLogs) {
       if (logging) {
         console.log('Decreasing current difficulty');
       }
+    } else if (avg < tMin && client.difficulty < _this.options.maximum) {
     } else if (avg < tMin && client.difficulty < _this.options.maximum) {
       if (_this.options.x2mode) {
         ddiff = 2;
