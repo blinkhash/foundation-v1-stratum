@@ -196,7 +196,7 @@ const options = {
   'banning': {
     'enabled': true,
     'time': 600,
-    'invalidPercent': 50,
+    'invalidPercent': 0.5,
     'checkThreshold': 500,
     'purgeInterval': 300
   },

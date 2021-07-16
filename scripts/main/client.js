@@ -50,7 +50,7 @@ const Client = function(options) {
     }
     const totalShares = _this.shares.valid + _this.shares.invalid;
     if (totalShares >= _this.options.banning.checkThreshold) {
-      const percentBad = (_this.shares.invalid / totalShares) * 100;
+      const percentBad = (_this.shares.invalid / totalShares);
       if (percentBad < _this.options.banning.invalidPercent) {
         this.shares = { valid: 0, invalid: 0 };
       } else {

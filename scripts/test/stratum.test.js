@@ -55,7 +55,7 @@ const options = {
   }],
   'banning': {
     'time': 600,
-    'invalidPercent': 50,
+    'invalidPercent': 0.5,
     'checkThreshold': 5,
     'purgeInterval': 300
   },
