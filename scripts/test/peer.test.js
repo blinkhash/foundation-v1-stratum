@@ -19,7 +19,6 @@ const options = {
     'enabled': true,
     'host': '127.0.0.1',
     'port': '8332',
-    'disableTransactions': true
   },
   'settings': {
     'verack': false,
@@ -42,13 +41,6 @@ describe('Test peer functionality', () => {
     const client = peer.setupPeer();
     expect(typeof client).toBe('object');
     expect(Object.keys(client._events).length).toBe(5);
-  });
-
-  test('Test peer relayTransactions functionality', () => {
-    optionsCopy.p2p = Object.assign({}, options.p2p);
-    optionsCopy.p2p.disableTransactions = false;
-    const peer = new Peer(optionsCopy);
-    expect(peer.relayTransactions).toStrictEqual(Buffer.from([]));
   });
 
   test('Test peer magic functionality', () => {

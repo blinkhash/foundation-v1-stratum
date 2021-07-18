@@ -27,7 +27,7 @@ const Peer = function(options) {
   this.emptyNetAddress = Buffer.from('010000000000000000000000000000000000ffff000000000000', 'hex');
   this.userAgent = utils.varStringBuffer('/node-stratum/');
   this.blockStartHeight = Buffer.from('00000000', 'hex');
-  this.relayTransactions = options.p2p.disableTransactions === true ? Buffer.from([false]) : Buffer.from([]);
+  this.relayTransactions = Buffer.from([false]);
   this.magic = Buffer.from(options.settings.testnet ? options.coin.testnet.peerMagic : options.coin.mainnet.peerMagic, 'hex');
   this.magicInt = _this.magic.readUInt32LE(0);
 

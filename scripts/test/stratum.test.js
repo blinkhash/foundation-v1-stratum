@@ -75,7 +75,6 @@ const options = {
     'enabled': true,
     'host': '127.0.0.1',
     'port': 8333,
-    'disableTransactions': true
   },
   'recipients': [{
     'address': '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',

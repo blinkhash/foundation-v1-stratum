@@ -220,7 +220,6 @@ const options = {
     'enabled': true,
     'host': '127.0.0.1',
     'port': 8333,
-    'disableTransactions': true
   },
   'settings': {
     'connectionTimeout': 600,
