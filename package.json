@@ -1,6 +1,6 @@
 {
-  "name": "blinkhash-stratum",
-  "version": "0.1.23",
+  "name": "foundation-stratum",
+  "version": "0.0.1",
   "description": "High performance Stratum poolserver in Node.js",
   "main": "./scripts/main.js",
   "keywords": [
@@ -13,9 +13,9 @@
     "litecoin",
     "scrypt"
   ],
-  "homepage": "https://github.com/blinkhash/blinkhash-stratum",
+  "homepage": "https://github.com/blinkhash/foundation-stratum",
   "bugs": {
-    "url": "https://github.com/blinkhash/blinkhash-stratum/issues"
+    "url": "https://github.com/blinkhash/foundation-stratum/issues"
   },
   "license": "GPL-2.0",
   "author": {
@@ -33,14 +33,14 @@
   "contributors": [],
   "repository": {
     "type": "git",
-    "url": "https://github.com/blinkhash/blinkhash-stratum.git"
+    "url": "https://github.com/blinkhash/foundation-stratum.git"
   },
   "dependencies": {
     "async": "1.5.2",
     "bchaddrjs": "^0.4.9",
     "bignum": "0.13.1",
-    "blinkhash-utxo-lib": "0.0.3",
-    "blinkhash-multi-hashing": "0.0.5"
+    "foundation-utxo-lib": "0.0.1",
+    "foundation-multi-hashing": "0.0.1"
   },
   "devDependencies": {
     "codecov": "^3.8.1",

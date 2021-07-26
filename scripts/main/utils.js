@@ -7,7 +7,7 @@
 // Import Required Modules
 const bchaddr = require('bchaddrjs');
 const bignum = require('bignum');
-const bitcoin = require('blinkhash-utxo-lib');
+const bitcoin = require('foundation-utxo-lib');
 const crypto = require('crypto');
 
 // Convert Address to Script
