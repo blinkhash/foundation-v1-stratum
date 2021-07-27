@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "async": "1.5.2",
-    "bchaddrjs": "^0.4.9",
+    "bchaddrjs": "^0.5.2",
     "bignum": "0.13.1",
     "foundation-utxo-lib": "0.0.1",
     "foundation-multi-hashing": "0.0.1"
