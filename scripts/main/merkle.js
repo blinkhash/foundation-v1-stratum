@@ -12,6 +12,7 @@ const utils = require('./utils');
 const Merkle = function(data) {
 
   const _this = this;
+  this.data = data;
 
   // Concat Hash Array Together
   this.concatHash = function(h1, h2) {
@@ -19,6 +20,23 @@ const Merkle = function(data) {
     const dhashed = utils.sha256d(joined);
     return dhashed;
   };
+
+  // Calculate Merkle Root w/o Coinbase
+  this.calculateRoot = function(data) {
+    const modified = Object.assign([], data);
+    if (modified.length > 1) {
+      if (modified.length % 2 !== 0) {
+        modified.push(modified[modified.length - 1]);
+      }
+      const updated = [];
+      for (let i = 0; i < modified.length; i += 2) {
+        updated.push(_this.concatHash(modified[i], modified[i + 1]));
+      }
+      return _this.calculateRoot(updated);
+    } else {
+      return modified[0];
+    }
+  }
 
   // Calculate Merkle Steps
   this.calculateSteps = function(data) {
@@ -45,6 +63,19 @@ const Merkle = function(data) {
     return steps;
   };
 
+  // Validate Data Struture
+  this.validateData = function(data) {
+    if (data) {
+      if (data.length > 1) {
+        return data.slice(1)
+      } else {
+        return [null];
+      }
+    } else {
+      return [];
+    }
+  }
+
   // Hash Merkle Steps With Input
   this.withFirst = function(hash) {
     _this.steps.forEach((step) => {
@@ -53,7 +84,8 @@ const Merkle = function(data) {
     return hash;
   };
 
-  // Calculate Merkle Steps
+  // Calculate Merkle Root/Steps
+  this.root = _this.calculateRoot(_this.validateData(data));
   this.steps = _this.calculateSteps(data);
 };
 

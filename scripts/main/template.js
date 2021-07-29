@@ -59,7 +59,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, options) {
   // Create Generation Transaction
   this.createGeneration = function(rpcData, extraNoncePlaceholder, options) {
     const transactions = new Transactions();
-    return transactions.bitcoin(rpcData, extraNoncePlaceholder, options);
+    return transactions.bitcoin(rpcData, extraNoncePlaceholder, null, options);
   };
 
   // Create Merkle Data

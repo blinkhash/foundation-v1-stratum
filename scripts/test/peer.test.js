@@ -143,13 +143,13 @@ describe('Test peer functionality', () => {
     expect(output1.payload).toStrictEqual(payload);
   });
 
-  test('Test peer version messaging [4]', () => {
+  test('Test peer version messaging', () => {
     const peer = new Peer(optionsCopy);
     peer.on('sentMessage', (message) => output1 = message);
     peer.sendVersion();
     expect(output1.slice(0, 20)).toStrictEqual(Buffer.from('f9beb4d976657273696f6e000000000064000000', 'hex'));
     expect(output1.slice(24, 36)).toStrictEqual(Buffer.from('000000000100000000000000', 'hex'));
-    expect(output1.slice(39, 96)).toStrictEqual(Buffer.from('6000000000010000000000000000000000000000000000ffff000000000000010000000000000000000000000000000000ffff000000000000', 'hex'));
+    expect(output1.slice(39, 96)).toStrictEqual(Buffer.from('6100000000010000000000000000000000000000000000ffff000000000000010000000000000000000000000000000000ffff000000000000', 'hex'));
     expect(output1.slice(104)).toStrictEqual(Buffer.from('0e2f6e6f64652d7374726174756d2f0000000000', 'hex'));
   });
 });

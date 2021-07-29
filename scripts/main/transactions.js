@@ -12,7 +12,7 @@ const utils = require('./utils');
 const Transactions = function() {
 
   // Structure Bitcoin Protocol Transaction
-  this.bitcoin = function(rpcData, extraNoncePlaceholder, options) {
+  this.bitcoin = function(rpcData, extraNoncePlaceholder, auxMerkle, options) {
 
     const txLockTime = 0;
     const txInSequence = 0;
@@ -45,22 +45,38 @@ const Transactions = function() {
     const poolAddressScript = utils.addressToScript(options.address, network);
     const coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
 
+    // Handle Timestamp if Necessary
+    const txTimestamp = options.coin.staking === true ?
+      utils.packUInt32LE(rpcData.curtime) :
+      Buffer.from([]);
+
     // Handle Comments if Necessary
     const txComment = options.coin.txMessages === true ?
       utils.serializeString(poolIdentifier) :
       Buffer.from([]);
 
-    const scriptSigPart1 = Buffer.concat([
+    let scriptSigPart1 = Buffer.concat([
       utils.serializeNumber(rpcData.height),
       coinbaseAux,
       utils.serializeNumber(Date.now() / 1000 | 0),
-      Buffer.from([extraNoncePlaceholder.length])
+      Buffer.from([extraNoncePlaceholder.length]),
     ]);
+
+    if (auxMerkle && options.merged.header) {
+      scriptSigPart1 = Buffer.concat([
+        scriptSigPart1,
+        Buffer.from(options.merged.header, 'hex'),
+        utils.reverseBuffer(auxMerkle.root),
+        utils.packUInt32LE(auxMerkle.data.length),
+        utils.packUInt32LE(0)
+      ]);
+    }
 
     const scriptSigPart2 = utils.serializeString(poolIdentifier);
 
     const p1 = Buffer.concat([
       utils.packUInt32LE(txVersion),
+      txTimestamp,
       utils.varIntBuffer(1),
       utils.uint256BufferFromHash(txInPrevOutHash),
       utils.packUInt32LE(txInPrevOutIndex),
