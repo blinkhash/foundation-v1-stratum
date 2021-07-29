@@ -43,6 +43,11 @@ const rpcData = {
   'default_witness_commitment': '6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9'
 };
 
+const auxData = {
+  'chainid': 1,
+  'hash': '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2',
+}
+
 const options = {
   'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
   'coin': {
@@ -63,6 +68,9 @@ const options = {
       'wif': 0x80,
       'coin': 'btc',
     },
+  },
+  'merged': {
+    'header': 'fabe6d6d',
   },
   'recipients': [],
   'settings': {
@@ -95,6 +103,13 @@ describe('Test manager functionality', () => {
     expect(manager.jobCounter.next()).toBe('1');
   });
 
+  test('Test job updates given auxpow initialization', () => {
+    const transactionData = JSON.parse(JSON.stringify(rpcData));
+    transactionData.auxdata = auxData;
+    const response = manager.processTemplate(transactionData, true);
+    expect(response).toBe(true);
+  });
+
   test('Test job updates given new blockTemplate', () => {
     manager.updateCurrentJob(rpcData);
     expect(typeof manager.currentJob).toBe('object');
@@ -104,34 +119,34 @@ describe('Test manager functionality', () => {
   });
 
   test('Test template updates given new blockTemplate [1]', () => {
-    const response1 = manager.processTemplate(rpcData);
-    const response2 = manager.processTemplate(rpcData);
+    const response1 = manager.processTemplate(rpcData, false);
+    const response2 = manager.processTemplate(rpcData, false);
     expect(response1).toBe(true);
     expect(response2).toBe(false);
   });
 
   test('Test template updates given new blockTemplate [2]', () => {
     const transactionData = JSON.parse(JSON.stringify(rpcData));
-    const response1 = manager.processTemplate(transactionData);
+    const response1 = manager.processTemplate(transactionData, false);
     transactionData.previousblockhash = '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2';
-    const response2 = manager.processTemplate(transactionData);
+    const response2 = manager.processTemplate(transactionData, false);
     expect(response1).toBe(true);
     expect(response2).toBe(true);
   });
 
   test('Test template updates given new blockTemplate [3]', () => {
     const transactionData = JSON.parse(JSON.stringify(rpcData));
-    const response1 = manager.processTemplate(transactionData);
+    const response1 = manager.processTemplate(transactionData, false);
     transactionData.previousblockhash = '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2';
     transactionData.height = 0;
-    const response2 = manager.processTemplate(transactionData);
+    const response2 = manager.processTemplate(transactionData, false);
     expect(response1).toBe(true);
     expect(response2).toBe(false);
   });
 
   test('Test share submission process [1]', () => {
     const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData);
+    manager.processTemplate(transactionData, false);
     const extraNonce2 = '00'.toString('hex');
     const versionBits = '00000000';
     const versionMask = '1fffe000';
@@ -142,7 +157,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [2]', () => {
     const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData);
+    manager.processTemplate(transactionData, false);
     const extraNonce2 = '00000000'.toString('hex');
     const versionBits = '00000000';
     const versionMask = '1fffe000';
@@ -153,7 +168,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [3]', () => {
     const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData);
+    manager.processTemplate(transactionData, false);
     const extraNonce2 = '00000000'.toString('hex');
     const versionBits = '00000000';
     const versionMask = '1fffe000';
@@ -165,7 +180,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [4]', () => {
     const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData);
+    manager.processTemplate(transactionData, false);
     const extraNonce2 = '00000000'.toString('hex');
     const versionBits = '00000000';
     const versionMask = '1fffe000';
@@ -177,7 +192,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [5]', () => {
     const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData);
+    manager.processTemplate(transactionData, false);
     const extraNonce2 = '00000000'.toString('hex');
     const versionBits = '00000000';
     const versionMask = '1fffe000';
@@ -190,7 +205,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [6]', () => {
     const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData);
+    manager.processTemplate(transactionData, false);
     const previousDifficulty = 0.0000001;
     const difficulty = 0.0000001;
     const extraNonce1 = '00000001'.toString('hex');
@@ -205,7 +220,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [7]', () => {
     const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData);
+    manager.processTemplate(transactionData, false);
     const previousDifficulty = 0.0000001;
     const difficulty = 0.0000001;
     const extraNonce1 = '00000001'.toString('hex');
@@ -222,7 +237,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [8]', () => {
     const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData);
+    manager.processTemplate(transactionData, false);
     const previousDifficulty = 0.0000001;
     const difficulty = 0.0000001;
     const extraNonce1 = '00000001'.toString('hex');
@@ -238,7 +253,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [9]', () => {
     const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData);
+    manager.processTemplate(transactionData, false);
     const previousDifficulty = 1;
     const difficulty = 1;
     const extraNonce1 = '00000001'.toString('hex');
@@ -254,7 +269,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [10]', () => {
     const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData);
+    manager.processTemplate(transactionData, false);
     const previousDifficulty = 1;
     const difficulty = 1;
     const extraNonce1 = '00000001'.toString('hex');
@@ -270,7 +285,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [11]', () => {
     const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData);
+    manager.processTemplate(transactionData, false);
     const previousDifficulty = 0.0000001;
     const difficulty = 1;
     const extraNonce1 = '00000001'.toString('hex');

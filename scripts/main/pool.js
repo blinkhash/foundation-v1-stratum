@@ -287,7 +287,7 @@ const Pool = function(options, authorizeFn, responseFn) {
           result.instance.index + ' with error ' + JSON.stringify(result.error));
         callback(result.error);
       } else {
-        const processedNewBlock = _this.manager.processTemplate(result.response);
+        const processedNewBlock = _this.manager.processTemplate(result.response, false);
         callback(null, result.response, processedNewBlock);
       }
     }, true);

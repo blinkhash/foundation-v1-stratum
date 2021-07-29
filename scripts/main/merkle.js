@@ -66,10 +66,10 @@ const Merkle = function(data) {
   // Validate Data Struture
   this.validateData = function(data) {
     if (data) {
-      if (data.length > 1) {
-        return data.slice(1)
+      if (data.length >= 1) {
+        return data[0] === null ? data.slice(1) : data;
       } else {
-        return [null];
+        return [];
       }
     } else {
       return [];

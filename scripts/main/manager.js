@@ -9,6 +9,7 @@ const crypto = require('crypto');
 const bignum = require('bignum');
 const utils = require('./utils');
 const Algorithms = require('./algorithms');
+const Merkle = require('./merkle');
 const Template = require('./template');
 
 // Max Difficulty
@@ -76,22 +77,36 @@ const Manager = function(options) {
     };
   }();
 
+  // Build Merkle Tree from Auxiliary Chain
+  this.buildMerkleTree = function(auxData) {
+    if (auxData) {
+      const merkleData = [Buffer.alloc(32)];
+      const position = utils.getAuxMerklePosition(auxData.chainid, 1);
+      const hash = utils.uint256BufferFromHash(auxData.hash);
+      hash.copy(merkleData[position]);
+      return new Merkle(merkleData);
+    }
+    return null;
+  }
+
   // Update Current Managed Job
   this.updateCurrentJob = function(rpcData) {
+    const auxMerkleTree = _this.buildMerkleTree(rpcData.auxdata);
     const tmpTemplate = new Template(
       this.jobCounter.next(),
       Object.assign({}, rpcData),
       _this.extraNoncePlaceholder,
-      null,
+      auxMerkleTree,
       options
     );
     _this.currentJob = tmpTemplate;
     _this.emit('updatedBlock', tmpTemplate);
     _this.validJobs[tmpTemplate.jobId] = tmpTemplate;
+    _this.auxMerkleTree = auxMerkleTree;
   };
 
   // Check if New Block is Processed
-  this.processTemplate = function(rpcData) {
+  this.processTemplate = function(rpcData, processNew) {
 
     // If Current Job !== Previous Job
     let isNewBlock = typeof(_this.currentJob) === 'undefined';
@@ -99,20 +114,21 @@ const Manager = function(options) {
         (!isNewBlock && _this.currentJob.rpcData.bits !== rpcData.bits)) {
       isNewBlock = true;
       if (rpcData.height < _this.currentJob.rpcData.height)
-        return false;
+        isNewBlock = false;
     }
 
     // Check for New Block
-    if (!isNewBlock) {
+    if (!isNewBlock && !processNew) {
       return false;
     }
 
     // Build New Block Template
+    const auxMerkleTree = _this.buildMerkleTree(rpcData.auxdata);
     const tmpTemplate = new Template(
       this.jobCounter.next(),
       Object.assign({}, rpcData),
       _this.extraNoncePlaceholder,
-      null,
+      auxMerkleTree,
       options
     );
 
@@ -120,6 +136,7 @@ const Manager = function(options) {
     _this.currentJob = tmpTemplate;
     _this.emit('newBlock', tmpTemplate);
     _this.validJobs[tmpTemplate.jobId] = tmpTemplate;
+    _this.auxMerkleTree = auxMerkleTree;
     return true;
   };
 
