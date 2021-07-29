@@ -15,7 +15,7 @@ const diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000
 ////////////////////////////////////////////////////////////////////////////////
 
 // Main Template Function
-const Template = function(jobId, rpcData, extraNoncePlaceholder, options) {
+const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, options) {
 
   this.submits = [];
   this.rpcData = rpcData;
@@ -56,19 +56,18 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, options) {
     );
   };
 
-  // Create Generation Transaction
-  this.createGeneration = function(rpcData, extraNoncePlaceholder, options) {
-    const transactions = new Transactions();
-    return transactions.bitcoin(rpcData, extraNoncePlaceholder, null, options);
-  };
-
   // Create Merkle Data
   this.createMerkle = function(rpcData) {
     return new Merkle(this.getTransactionBuffers(rpcData.transactions));
   };
 
-  this.generation = this.createGeneration(this.rpcData, extraNoncePlaceholder, options);
+  // Create Generation Transaction
+  this.createGeneration = function(rpcData, extraNoncePlaceholder, auxMerkle, options) {
+    return new Transactions().bitcoin(rpcData, extraNoncePlaceholder, auxMerkle, options);
+  };
+
   this.merkle = this.createMerkle(this.rpcData);
+  this.generation = this.createGeneration(this.rpcData, extraNoncePlaceholder, auxMerkle, options);
   this.previousblockhash = utils.reverseByteOrder(Buffer.from(this.rpcData.previousblockhash, 'hex')).toString('hex');
   this.transactions = Buffer.concat(this.rpcData.transactions.map((tx) => {
     return Buffer.from(tx.data, 'hex');

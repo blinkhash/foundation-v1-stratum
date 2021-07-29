@@ -82,6 +82,7 @@ const Manager = function(options) {
       this.jobCounter.next(),
       Object.assign({}, rpcData),
       _this.extraNoncePlaceholder,
+      null,
       options
     );
     _this.currentJob = tmpTemplate;
@@ -111,6 +112,7 @@ const Manager = function(options) {
       this.jobCounter.next(),
       Object.assign({}, rpcData),
       _this.extraNoncePlaceholder,
+      null,
       options
     );
 
