@@ -51,6 +51,13 @@ exports.commandStringBuffer = function(s) {
   return buff;
 };
 
+// Calculate Merkle Hash Position
+// https://github.com/p2pool/p2pool/blob/53c438bbada06b9d4a9a465bc13f7694a7a322b7/p2pool/bitcoin/data.py#L218
+// https://stackoverflow.com/questions/8569113/why-1103515245-is-used-in-rand
+exports.getAuxMerklePosition = function(chain_id, size) {
+    return (1103515245 * chain_id + 1103515245 * 12345 + 12345) % size;
+}
+
 // Alloc/Write UInt16LE
 exports.packUInt16LE = function(num) {
   const buff = Buffer.alloc(2);

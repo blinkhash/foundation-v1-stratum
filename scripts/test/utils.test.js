@@ -51,6 +51,13 @@ describe('Test utility functionality', () => {
     expect(utils.bignumFromBitsHex('1e0ffff0').toNumber().toFixed(9)).toBe('1.1042625655198232e+71');
   });
 
+  test('Test implemented getAuxMerklePosition', () => {
+    expect(utils.getAuxMerklePosition(1, 5)).toBe(0);
+    expect(utils.getAuxMerklePosition(5, 9)).toBe(6);
+    expect(utils.getAuxMerklePosition(5, 5)).toBe(0);
+    expect(utils.getAuxMerklePosition(3, 10)).toBe(5);
+  })
+
   test('Test implemented packUInt16LE', () => {
     expect(utils.packUInt16LE(21243)).toStrictEqual(Buffer.from('fb52', 'hex'));
     expect(utils.packUInt16LE(13815)).toStrictEqual(Buffer.from('f735', 'hex'));
