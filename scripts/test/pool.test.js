@@ -232,6 +232,7 @@ const options = {
 
 nock.disableNetConnect();
 nock.enableNetConnect('127.0.0.1');
+process.env.forkId = '0';
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -333,7 +334,7 @@ describe('Test pool functionality', () => {
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
-      expect(text).toBe('No daemons have been configured - pool cannot start');
+      expect(text).toBe('No primary daemons have been configured - pool cannot start');
       done();
     });
     pool.setupDaemonInterface(() => {});

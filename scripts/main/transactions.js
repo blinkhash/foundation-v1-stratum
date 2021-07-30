@@ -65,14 +65,13 @@ const Transactions = function() {
     ]);
 
     if (auxMerkle && options.auxiliary && options.auxiliary.enabled) {
-        scriptSigPart1 = Buffer.concat([
-          scriptSigPart1,
-          Buffer.from(options.auxiliary.coin.header, 'hex'),
-          utils.reverseBuffer(auxMerkle.root),
-          utils.packUInt32LE(auxMerkle.data.length),
-          utils.packUInt32LE(0)
-        ]);
-      }
+      scriptSigPart1 = Buffer.concat([
+        scriptSigPart1,
+        Buffer.from(options.auxiliary.coin.header, 'hex'),
+        utils.reverseBuffer(auxMerkle.root),
+        utils.packUInt32LE(auxMerkle.data.length),
+        utils.packUInt32LE(0)
+      ]);
     }
 
     const scriptSigPart2 = utils.serializeString(poolIdentifier);
