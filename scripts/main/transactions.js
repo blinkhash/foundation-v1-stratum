@@ -22,8 +22,8 @@ const Transactions = function() {
 
     let txType = 0;
     let txExtraPayload;
-    let txVersion = options.coin.txMessages === true ? 2 : 1;
-    const network = !options.settings.testnet ? options.coin.mainnet : options.coin.testnet;
+    let txVersion = options.primary.coin.messages === true ? 2 : 1;
+    const network = !options.settings.testnet ? options.primary.coin.mainnet : options.primary.coin.testnet;
 
     // Support Coinbase v3 Block Template
     if (rpcData.coinbase_payload && rpcData.coinbase_payload.length > 0) {
@@ -42,16 +42,16 @@ const Transactions = function() {
     let reward = rpcData.coinbasevalue;
     let rewardToPool = reward;
     const poolIdentifier = options.identifier || 'https://github.com/blinkhash/foundation-server';
-    const poolAddressScript = utils.addressToScript(options.address, network);
+    const poolAddressScript = utils.addressToScript(options.primary.address, network);
     const coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
 
     // Handle Timestamp if Necessary
-    const txTimestamp = options.coin.staking === true ?
+    const txTimestamp = options.primary.coin.staking === true ?
       utils.packUInt32LE(rpcData.curtime) :
       Buffer.from([]);
 
     // Handle Comments if Necessary
-    const txComment = options.coin.txMessages === true ?
+    const txComment = options.primary.coin.messages === true ?
       utils.serializeString(poolIdentifier) :
       Buffer.from([]);
 
@@ -62,14 +62,16 @@ const Transactions = function() {
       Buffer.from([extraNoncePlaceholder.length]),
     ]);
 
-    if (auxMerkle && options.merged.header) {
-      scriptSigPart1 = Buffer.concat([
-        scriptSigPart1,
-        Buffer.from(options.merged.header, 'hex'),
-        utils.reverseBuffer(auxMerkle.root),
-        utils.packUInt32LE(auxMerkle.data.length),
-        utils.packUInt32LE(0)
-      ]);
+    if (auxMerkle && options.auxiliary) {
+      if (options.auxiliary.enabled) {
+        scriptSigPart1 = Buffer.concat([
+          scriptSigPart1,
+          Buffer.from(options.auxiliary.coin.header, 'hex'),
+          utils.reverseBuffer(auxMerkle.root),
+          utils.packUInt32LE(auxMerkle.data.length),
+          utils.packUInt32LE(0)
+        ]);
+      }
     }
 
     const scriptSigPart2 = utils.serializeString(poolIdentifier);
@@ -150,13 +152,13 @@ const Transactions = function() {
     }
 
     // Handle Secondary Transactions
-    switch (options.coin.rewards) {
+    switch (options.primary.coin.rewards) {
     default:
       break;
     }
 
     // Handle Recipient Transactions
-    options.recipients.forEach(recipient => {
+    options.primary.recipients.forEach(recipient => {
       const recipientReward = Math.floor(recipient.percentage * reward);
       const recipientScript = utils.addressToScript(recipient.address, network);
       reward -= recipientReward;

@@ -56,7 +56,7 @@ describe('Test utility functionality', () => {
     expect(utils.getAuxMerklePosition(5, 9)).toBe(6);
     expect(utils.getAuxMerklePosition(5, 5)).toBe(0);
     expect(utils.getAuxMerklePosition(3, 10)).toBe(5);
-  })
+  });
 
   test('Test implemented packUInt16LE', () => {
     expect(utils.packUInt16LE(21243)).toStrictEqual(Buffer.from('fb52', 'hex'));

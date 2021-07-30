@@ -101,7 +101,7 @@ const Network = function(options, authorizeFn) {
       subscriptionId: subscriptionId,
       authorizeFn: authorizeFn,
       socket: socket,
-      asicBoost: _this.options.coin.asicBoost,
+      asicBoost: _this.options.primary.coin.asicBoost,
       banning: _this.options.banning,
       connectionTimeout: _this.options.settings.connectionTimeout,
       tcpProxyProtocol: _this.options.settings.tcpProxyProtocol

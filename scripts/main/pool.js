@@ -37,12 +37,12 @@ const Pool = function(options, authorizeFn, responseFn) {
       emitErrorLog('The ' + algorithm + ' algorithm is not supported.');
       throw new Error();
     }
-  }
+  };
 
   // Check if Algorithms Supported
-  _this.checkAlgorithm(_this.options.coin.algorithms.mining);
-  _this.checkAlgorithm(_this.options.coin.algorithms.block);
-  _this.checkAlgorithm(_this.options.coin.algorithms.coinbase);
+  _this.checkAlgorithm(_this.options.primary.coin.algorithms.mining);
+  _this.checkAlgorithm(_this.options.primary.coin.algorithms.block);
+  _this.checkAlgorithm(_this.options.primary.coin.algorithms.coinbase);
 
   // Process Block when Found
   /* istanbul ignore next */
@@ -51,9 +51,9 @@ const Pool = function(options, authorizeFn, responseFn) {
     if ((typeof(currentJob) !== 'undefined') && (blockHash !== currentJob.rpcData.previousblockhash)) {
       _this.getBlockTemplate((error) => {
         if (error) {
-          emitErrorLog('Block notify error getting block template for ' + _this.options.coin.name);
+          emitErrorLog('Block notify error getting block template for ' + _this.options.primary.coin.name);
         } else {
-          emitLog('Block template for ' + _this.options.coin.name + ' updated successfully');
+          emitLog('Block template for ' + _this.options.primary.coin.name + ' updated successfully');
         }
       });
     }
@@ -71,8 +71,8 @@ const Pool = function(options, authorizeFn, responseFn) {
     });
     daemon.on('error', (message) => emitErrorLog(message));
     daemon.initDaemons(() => {});
-    return daemon
-  }
+    return daemon;
+  };
 
   // Configure Port Difficulty
   /* istanbul ignore next */
@@ -123,24 +123,24 @@ const Pool = function(options, authorizeFn, responseFn) {
 
   // Initialize Pool Daemon
   this.setupDaemonInterface = function(callback) {
-    if (!Array.isArray(_this.options.daemons) || _this.options.daemons.length < 1) {
+    if (!Array.isArray(_this.options.primary.daemons) || _this.options.primary.daemons.length < 1) {
       emitErrorLog('No daemons have been configured - pool cannot start');
       return;
     }
-    _this.daemon = _this.setupDaemon(_this.options.daemons, callback);
+    _this.daemon = _this.setupDaemon(_this.options.primary.daemons, callback);
   };
 
   // Initialize Pool Data
   /* istanbul ignore next */
   this.setupPoolData = function(callback) {
     const batchRPCCommand = [
-      ['validateaddress', [_this.options.address]],
+      ['validateaddress', [_this.options.primary.address]],
       ['getmininginfo', []],
       ['submitblock', []]
     ];
 
     // Check if Coin has GetInfo Defined
-    if (_this.options.coin.getInfo) {
+    if (_this.options.primary.coin.getinfo) {
       batchRPCCommand.push(['getinfo', []]);
     } else {
       batchRPCCommand.push(['getblockchaininfo', []], ['getnetworkinfo', []]);
@@ -171,24 +171,24 @@ const Pool = function(options, authorizeFn, responseFn) {
       }
 
       // Check if Mainnet/Testnet is Active
-      if (_this.options.coin.getInfo) {
+      if (_this.options.primary.coin.getinfo) {
         _this.options.settings.testnet = (rpcResults.getinfo.testnet === true) ? true : false;
       } else {
         _this.options.settings.testnet = (rpcResults.getblockchaininfo.chain === 'test') ? true : false;
       }
 
       // Establish Coin Protocol Version
-      _this.options.address = rpcResults.validateaddress.address;
-      _this.options.settings.protocolVersion = _this.options.coin.getInfo ? rpcResults.getinfo.protocolversion : rpcResults.getnetworkinfo.protocolversion;
-      let difficulty = _this.options.coin.getInfo ? rpcResults.getinfo.difficulty : rpcResults.getblockchaininfo.difficulty;
+      _this.options.primary.address = rpcResults.validateaddress.address;
+      _this.options.settings.protocolVersion = _this.options.primary.coin.getinfo ? rpcResults.getinfo.protocolversion : rpcResults.getnetworkinfo.protocolversion;
+      let difficulty = _this.options.primary.coin.getinfo ? rpcResults.getinfo.difficulty : rpcResults.getblockchaininfo.difficulty;
       if (typeof(difficulty) == 'object') {
         difficulty = difficulty['proof-of-work'];
       }
 
       // Establish Coin Initial Statistics
       _this.options.statistics = {
-        connections: (_this.options.coin.getInfo ? rpcResults.getinfo.connections : rpcResults.getnetworkinfo.connections),
-        difficulty: difficulty * Algorithms[_this.options.coin.algorithms.mining].multiplier,
+        connections: _this.options.primary.coin.getinfo ? rpcResults.getinfo.connections : rpcResults.getnetworkinfo.connections,
+        difficulty: difficulty * Algorithms[_this.options.primary.coin.algorithms.mining].multiplier,
       };
 
       // Check if Pool is Able to Submit Blocks
@@ -207,11 +207,11 @@ const Pool = function(options, authorizeFn, responseFn) {
 
   // Initialize Pool Recipients
   this.setupRecipients = function() {
-    if (_this.options.recipients.length === 0) {
+    if (_this.options.primary.recipients.length === 0) {
       emitErrorLog('No recipients have been added which means that no fees will be taken');
     }
     _this.options.settings.feePercentage = 0;
-    _this.options.recipients.forEach(recipient => {
+    _this.options.primary.recipients.forEach(recipient => {
       _this.options.settings.feePercentage += recipient.percentage;
     });
   };
@@ -278,7 +278,7 @@ const Pool = function(options, authorizeFn, responseFn) {
         'coinbase/append'
       ]
     };
-    if (_this.options.coin.segwit) {
+    if (_this.options.primary.coin.segwit) {
       callConfig.rules = ['segwit'];
     }
 
@@ -351,13 +351,13 @@ const Pool = function(options, authorizeFn, responseFn) {
         'coinbase/append'
       ]
     };
-    if (_this.options.coin.segwit) {
+    if (_this.options.primary.coin.segwit) {
       callConfig.rules = ['segwit'];
     }
 
     // Calculate Current Progress on Sync
     const generateProgress = function() {
-      const cmd = _this.options.coin.getInfo ? 'getinfo' : 'getblockchaininfo';
+      const cmd = _this.options.primary.coin.getinfo ? 'getinfo' : 'getblockchaininfo';
       _this.daemon.cmd(cmd, [], (results) => {
         const blockCount = Math.max.apply(null, results
           .flatMap(result => result.response)
@@ -463,10 +463,10 @@ const Pool = function(options, authorizeFn, responseFn) {
       emitLog('p2p has been disabled in the configuration');
       return;
     }
-    if (_this.options.settings.testnet && !_this.options.coin.testnet.peerMagic) {
+    if (_this.options.settings.testnet && !_this.options.primary.coin.testnet.peerMagic) {
       emitErrorLog('p2p cannot be enabled in testnet without peerMagic set in testnet configuration');
       return;
-    } else if (!_this.options.coin.mainnet.peerMagic) {
+    } else if (!_this.options.primary.coin.mainnet.peerMagic) {
       emitErrorLog('p2p cannot be enabled without peerMagic set in mainnet configuration');
       return;
     }
@@ -607,8 +607,8 @@ const Pool = function(options, authorizeFn, responseFn) {
   // Output Derived Pool Information
   /* istanbul ignore next */
   this.outputPoolInfo = function() {
-    const startMessage = 'Stratum pool server started for ' + _this.options.coin.name +
-      ' [' + _this.options.coin.symbol.toUpperCase() + '] {' + _this.options.coin.algorithms.mining + '}';
+    const startMessage = 'Stratum pool server started for ' + _this.options.primary.coin.name +
+      ' [' + _this.options.primary.coin.symbol.toUpperCase() + '] {' + _this.options.primary.coin.algorithms.mining + '}';
     if (process.env.forkId && process.env.forkId !== '0') {
       emitLog(startMessage);
       return;
@@ -617,12 +617,12 @@ const Pool = function(options, authorizeFn, responseFn) {
       'Network Connected:\t' + (_this.options.settings.testnet ? 'Testnet' : 'Mainnet'),
       'Current Block Height:\t' + _this.manager.currentJob.rpcData.height,
       'Current Connect Peers:\t' + _this.options.statistics.connections,
-      'Current Block Diff:\t' + _this.manager.currentJob.difficulty * Algorithms[_this.options.coin.algorithms.mining].multiplier,
+      'Current Block Diff:\t' + _this.manager.currentJob.difficulty * Algorithms[_this.options.primary.coin.algorithms.mining].multiplier,
       'Network Difficulty:\t' + _this.options.statistics.difficulty,
       'Stratum Port(s):\t' + _this.options.statistics.stratumPorts.join(', '),
       'Pool Fee Percentage:\t' + (_this.options.settings.feePercentage * 100) + '%'
     ];
-    if (typeof _this.options.blockRefreshInterval === 'number' && _this.options.settings.blockRefreshInterval > 0) {
+    if (typeof _this.options.settings.blockRefreshInterval === 'number' && _this.options.settings.blockRefreshInterval > 0) {
       infoLines.push('Block Polling Every:\t' + _this.options.settings.blockRefreshInterval + ' ms');
     }
     emitSpecialLog(infoLines.join('\n\t\t\t\t\t\t'));

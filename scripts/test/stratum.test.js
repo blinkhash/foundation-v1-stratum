@@ -9,50 +9,6 @@ const Client = require('../main/client');
 const Network = require('../main/network');
 
 const options = {
-  'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
-  'coin': {
-    'name': 'Bitcoin',
-    'symbol': 'BTC',
-    'asicBoost': true,
-    'getInfo': false,
-    'segwit': true,
-    'rewards': '',
-    'algorithms': {
-      'mining': 'sha256d',
-      'block': 'sha256d',
-      'coinbase': 'sha256d',
-    },
-    'mainnet': {
-      'bech32': 'bc',
-      'bip32': {
-        'public': 0x0488b21e,
-        'private': 0x0488ade4,
-      },
-      'peerMagic': 'f9beb4d9',
-      'pubKeyHash': 0x00,
-      'scriptHash': 0x05,
-      'wif': 0x80,
-      'coin': 'btc',
-    },
-    'testnet': {
-      'bech32': 'tb',
-      'bip32': {
-        'public': 0x043587cf,
-        'private': 0x04358394,
-      },
-      'peerMagic': '0b110907',
-      'pubKeyHash': 0x6f,
-      'scriptHash': 0xc4,
-      'wif': 0xef,
-      'coin': 'btc',
-    }
-  },
-  'daemons': [{
-    'host': '127.0.0.1',
-    'port': 8332,
-    'user': '',
-    'password': ''
-  }],
   'banning': {
     'time': 600,
     'invalidPercent': 0.5,
@@ -76,15 +32,61 @@ const options = {
     'host': '127.0.0.1',
     'port': 8333,
   },
-  'recipients': [{
-    'address': '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
-    'percentage': 0.05,
-  }],
   'settings': {
     'connectionTimeout': 600,
     'jobRebroadcastTimeout': 60,
     'tcpProxyProtocol': false,
-  }
+  },
+  'primary': {
+    'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
+    'coin': {
+      'name': 'Bitcoin',
+      'symbol': 'BTC',
+      'asicBoost': true,
+      'getinfo': false,
+      'segwit': true,
+      'rewards': '',
+      'algorithms': {
+        'mining': 'sha256d',
+        'block': 'sha256d',
+        'coinbase': 'sha256d',
+      },
+      'mainnet': {
+        'bech32': 'bc',
+        'bip32': {
+          'public': 0x0488b21e,
+          'private': 0x0488ade4,
+        },
+        'peerMagic': 'f9beb4d9',
+        'pubKeyHash': 0x00,
+        'scriptHash': 0x05,
+        'wif': 0x80,
+        'coin': 'btc',
+      },
+      'testnet': {
+        'bech32': 'tb',
+        'bip32': {
+          'public': 0x043587cf,
+          'private': 0x04358394,
+        },
+        'peerMagic': '0b110907',
+        'pubKeyHash': 0x6f,
+        'scriptHash': 0xc4,
+        'wif': 0xef,
+        'coin': 'btc',
+      }
+    },
+    'daemons': [{
+      'host': '127.0.0.1',
+      'port': 8332,
+      'user': '',
+      'password': ''
+    }],
+    'recipients': [{
+      'address': '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+      'percentage': 0.05,
+    }],
+  },
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -123,7 +125,7 @@ describe('Test stratum functionality', () => {
 
   let optionsCopy;
   beforeEach(() => {
-    optionsCopy = Object.assign({}, options);
+    optionsCopy = JSON.parse(JSON.stringify(options));
   });
 
   test('Test initialization of stratum network', (done) => {
@@ -134,28 +136,28 @@ describe('Test stratum functionality', () => {
   });
 
   test('Text validation of worker name [1]', () => {
-    const socket = { socket: mockSocket() }
+    const socket = { socket: mockSocket() };
     const client = new Client(socket);
-    expect(client.validateName("test")).toBe("test");
-  })
+    expect(client.validateName('test')).toBe('test');
+  });
 
   test('Text validation of worker name [2]', () => {
-    const socket = { socket: mockSocket() }
+    const socket = { socket: mockSocket() };
     const client = new Client(socket);
-    expect(client.validateName("")).toBe("");
-  })
+    expect(client.validateName('')).toBe('');
+  });
 
   test('Text validation of worker name [3]', () => {
-    const socket = { socket: mockSocket() }
+    const socket = { socket: mockSocket() };
     const client = new Client(socket);
-    expect(client.validateName("example!@#$%^&")).toBe("example");
-  })
+    expect(client.validateName('example!@#$%^&')).toBe('example');
+  });
 
   test('Text validation of worker password', () => {
-    const socket = { socket: mockSocket() }
+    const socket = { socket: mockSocket() };
     const client = new Client(socket);
-    expect(client.validatePassword("test")).toBe("test");
-  })
+    expect(client.validatePassword('test')).toBe('test');
+  });
 
   test('Test stratum banning capabilities [1]', (done) => {
     const stratum = new Network(optionsCopy, () => {});
@@ -170,7 +172,6 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum banning capabilities [2]', (done) => {
-    optionsCopy.banning = Object.assign({}, options.banning);
     optionsCopy.banning.time = -1;
     const stratum = new Network(optionsCopy, () => {});
     const client = mockClient();
@@ -294,7 +295,6 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum job broadcasting [1]', (done) => {
-    optionsCopy.settings = Object.assign({}, options.settings);
     optionsCopy.settings.connectionTimeout = -1;
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
@@ -478,8 +478,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [5]', (done) => {
     const response = [];
-    optionsCopy.coin = Object.assign({}, options.coin);
-    optionsCopy.coin.asicBoost = false;
+    optionsCopy.primary.coin.asicBoost = false;
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
@@ -517,8 +516,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum message handling [7]', () => {
-    optionsCopy.coin = Object.assign({}, options.coin);
-    optionsCopy.coin.asicBoost = false;
+    optionsCopy.primary.coin.asicBoost = false;
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
@@ -565,7 +563,7 @@ describe('Test stratum functionality', () => {
         stratum.stopServer();
       }
     });
-    client.handleMessage({ id: null, method: 'mining.submit', params: ["worker", "password"] });
+    client.handleMessage({ id: null, method: 'mining.submit', params: ['worker', 'password'] });
     expect(client.shares.invalid).toBe(1);
   });
 
@@ -584,7 +582,7 @@ describe('Test stratum functionality', () => {
         stratum.stopServer();
       }
     });
-    client.handleMessage({ id: null, method: 'mining.submit', params: ["worker", "password"] });
+    client.handleMessage({ id: null, method: 'mining.submit', params: ['worker', 'password'] });
     expect(client.shares.invalid).toBe(1);
   });
 
@@ -607,7 +605,7 @@ describe('Test stratum functionality', () => {
     client.on('submit', (params, resultCallback) => {
       resultCallback(null, true);
     });
-    client.handleMessage({ id: null, method: 'mining.submit', params: ["worker", "password"] });
+    client.handleMessage({ id: null, method: 'mining.submit', params: ['worker', 'password'] });
     expect(client.shares.valid).toBe(1);
   });
 

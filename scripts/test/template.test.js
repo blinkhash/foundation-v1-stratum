@@ -47,30 +47,32 @@ const rpcData = {
 };
 
 const options = {
-  'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
-  'coin': {
-    'asicBoost': true,
-    'rewards': '',
-    'algorithms': {
-      'mining': 'scrypt',
-      'block': 'scrypt',
-      'coinbase': 'sha256d',
-    },
-    'mainnet': {
-      'bech32': 'bc',
-      'bip32': {
-        'public': 0x0488b21e,
-        'private': 0x0488ade4,
-      },
-      'pubKeyHash': 0x00,
-      'scriptHash': 0x05,
-      'wif': 0x80,
-      'coin': 'btc',
-    },
-  },
-  'recipients': [],
   'settings': {
     'testnet': false
+  },
+  'primary': {
+    'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
+    'coin': {
+      'asicBoost': true,
+      'rewards': '',
+      'algorithms': {
+        'mining': 'scrypt',
+        'block': 'scrypt',
+        'coinbase': 'sha256d',
+      },
+      'mainnet': {
+        'bech32': 'bc',
+        'bip32': {
+          'public': 0x0488b21e,
+          'private': 0x0488ade4,
+        },
+        'pubKeyHash': 0x00,
+        'scriptHash': 0x05,
+        'wif': 0x80,
+        'coin': 'btc',
+      },
+    },
+    'recipients': [],
   }
 };
 
@@ -204,7 +206,7 @@ describe('Test block functionality', () => {
 
   test('Test header serialization [2]', () => {
     const headerBuffer = Buffer.from('00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b530314fc53660f0ff0f1e00001afe', 'hex');
-    const hashDigest = Algorithms[options.coin.algorithms.mining].hash(options.coin);
+    const hashDigest = Algorithms[options.primary.coin.algorithms.mining].hash(options.primary.coin);
     const headerHash = hashDigest(headerBuffer, 1614202191);
     expect(headerHash).toStrictEqual(Buffer.from('3748391bfdaaa2a44424028a12fa508f94bb9ca879b2430a41cfa6e171040000', 'hex'));
   });

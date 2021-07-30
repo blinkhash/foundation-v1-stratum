@@ -7,14 +7,6 @@
 const Peer = require('../main/peer');
 
 const options = {
-  'coin': {
-    'mainnet': {
-      'peerMagic': 'f9beb4d9',
-    },
-    'testnet': {
-      'peerMagic': '0b110907',
-    },
-  },
   'p2p': {
     'enabled': true,
     'host': '127.0.0.1',
@@ -24,7 +16,17 @@ const options = {
     'verack': false,
     'validConnectionConfig': true,
     'testnet': false,
-  }
+  },
+  'primary': {
+    'coin': {
+      'mainnet': {
+        'peerMagic': 'f9beb4d9',
+      },
+      'testnet': {
+        'peerMagic': '0b110907',
+      },
+    },
+  },
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,7 +35,7 @@ describe('Test peer functionality', () => {
 
   let optionsCopy, output1, output2;
   beforeEach(() => {
-    optionsCopy = Object.assign({}, options);
+    optionsCopy = JSON.parse(JSON.stringify(options));
   });
 
   test('Test initialization of peer socket', () => {
@@ -44,14 +46,12 @@ describe('Test peer functionality', () => {
   });
 
   test('Test peer magic functionality', () => {
-    optionsCopy.settings = Object.assign({}, options.settings);
     optionsCopy.settings.testnet = true;
     const peer = new Peer(optionsCopy);
-    expect(peer.magic).toEqual(Buffer.from(optionsCopy.coin.testnet.peerMagic, 'hex'));
+    expect(peer.magic).toEqual(Buffer.from(optionsCopy.primary.coin.testnet.peerMagic, 'hex'));
   });
 
   test('Test peer socket events [1]', () => {
-    optionsCopy.settings = Object.assign({}, options.settings);
     optionsCopy.settings.verack = true;
     const peer = new Peer(optionsCopy);
     peer.on('disconnected', () => output1 = 'Disconnected');
@@ -61,7 +61,6 @@ describe('Test peer functionality', () => {
   });
 
   test('Test peer socket events [2]', () => {
-    optionsCopy.settings = Object.assign({}, options.settings);
     optionsCopy.settings.validConnectionConfig = true;
     const peer = new Peer(optionsCopy);
     peer.on('connectionRejected', () => output1 = 'Connection Rejected');
@@ -108,8 +107,7 @@ describe('Test peer functionality', () => {
   });
 
   test('Test peer socket messaging [2]', () => {
-    optionsCopy.settings = Object.assign({}, options.settings);
-    optionsCopy.verack = false;
+    optionsCopy.settings.verack = false;
     const peer = new Peer(optionsCopy);
     const verack = Buffer.from('76657261636b000000000000', 'hex');
     const payload = Buffer.from('0100000000', 'hex');

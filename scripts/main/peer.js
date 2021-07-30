@@ -28,7 +28,9 @@ const Peer = function(options) {
   this.userAgent = utils.varStringBuffer('/node-stratum/');
   this.blockStartHeight = Buffer.from('00000000', 'hex');
   this.relayTransactions = Buffer.from([false]);
-  this.magic = Buffer.from(options.settings.testnet ? options.coin.testnet.peerMagic : options.coin.mainnet.peerMagic, 'hex');
+  this.magic = Buffer.from(options.settings.testnet ? (
+    options.primary.coin.testnet.peerMagic) : (
+    options.primary.coin.mainnet.peerMagic), 'hex');
   this.magicInt = _this.magic.readUInt32LE(0);
 
   let client;

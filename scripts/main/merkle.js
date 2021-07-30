@@ -36,7 +36,7 @@ const Merkle = function(data) {
     } else {
       return modified[0];
     }
-  }
+  };
 
   // Calculate Merkle Steps
   this.calculateSteps = function(data) {
@@ -74,7 +74,7 @@ const Merkle = function(data) {
     } else {
       return [];
     }
-  }
+  };
 
   // Hash Merkle Steps With Input
   this.withFirst = function(hash) {

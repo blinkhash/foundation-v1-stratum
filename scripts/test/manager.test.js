@@ -46,36 +46,40 @@ const rpcData = {
 const auxData = {
   'chainid': 1,
   'hash': '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2',
-}
+};
 
 const options = {
-  'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
-  'coin': {
-    'rewards': '',
-    'algorithms': {
-      'mining': 'scrypt',
-      'block': 'sha256d',
-      'coinbase': 'sha256d',
-    },
-    'mainnet': {
-      'bech32': 'bc',
-      'bip32': {
-        'public': 0x0488b21e,
-        'private': 0x0488ade4,
-      },
-      'pubKeyHash': 0x00,
-      'scriptHash': 0x05,
-      'wif': 0x80,
-      'coin': 'btc',
-    },
-  },
-  'merged': {
-    'header': 'fabe6d6d',
-  },
-  'recipients': [],
   'settings': {
     'emitInvalidBlockHashes': true,
     'testnet': false,
+  },
+  'primary': {
+    'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
+    'coin': {
+      'rewards': '',
+      'algorithms': {
+        'mining': 'scrypt',
+        'block': 'sha256d',
+        'coinbase': 'sha256d',
+      },
+      'mainnet': {
+        'bech32': 'bc',
+        'bip32': {
+          'public': 0x0488b21e,
+          'private': 0x0488ade4,
+        },
+        'pubKeyHash': 0x00,
+        'scriptHash': 0x05,
+        'wif': 0x80,
+        'coin': 'btc',
+      },
+    },
+    'recipients': [],
+  },
+  'auxiliary': {
+    'coin': {
+      'header': 'fabe6d6d'
+    }
   }
 };
 
@@ -83,9 +87,9 @@ const options = {
 
 describe('Test manager functionality', () => {
 
-  let manager;
+  let optionsCopy, manager;
   beforeEach(() => {
-    const optionsCopy = Object.assign({}, options);
+    optionsCopy = JSON.parse(JSON.stringify(options));
     manager = new Manager(optionsCopy);
   });
 
@@ -104,9 +108,9 @@ describe('Test manager functionality', () => {
   });
 
   test('Test job updates given auxpow initialization', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    transactionData.auxdata = auxData;
-    const response = manager.processTemplate(transactionData, true);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    rpcDataCopy.auxdata = auxData;
+    const response = manager.processTemplate(rpcDataCopy, true);
     expect(response).toBe(true);
   });
 
@@ -126,27 +130,27 @@ describe('Test manager functionality', () => {
   });
 
   test('Test template updates given new blockTemplate [2]', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    const response1 = manager.processTemplate(transactionData, false);
-    transactionData.previousblockhash = '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2';
-    const response2 = manager.processTemplate(transactionData, false);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    const response1 = manager.processTemplate(rpcDataCopy, false);
+    rpcDataCopy.previousblockhash = '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2';
+    const response2 = manager.processTemplate(rpcDataCopy, false);
     expect(response1).toBe(true);
     expect(response2).toBe(true);
   });
 
   test('Test template updates given new blockTemplate [3]', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    const response1 = manager.processTemplate(transactionData, false);
-    transactionData.previousblockhash = '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2';
-    transactionData.height = 0;
-    const response2 = manager.processTemplate(transactionData, false);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    const response1 = manager.processTemplate(rpcDataCopy, false);
+    rpcDataCopy.previousblockhash = '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2';
+    rpcDataCopy.height = 0;
+    const response2 = manager.processTemplate(rpcDataCopy, false);
     expect(response1).toBe(true);
     expect(response2).toBe(false);
   });
 
   test('Test share submission process [1]', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData, false);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    manager.processTemplate(rpcDataCopy, false);
     const extraNonce2 = '00'.toString('hex');
     const versionBits = '00000000';
     const versionMask = '1fffe000';
@@ -156,8 +160,8 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [2]', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData, false);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    manager.processTemplate(rpcDataCopy, false);
     const extraNonce2 = '00000000'.toString('hex');
     const versionBits = '00000000';
     const versionMask = '1fffe000';
@@ -167,8 +171,8 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [3]', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData, false);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    manager.processTemplate(rpcDataCopy, false);
     const extraNonce2 = '00000000'.toString('hex');
     const versionBits = '00000000';
     const versionMask = '1fffe000';
@@ -179,8 +183,8 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [4]', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData, false);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    manager.processTemplate(rpcDataCopy, false);
     const extraNonce2 = '00000000'.toString('hex');
     const versionBits = '00000000';
     const versionMask = '1fffe000';
@@ -191,8 +195,8 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [5]', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData, false);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    manager.processTemplate(rpcDataCopy, false);
     const extraNonce2 = '00000000'.toString('hex');
     const versionBits = '00000000';
     const versionMask = '1fffe000';
@@ -204,8 +208,8 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [6]', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData, false);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    manager.processTemplate(rpcDataCopy, false);
     const previousDifficulty = 0.0000001;
     const difficulty = 0.0000001;
     const extraNonce1 = '00000001'.toString('hex');
@@ -219,8 +223,8 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [7]', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData, false);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    manager.processTemplate(rpcDataCopy, false);
     const previousDifficulty = 0.0000001;
     const difficulty = 0.0000001;
     const extraNonce1 = '00000001'.toString('hex');
@@ -236,8 +240,8 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [8]', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData, false);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    manager.processTemplate(rpcDataCopy, false);
     const previousDifficulty = 0.0000001;
     const difficulty = 0.0000001;
     const extraNonce1 = '00000001'.toString('hex');
@@ -252,8 +256,8 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [9]', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData, false);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    manager.processTemplate(rpcDataCopy, false);
     const previousDifficulty = 1;
     const difficulty = 1;
     const extraNonce1 = '00000001'.toString('hex');
@@ -268,8 +272,8 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [10]', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData, false);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    manager.processTemplate(rpcDataCopy, false);
     const previousDifficulty = 1;
     const difficulty = 1;
     const extraNonce1 = '00000001'.toString('hex');
@@ -284,8 +288,8 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [11]', () => {
-    const transactionData = JSON.parse(JSON.stringify(rpcData));
-    manager.processTemplate(transactionData, false);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+    manager.processTemplate(rpcDataCopy, false);
     const previousDifficulty = 0.0000001;
     const difficulty = 1;
     const extraNonce1 = '00000001'.toString('hex');

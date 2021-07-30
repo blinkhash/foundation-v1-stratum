@@ -34,12 +34,12 @@ const Client = function(options) {
       name = name.toString().replace(/[^a-zA-Z0-9.]+/g, '');
     }
     return name;
-  }
+  };
 
   // Validate Worker Password
   this.validatePassword = function(password) {
-    return password
-  }
+    return password;
+  };
 
   // Check for Banning Users
   this.considerBan = function(shareValid) {
@@ -208,17 +208,17 @@ const Client = function(options) {
       _this.options.socket.localPort,
       _this.workerName,
       _this.workerPassword,
-    (result) => {
-      _this.authorized = (!result.error && result.authorized);
-      _this.sendJson({
-        id: message.id,
-        result: _this.authorized,
-        error: result.error
+      (result) => {
+        _this.authorized = (!result.error && result.authorized);
+        _this.sendJson({
+          id: message.id,
+          result: _this.authorized,
+          error: result.error
+        });
+        if (result.disconnect === true) {
+          _this.options.socket.destroy();
+        }
       });
-      if (result.disconnect === true) {
-        _this.options.socket.destroy();
-      }
-    });
   };
 
   // Manage Stratum Configuration

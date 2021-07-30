@@ -149,50 +149,7 @@ const peerData = {
 };
 
 const options = {
-  'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
   'debug': true,
-  'coin': {
-    'name': 'Bitcoin',
-    'symbol': 'BTC',
-    'getInfo': false,
-    'segwit': true,
-    'rewards': '',
-    'algorithms': {
-      'mining': 'sha256d',
-      'block': 'sha256d',
-      'coinbase': 'sha256d',
-    },
-    'mainnet': {
-      'bech32': 'bc',
-      'bip32': {
-        'public': 0x0488b21e,
-        'private': 0x0488ade4,
-      },
-      'peerMagic': 'f9beb4d9',
-      'pubKeyHash': 0x00,
-      'scriptHash': 0x05,
-      'wif': 0x80,
-      'coin': 'btc',
-    },
-    'testnet': {
-      'bech32': 'tb',
-      'bip32': {
-        'public': 0x043587cf,
-        'private': 0x04358394,
-      },
-      'peerMagic': '0b110907',
-      'pubKeyHash': 0x6f,
-      'scriptHash': 0xc4,
-      'wif': 0xef,
-      'coin': 'btc',
-    }
-  },
-  'daemons': [{
-    'host': '127.0.0.1',
-    'port': 8332,
-    'user': '',
-    'password': ''
-  }],
   'banning': {
     'enabled': true,
     'time': 600,
@@ -212,10 +169,6 @@ const options = {
       'variance': 0.3
     }
   }],
-  'recipients': [{
-    'address': '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
-    'percentage': 0.05,
-  }],
   'p2p': {
     'enabled': true,
     'host': '127.0.0.1',
@@ -225,7 +178,56 @@ const options = {
     'connectionTimeout': 600,
     'jobRebroadcastTimeout': 60,
     'tcpProxyProtocol': false,
-  }
+  },
+  'primary': {
+    'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
+    'coin': {
+      'name': 'Bitcoin',
+      'symbol': 'BTC',
+      'getinfo': false,
+      'segwit': true,
+      'rewards': '',
+      'algorithms': {
+        'mining': 'sha256d',
+        'block': 'sha256d',
+        'coinbase': 'sha256d',
+      },
+      'mainnet': {
+        'bech32': 'bc',
+        'bip32': {
+          'public': 0x0488b21e,
+          'private': 0x0488ade4,
+        },
+        'peerMagic': 'f9beb4d9',
+        'pubKeyHash': 0x00,
+        'scriptHash': 0x05,
+        'wif': 0x80,
+        'coin': 'btc',
+      },
+      'testnet': {
+        'bech32': 'tb',
+        'bip32': {
+          'public': 0x043587cf,
+          'private': 0x04358394,
+        },
+        'peerMagic': '0b110907',
+        'pubKeyHash': 0x6f,
+        'scriptHash': 0xc4,
+        'wif': 0xef,
+        'coin': 'btc',
+      }
+    },
+    'daemons': [{
+      'host': '127.0.0.1',
+      'port': 8332,
+      'user': '',
+      'password': ''
+    }],
+    'recipients': [{
+      'address': '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+      'percentage': 0.05,
+    }],
+  },
 };
 
 nock.disableNetConnect();
@@ -296,14 +298,18 @@ function mockSetupFirstJob(pool, callback) {
 
 describe('Test pool functionality', () => {
 
+  let optionsCopy, rpcDataCopy;
+  beforeEach(() => {
+    optionsCopy = JSON.parse(JSON.stringify(options));
+    rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
+  });
+
   test('Test initialization of pool', () => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     expect(typeof pool).toBe('object');
   });
 
   test('Test initialization of port difficulty', () => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.setupDifficulty();
     expect(typeof pool.difficulty).toBe('object');
@@ -313,7 +319,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test initialization of daemon', () => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.setupDaemonInterface(() => {});
     expect(typeof pool.daemon).toBe('object');
@@ -324,8 +329,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool daemon events [1]', (done) => {
-    const optionsCopy = Object.assign({}, options);
-    optionsCopy.daemons = [];
+    optionsCopy.primary.daemons = [];
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
@@ -336,7 +340,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool daemon events [2]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     nock('http://127.0.0.1:8332')
       .post('/', body => body.method === 'getpeerinfo')
@@ -351,7 +354,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool daemon events [3]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     nock('http://127.0.0.1:8332')
       .post('/', body => body.method === 'getpeerinfo')
@@ -364,7 +366,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool daemon events [4]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     nock('http://127.0.0.1:8332')
       .post('/', body => body.method === 'getpeerinfo')
@@ -382,14 +383,12 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [1]', (done) => {
-    const optionsCopy = Object.assign({}, options);
-    optionsCopy.coin = Object.assign({}, options.coin);
-    optionsCopy.coin.getInfo = true;
+    optionsCopy.primary.coin.getinfo = true;
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
       expect(text).toBe('Could not start pool, error with init batch RPC call');
-      expect(optionsCopy.coin.getInfo).toBe(true);
+      expect(optionsCopy.primary.coin.getinfo).toBe(true);
       done();
     });
     mockSetupDaemon(pool, () => {
@@ -398,7 +397,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [2]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
@@ -411,7 +409,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [3]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       nock('http://127.0.0.1:8332')
@@ -423,7 +420,7 @@ describe('Test pool functionality', () => {
           { id: 'nocktest', error: null, result: { protocolversion: 1, connections: 1 }},
         ]));
       pool.setupPoolData(() => {
-        expect(optionsCopy.address).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
+        expect(optionsCopy.primary.address).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
         expect(optionsCopy.settings.testnet).toBe(false);
         expect(optionsCopy.settings.protocolVersion).toBe(1);
         expect(optionsCopy.settings.hasSubmitMethod).toBe(true);
@@ -434,7 +431,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [4]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
@@ -455,7 +451,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [5]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
@@ -476,8 +471,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [6]', (done) => {
-    const optionsCopy = Object.assign({}, options);
-    optionsCopy.coin.getInfo = true;
+    optionsCopy.primary.coin.getinfo = true;
     const pool = new Pool(optionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       nock('http://127.0.0.1:8332')
@@ -488,7 +482,7 @@ describe('Test pool functionality', () => {
           { id: 'nocktest', error: null, result: { testnet: false, difficulty: { 'proof-of-work': 0 }, protocolversion: 1, connections: 0 }},
         ]));
       pool.setupPoolData(() => {
-        expect(optionsCopy.address).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
+        expect(optionsCopy.primary.address).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
         expect(optionsCopy.settings.testnet).toBe(false);
         expect(optionsCopy.settings.protocolVersion).toBe(1);
         expect(optionsCopy.settings.hasSubmitMethod).toBe(true);
@@ -499,8 +493,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [7]', (done) => {
-    const optionsCopy = Object.assign({}, options);
-    optionsCopy.coin.getInfo = false;
+    optionsCopy.primary.coin.getinfo = false;
     const pool = new Pool(optionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       nock('http://127.0.0.1:8332')
@@ -512,7 +505,7 @@ describe('Test pool functionality', () => {
           { id: 'nocktest', error: null, result: { protocolversion: 1, connections: 1 }},
         ]));
       pool.setupPoolData(() => {
-        expect(optionsCopy.address).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
+        expect(optionsCopy.primary.address).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
         expect(optionsCopy.settings.testnet).toBe(true);
         expect(optionsCopy.settings.protocolVersion).toBe(1);
         expect(optionsCopy.settings.hasSubmitMethod).toBe(true);
@@ -523,7 +516,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [8]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       nock('http://127.0.0.1:8332')
@@ -535,7 +527,7 @@ describe('Test pool functionality', () => {
           { id: 'nocktest', error: null, result: { protocolversion: 1, connections: 1 }},
         ]));
       pool.setupPoolData(() => {
-        expect(optionsCopy.address).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
+        expect(optionsCopy.primary.address).toBe('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq');
         expect(optionsCopy.settings.testnet).toBe(false);
         expect(optionsCopy.settings.protocolVersion).toBe(1);
         expect(optionsCopy.settings.hasSubmitMethod).toBe(false);
@@ -546,7 +538,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [9]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
@@ -567,7 +558,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool recipient setup [1]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
@@ -579,8 +569,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool recipient setup [2]', (done) => {
-    const optionsCopy = Object.assign({}, options);
-    optionsCopy.recipients = [];
+    optionsCopy.primary.recipients = [];
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
@@ -595,7 +584,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test initialization of manager', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
@@ -611,8 +599,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool manager events [1]', (done) => {
-    const optionsCopy = Object.assign({}, options);
-    const rpcDataCopy = Object.assign({}, rpcData);
     const pool = new Pool(optionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
@@ -624,8 +610,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool manager events [2]', (done) => {
-    const optionsCopy = Object.assign({}, options);
-    const rpcDataCopy = Object.assign({}, rpcData);
     const pool = new Pool(optionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
@@ -637,7 +621,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool manager events [3]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('share', (shareData, shareValid, blockValid) => {
       expect(shareValid).toBe(true);
@@ -669,7 +652,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool manager events [4]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
@@ -707,7 +689,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool manager events [5]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
@@ -746,8 +727,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool manager events [6]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
-    const rpcDataCopy = Object.assign({}, rpcData);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -809,8 +788,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool manager events [7]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
-    const rpcDataCopy = Object.assign({}, rpcData);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -880,10 +857,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool manager events [8]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
-    optionsCopy.coin = Object.assign({}, options.coin);
-    optionsCopy.coin.segwit = false;
-    const rpcDataCopy = Object.assign({}, rpcData);
+    optionsCopy.primary.coin.segwit = false;
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -953,8 +927,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool manager events [9]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
-    const rpcDataCopy = Object.assign({}, rpcData);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1020,8 +992,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool manager events [10]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
-    const rpcDataCopy = Object.assign({}, rpcData);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1087,7 +1057,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool manager events [11]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1152,8 +1121,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool blockchain events [1]', (done) => {
-    const optionsCopy = Object.assign({}, options);
-    const rpcDataCopy = Object.assign({}, rpcData);
     const pool = new Pool(optionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
@@ -1171,7 +1138,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool blockchain events [2]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const blockchainDataCopy = Object.assign({}, blockchainData);
     const peerDataCopy = Object.assign({}, peerData);
     const pool = new Pool(optionsCopy, null, () => {});
@@ -1214,8 +1180,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool job events [1]', (done) => {
-    const optionsCopy = Object.assign({}, options);
-    const rpcDataCopy = Object.assign({}, rpcData);
     const pool = new Pool(optionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
@@ -1240,7 +1204,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool job events [2]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1271,7 +1234,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool polling events [1]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1297,8 +1259,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool polling events [2]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
-    const rpcDataCopy = Object.assign({}, rpcData);
     optionsCopy.settings.blockRefreshInterval = 600;
     rpcDataCopy.previousblockhash = '1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769';
     rpcDataCopy.height = 2;
@@ -1334,8 +1294,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [1]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
-    optionsCopy.p2p = Object.assign({}, options.p2p);
     optionsCopy.p2p.enabled = false;
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
@@ -1362,9 +1320,8 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [2]', (done) => {
     const response = [];
-    const optionsCopy = JSON.parse(JSON.stringify(options));
-    optionsCopy.coin.testnet.peerMagic = false;
-    optionsCopy.recipients[0].address = 'tb1qnc0z4696tusrgscws5gvc7g2hhz99m6lrssfc2';
+    optionsCopy.primary.coin.testnet.peerMagic = false;
+    optionsCopy.primary.recipients[0].address = 'tb1qnc0z4696tusrgscws5gvc7g2hhz99m6lrssfc2';
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1390,8 +1347,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [3]', (done) => {
     const response = [];
-    const optionsCopy = JSON.parse(JSON.stringify(options));
-    optionsCopy.coin.mainnet.peerMagic = false;
+    optionsCopy.primary.coin.mainnet.peerMagic = false;
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1417,7 +1373,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [4]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1444,7 +1399,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [5]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1471,7 +1425,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [6]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1498,7 +1451,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [7]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1525,8 +1477,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [8]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
-    const rpcDataCopy = Object.assign({}, rpcData);
     rpcDataCopy.previousblockhash = '1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769';
     rpcDataCopy.height = 2;
     const pool = new Pool(optionsCopy, null, () => {});
@@ -1565,7 +1515,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [9]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1602,7 +1551,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [10]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1628,7 +1576,6 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool stratum events [1]', (done) => {
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
@@ -1652,7 +1599,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool stratum events [2]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1689,8 +1635,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool stratum events [3]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
-    const rpcDataCopy = Object.assign({}, rpcData);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1731,8 +1675,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool stratum events [4]', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
-    const rpcDataCopy = Object.assign({}, rpcData);
     rpcDataCopy.previousblockhash = '1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769';
     rpcDataCopy.height = 2;
     const pool = new Pool(optionsCopy, () => {}, () => {});
@@ -1776,7 +1718,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [5]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1818,7 +1759,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [6]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1860,7 +1800,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [7]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1902,7 +1841,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [8]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1944,7 +1882,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [9]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -1987,7 +1924,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [10]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -2030,7 +1966,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [11]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -2072,7 +2007,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [12]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -2114,7 +2048,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [13]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -2156,7 +2089,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [14]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -2198,7 +2130,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [15]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -2244,7 +2175,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [16]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -2290,7 +2220,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [17]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = JSON.parse(JSON.stringify(options));
     delete optionsCopy.ports[0].difficulty.initial;
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
@@ -2335,7 +2264,6 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [18]', (done) => {
     let client;
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
@@ -2386,16 +2314,17 @@ describe('Test pool functionality', () => {
 
   test('Test pool info outputting', (done) => {
     const response = [];
-    const optionsCopy = Object.assign({}, options);
     const pool = new Pool(optionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
-      if (response.length === 2) {
+      if (response.length === 3) {
         pool.stratum.on('stopped', () => done());
         expect(response[0][0]).toBe('warning');
         expect(response[0][1]).toBe('Network diff of 0 is lower than port 3001 w/ diff 32');
-        expect(response[1][0]).toBe('special');
-        expect(response[1][1]).toBe('Stratum pool server started for Bitcoin [BTC] {sha256d}\n\t\t\t\t\t\tNetwork Connected:	Mainnet\n\t\t\t\t\t\tCurrent Block Height:	1\n\t\t\t\t\t\tCurrent Connect Peers:	1\n\t\t\t\t\t\tCurrent Block Diff:	0.000244141\n\t\t\t\t\t\tNetwork Difficulty:	0\n\t\t\t\t\t\tStratum Port(s):	3001\n\t\t\t\t\t\tPool Fee Percentage:	5%');
+        expect(response[1][0]).toBe('debug');
+        expect(response[1][1]).toBe('Block template polling has been disabled');
+        expect(response[2][0]).toBe('special');
+        expect(response[2][1]).toBe('Stratum pool server started for Bitcoin [BTC] {sha256d}\n\t\t\t\t\t\tNetwork Connected:	Mainnet\n\t\t\t\t\t\tCurrent Block Height:	1\n\t\t\t\t\t\tCurrent Connect Peers:	1\n\t\t\t\t\t\tCurrent Block Diff:	0.000244141\n\t\t\t\t\t\tNetwork Difficulty:	0\n\t\t\t\t\t\tStratum Port(s):	3001\n\t\t\t\t\t\tPool Fee Percentage:	5%');
         pool.stratum.stopServer();
       }
     });

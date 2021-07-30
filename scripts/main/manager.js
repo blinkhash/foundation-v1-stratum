@@ -47,22 +47,24 @@ const JobCounter = function() {
 const Manager = function(options) {
 
   const _this = this;
-  const algorithm = options.coin.algorithms.mining;
+  this.options = options;
+
+  const algorithm = _this.options.primary.coin.algorithms.mining;
   const shareMultiplier = Algorithms[algorithm].multiplier;
 
   this.currentJob;
   this.validJobs = {};
   this.jobCounter = new JobCounter();
-  this.extraNonceCounter = new ExtraNonceCounter(options.instanceId);
+  this.extraNonceCounter = new ExtraNonceCounter(_this.options.instanceId);
   this.extraNoncePlaceholder = Buffer.from('f000000ff111111f', 'hex');
   this.extraNonce2Size = this.extraNoncePlaceholder.length - this.extraNonceCounter.size;
 
   // Determine Block Hash Function
   /* istanbul ignore next */
   this.blockHasher = function() {
-    const algorithm = options.coin.algorithms.block;
-    const hashDigest = Algorithms[algorithm].hash(options.coin);
-    return function (d) {
+    const algorithm = _this.options.primary.coin.algorithms.block;
+    const hashDigest = Algorithms[algorithm].hash(_this.options.primary.coin);
+    return function () {
       return utils.reverseBuffer(hashDigest.apply(this, arguments));
     };
   }();
@@ -70,9 +72,9 @@ const Manager = function(options) {
   // Determine Coinbase Hash Function
   /* istanbul ignore next */
   this.coinbaseHasher = function() {
-    const algorithm = options.coin.algorithms.coinbase;
-    const hashDigest = Algorithms[algorithm].hash(options.coin);
-    return function (d) {
+    const algorithm = _this.options.primary.coin.algorithms.coinbase;
+    const hashDigest = Algorithms[algorithm].hash(_this.options.primary.coin);
+    return function () {
       return hashDigest.apply(this, arguments);
     };
   }();
@@ -87,7 +89,7 @@ const Manager = function(options) {
       return new Merkle(merkleData);
     }
     return null;
-  }
+  };
 
   // Update Current Managed Job
   this.updateCurrentJob = function(rpcData) {
@@ -97,7 +99,7 @@ const Manager = function(options) {
       Object.assign({}, rpcData),
       _this.extraNoncePlaceholder,
       auxMerkleTree,
-      options
+      _this.options
     );
     _this.currentJob = tmpTemplate;
     _this.emit('updatedBlock', tmpTemplate);
@@ -129,7 +131,7 @@ const Manager = function(options) {
       Object.assign({}, rpcData),
       _this.extraNoncePlaceholder,
       auxMerkleTree,
-      options
+      _this.options
     );
 
     // Update Current Template
@@ -204,7 +206,7 @@ const Manager = function(options) {
     const merkleRoot = utils.reverseBuffer(job.merkle.withFirst(coinbaseHash)).toString('hex');
 
     // Start Generating Block Hash
-    const headerDigest = Algorithms[algorithm].hash(options.coin);
+    const headerDigest = Algorithms[algorithm].hash(_this.options.primary.coin);
     const headerBuffer = job.serializeHeader(merkleRoot, nTime, nonce, version);
     const headerHash = headerDigest(headerBuffer, nTimeInt);
     const headerBigNum = bignum.fromBuffer(headerHash, {endian: 'little', size: 32});
@@ -219,7 +221,7 @@ const Manager = function(options) {
       blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer).toString('hex');
       blockHash = this.blockHasher(headerBuffer, nTime).toString('hex');
     } else {
-      if (options.settings.emitInvalidBlockHashes) {
+      if (_this.options.settings.emitInvalidBlockHashes) {
         blockHashInvalid = utils.reverseBuffer(utils.sha256d(headerBuffer)).toString('hex');
       }
       if (shareDiff / difficulty < 0.99) {
