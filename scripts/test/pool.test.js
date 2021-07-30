@@ -1138,8 +1138,8 @@ describe('Test pool functionality', () => {
 
   test('Test pool blockchain events [2]', (done) => {
     const response = [];
-    const blockchainDataCopy = Object.assign({}, blockchainData);
-    const peerDataCopy = Object.assign({}, peerData);
+    const blockchainDataCopy = JSON.parse(JSON.stringify(blockchainData));
+    const peerDataCopy = JSON.parse(JSON.stringify(peerData));
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);

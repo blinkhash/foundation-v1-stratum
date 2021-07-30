@@ -186,10 +186,11 @@ describe('Test transactions functionality', () => {
 
   test('Test bitcoin transaction builder [11]', () => {
     optionsCopy.primary.coin.staking = true;
+    optionsCopy.primary.pubkey = '020ba3ebc2f55152df5653bb7aba6548f0615d67b072379bdd19e72bc63c052c50';
     const transaction = transactions.bitcoin(rpcData, extraNonce, null, optionsCopy);
     expect(transaction[0].slice(0, 4)).toStrictEqual(Buffer.from('01000000', 'hex'));
     expect(transaction[0].slice(8, -5)).toStrictEqual(Buffer.from('010000000000000000000000000000000000000000000000000000000000000000ffffffff3e5104', 'hex'));
-    expect(transaction[1]).toStrictEqual(Buffer.from('2e68747470733a2f2f6769746875622e636f6d2f626c696e6b686173682f666f756e646174696f6e2d73657276657200000000020000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900f2052a01000000160014e8df018c7e326cc253faac7e46cdc51e68542c4200000000', 'hex'));
+    expect(transaction[1]).toStrictEqual(Buffer.from('2e68747470733a2f2f6769746875622e636f6d2f626c696e6b686173682f666f756e646174696f6e2d73657276657200000000020000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900f2052a010000002321020ba3ebc2f55152df5653bb7aba6548f0615d67b072379bdd19e72bc63c052c50ac00000000', 'hex'));
   });
 
   test('Test bitcoin transaction builder [12]', () => {

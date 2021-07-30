@@ -42,8 +42,10 @@ const Transactions = function() {
     let reward = rpcData.coinbasevalue;
     let rewardToPool = reward;
     const poolIdentifier = options.identifier || 'https://github.com/blinkhash/foundation-server';
-    const poolAddressScript = utils.addressToScript(options.primary.address, network);
     const coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
+    const poolAddressScript = options.primary.coin.staking ? (
+      utils.pubkeyToScript(options.primary.pubkey)) : (
+      utils.addressToScript(options.primary.address, network));
 
     // Handle Timestamp if Necessary
     const txTimestamp = options.primary.coin.staking === true ?

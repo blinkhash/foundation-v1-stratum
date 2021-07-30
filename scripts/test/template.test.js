@@ -90,7 +90,7 @@ describe('Test block functionality', () => {
   });
 
   test('Test current bignum implementation [2]', () => {
-    const rpcDataCopy = Object.assign({}, rpcData);
+    const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
     rpcDataCopy.target = null;
     const block = new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, options);
     expect(block.target.toNumber().toFixed(9)).toBe('1.1042625655198232e+71');
@@ -223,6 +223,17 @@ describe('Test block functionality', () => {
     const headerBuffer = Buffer.from('00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b530314fc53660f0ff0f1e00001afe', 'hex');
     const blockHash = manager.blockHasher(headerBuffer, 1614202191);
     expect(blockHash).toStrictEqual(Buffer.from('00000471e1a6cf410a43b279a89cbb948f50fa128a022444a4a2aafd1b394837', 'hex'));
+  });
+
+  test('Test block serialization [3]', () => {
+    const optionsCopy = JSON.parse(JSON.stringify(options));
+    optionsCopy.primary.coin.staking = true;
+    optionsCopy.primary.pubkey = '020ba3ebc2f55152df5653bb7aba6548f0615d67b072379bdd19e72bc63c052c50';
+    const block = new Template(jobId.toString(16), rpcData, extraNonce, null, optionsCopy);
+    const headerBuffer = Buffer.from('00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b530314fc53660f0ff0f1e00001afe', 'hex');
+    const coinbase = Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff020101ffffffff0100f2052a010000001976a914614ca2f0f4baccdd63f45a0e0e0ff7ffb88041fb88ac00000000', 'hex');
+    const blockHex = block.serializeBlock(headerBuffer, coinbase);
+    expect(blockHex).toStrictEqual(Buffer.from('00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b530314fc53660f0ff0f1e00001afe0201000000010000000000000000000000000000000000000000000000000000000000000000ffffffff020101ffffffff0100f2052a010000001976a914614ca2f0f4baccdd63f45a0e0e0ff7ffb88041fb88ac000000000100000001cba672d0bfdbcc441d171ef0723a191bf050932c6f8adc8a05b0cac2d1eb022f010000006c493046022100a23472410d8fd7eabf5c739bdbee5b6151ff31e10d5cb2b52abeebd5e9c06977022100c2cdde5c632eaaa1029dff2640158aaf9aab73fa021ed4a48b52b33ba416351801210212ee0e9c79a72d88db7af3fed18ae2b7ca48eaed995d9293ae0f94967a70cdf6ffffffff02905f0100000000001976a91482db4e03886ee1225fefaac3ee4f6738eb50df9188ac00f8a093000000001976a914c94f5142dd7e35f5645735788d0fe1343baf146288ac0000000000', 'hex'));
   });
 
   test('Test block submission', () => {

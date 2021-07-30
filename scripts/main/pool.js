@@ -170,6 +170,17 @@ const Pool = function(options, authorizeFn, responseFn) {
         return;
       }
 
+      // Check if Address is Owned by Wallet (PoS Only)
+      if (options.primary.coin.staking && typeof rpcResults.validateaddress.pubkey === 'undefined') {
+        emitErrorLog('The address provided is not from the daemon wallet - this is required for PoS coins.');
+        return;
+      }
+
+      // Store Derived PubKey if Necessary (PoS Only)
+      if (options.primary.coin.staking) {
+        _this.options.primary.pubkey = rpcResults.validateaddress.pubkey;
+      }
+
       // Check if Mainnet/Testnet is Active
       if (_this.options.primary.coin.getinfo) {
         _this.options.settings.testnet = (rpcResults.getinfo.testnet === true) ? true : false;

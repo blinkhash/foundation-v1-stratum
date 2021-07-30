@@ -17,12 +17,14 @@ const diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000
 // Main Template Function
 const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, options) {
 
+  const _this = this;
+  this.options = options;
   this.submits = [];
   this.rpcData = rpcData;
   this.jobId = jobId;
 
-  this.target = this.rpcData.target ? bignum(this.rpcData.target, 16) : utils.bignumFromBitsHex(this.rpcData.bits);
-  this.difficulty = parseFloat((diff1 / this.target.toNumber()).toFixed(9));
+  this.target = _this.rpcData.target ? bignum(_this.rpcData.target, 16) : utils.bignumFromBitsHex(_this.rpcData.bits);
+  this.difficulty = parseFloat((diff1 / _this.target.toNumber()).toFixed(9));
 
   // Calculate Merkle Hashes
   this.getMerkleHashes = function(steps) {
@@ -44,12 +46,12 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
 
   // Calculate Masternode Vote Data
   this.getVoteData = function() {
-    if (!this.rpcData.masternode_payments) {
+    if (!_this.rpcData.masternode_payments) {
       return Buffer.from([]);
     }
     return Buffer.concat(
-      [utils.varIntBuffer(this.rpcData.votes.length)].concat(
-        this.rpcData.votes.map((vt) => {
+      [utils.varIntBuffer(_this.rpcData.votes.length)].concat(
+        _this.rpcData.votes.map((vt) => {
           return Buffer.from(vt, 'hex');
         })
       )
@@ -58,7 +60,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
 
   // Create Merkle Data
   this.createMerkle = function(rpcData) {
-    return new Merkle(this.getTransactionBuffers(rpcData.transactions));
+    return new Merkle(_this.getTransactionBuffers(rpcData.transactions));
   };
 
   // Create Generation Transaction
@@ -66,20 +68,20 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
     return new Transactions().bitcoin(rpcData, extraNoncePlaceholder, auxMerkle, options);
   };
 
-  this.merkle = this.createMerkle(this.rpcData);
-  this.generation = this.createGeneration(this.rpcData, extraNoncePlaceholder, auxMerkle, options);
-  this.previousblockhash = utils.reverseByteOrder(Buffer.from(this.rpcData.previousblockhash, 'hex')).toString('hex');
-  this.transactions = Buffer.concat(this.rpcData.transactions.map((tx) => {
+  this.merkle = _this.createMerkle(_this.rpcData);
+  this.generation = _this.createGeneration(_this.rpcData, extraNoncePlaceholder, auxMerkle, _this.options);
+  this.previousblockhash = utils.reverseByteOrder(Buffer.from(_this.rpcData.previousblockhash, 'hex')).toString('hex');
+  this.transactions = Buffer.concat(_this.rpcData.transactions.map((tx) => {
     return Buffer.from(tx.data, 'hex');
   }));
 
   // Serialize Block Coinbase
   this.serializeCoinbase = function(extraNonce1, extraNonce2) {
     return Buffer.concat([
-      this.generation[0],
+      _this.generation[0],
       extraNonce1,
       extraNonce2,
-      this.generation[1]
+      _this.generation[1]
     ]);
   };
 
@@ -88,10 +90,10 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
     let header = Buffer.alloc(80);
     let position = 0;
     header.write(nonce, position, 4, 'hex');
-    header.write(this.rpcData.bits, position += 4, 4, 'hex');
+    header.write(_this.rpcData.bits, position += 4, 4, 'hex');
     header.write(nTime, position += 4, 4, 'hex');
     header.write(merkleRoot, position += 4, 32, 'hex');
-    header.write(this.rpcData.previousblockhash, position += 32, 32, 'hex');
+    header.write(_this.rpcData.previousblockhash, position += 32, 32, 'hex');
     header.writeUInt32BE(version, position + 32);
     header = utils.reverseBuffer(header);
     return header;
@@ -101,11 +103,11 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
   this.serializeBlock = function(header, secondary) {
     const buffer = Buffer.concat([
       header,
-      utils.varIntBuffer(this.rpcData.transactions.length + 1),
+      utils.varIntBuffer(_this.rpcData.transactions.length + 1),
       secondary,
-      this.transactions,
-      this.getVoteData(),
-      Buffer.from([])
+      _this.transactions,
+      _this.getVoteData(),
+      Buffer.from(_this.options.primary.coin.staking ? [0] : [])
     ]);
     return buffer;
   };
@@ -113,8 +115,8 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
   // Push Submissions to Array
   this.registerSubmit = function(header) {
     const submission = header.join('').toLowerCase();
-    if (this.submits.indexOf(submission) === -1) {
-      this.submits.push(submission);
+    if (_this.submits.indexOf(submission) === -1) {
+      _this.submits.push(submission);
       return true;
     }
     return false;
@@ -122,20 +124,20 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
 
   // Get Current Job Parameters
   this.getJobParams = function() {
-    if (!this.jobParams) {
-      this.jobParams = [
-        this.jobId,
-        this.previousblockhash,
-        this.generation[0].toString('hex'),
-        this.generation[1].toString('hex'),
-        this.getMerkleHashes(this.merkle.steps),
-        utils.packInt32BE(this.rpcData.version).toString('hex'),
-        this.rpcData.bits,
-        utils.packUInt32BE(this.rpcData.curtime).toString('hex'),
+    if (!_this.jobParams) {
+      _this.jobParams = [
+        _this.jobId,
+        _this.previousblockhash,
+        _this.generation[0].toString('hex'),
+        _this.generation[1].toString('hex'),
+        _this.getMerkleHashes(_this.merkle.steps),
+        utils.packInt32BE(_this.rpcData.version).toString('hex'),
+        _this.rpcData.bits,
+        utils.packUInt32BE(_this.rpcData.curtime).toString('hex'),
         true
       ];
     }
-    return this.jobParams;
+    return _this.jobParams;
   };
 };
 

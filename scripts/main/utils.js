@@ -116,6 +116,17 @@ exports.packInt32BE = function(num) {
   return buff;
 };
 
+// Convert PubKey to Script
+exports.pubkeyToScript = function(key){
+  if (key.length !== 66) {
+    throw new Error('Invalid pubkey: ' + key);
+  }
+  const pubKey = Buffer.concat([Buffer.from([0x21]), Buffer.alloc(33), Buffer.from([0xac])]);
+  const bufferKey = Buffer.from(key, 'hex');
+  bufferKey.copy(pubKey, 1);
+  return pubKey;
+};
+
 // Range Function
 exports.range = function(start, stop, step) {
   if (typeof step === 'undefined') {

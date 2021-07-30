@@ -34,7 +34,7 @@ describe('Test utility functionality', () => {
   });
 
   test('Test implemented addressToScript [2]', () => {
-    const networkCopy = Object.assign({}, network);
+    const networkCopy = JSON.parse(JSON.stringify(network));
     networkCopy.coin = 'bch';
     networkCopy.forkId = 0x00;
     const script1 = utils.addressToScript('35qL43qYwLdKtnR7yMfGNDvzv6WyZ8yT2n', networkCopy);
@@ -100,6 +100,13 @@ describe('Test utility functionality', () => {
   test('Test implemented packInt32BE', () => {
     expect(utils.packInt32BE(21243)).toStrictEqual(Buffer.from('000052fb', 'hex'));
     expect(utils.packInt32BE(13815)).toStrictEqual(Buffer.from('000035f7', 'hex'));
+  });
+
+  test('Test implemented pubkeyToScript [1]', () => {
+    const pubkey = '020ba3ebc2f55152df5653bb7aba6548f0615d67b072379bdd19e72bc63c052c50';
+    const output = Buffer.from('21020ba3ebc2f55152df5653bb7aba6548f0615d67b072379bdd19e72bc63c052c50ac', 'hex');
+    expect(() => utils.pubkeyToScript('0123456789')).toThrow('Invalid pubkey: 0123456789');
+    expect(utils.pubkeyToScript(pubkey)).toStrictEqual(output);
   });
 
   test('Test implemented range', () => {
