@@ -59,6 +59,21 @@ const Pool = function(options, authorizeFn, responseFn) {
     }
   };
 
+  // Initialize Specific Pool Daemons
+  /* istanbul ignore next */
+  this.setupDaemon = function(daemons, callback) {
+    const daemon = new Daemon(daemons, ((severity, message) => {
+      _this.emit('log', severity , message);
+    }));
+    daemon.once('online', () => callback());
+    daemon.on('connectionFailed', (error) => {
+      emitErrorLog('Failed to connect daemon(s): ' + JSON.stringify(error));
+    });
+    daemon.on('error', (message) => emitErrorLog(message));
+    daemon.initDaemons(() => {});
+    return daemon
+  }
+
   // Configure Port Difficulty
   /* istanbul ignore next */
   this.setDifficulty = function(port, difficultyConfig) {
@@ -108,24 +123,11 @@ const Pool = function(options, authorizeFn, responseFn) {
 
   // Initialize Pool Daemon
   this.setupDaemonInterface = function(callback) {
-
-    // Check to Ensure Daemons are Configured
     if (!Array.isArray(_this.options.daemons) || _this.options.daemons.length < 1) {
       emitErrorLog('No daemons have been configured - pool cannot start');
       return;
     }
-
-    // Establish Daemon Interface
-    _this.daemon = new Daemon(_this.options.daemons, ((severity, message) => {
-      _this.emit('log', severity , message);
-    }));
-    _this.daemon.once('online', () => {
-      callback();
-    });
-    _this.daemon.on('connectionFailed', (error) => {
-      emitErrorLog('Failed to connect daemon(s): ' + JSON.stringify(error));
-    });
-    _this.daemon.initDaemons(() => {});
+    _this.daemon = _this.setupDaemon(_this.options.daemons, callback);
   };
 
   // Initialize Pool Data

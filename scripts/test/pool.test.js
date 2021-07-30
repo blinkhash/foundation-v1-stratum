@@ -320,7 +320,7 @@ describe('Test pool functionality', () => {
     expect(typeof pool.daemon.indexDaemons).toBe('function');
     expect(typeof pool.daemon.isOnline).toBe('function');
     expect(typeof pool.daemon.initDaemons).toBe('function');
-    expect(pool.daemon._eventsCount).toBe(2);
+    expect(pool.daemon._eventsCount).toBe(3);
   });
 
   test('Test pool daemon events [1]', (done) => {
