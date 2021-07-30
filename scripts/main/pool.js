@@ -22,11 +22,17 @@ const Pool = function(options, authorizeFn, responseFn) {
   this.authorizeFn = authorizeFn;
   this.responseFn = responseFn;
 
-  const emitLog = (text) => _this.emit('log', 'debug', text);
-  const emitWarningLog = (text) => _this.emit('log', 'warning', text);
-  const emitSpecialLog = (text) => _this.emit('log', 'special', text);
+  const logMessage = (text, level) => {
+    if (process.env.forkId && process.env.forkId === '0') {
+      _this.emit('log', level, text);
+    }
+  }
+
+  const emitLog = (text) => logMessage(text, 'debug');
+  const emitWarningLog = (text) => logMessage(text, 'warning');
+  const emitSpecialLog = (text) => logMessage(text, 'special');
   const emitErrorLog = (text) => {
-    _this.emit('log', 'error', text);
+    logMessage(text, 'error');
     _this.responseFn(text);
   };
 
@@ -43,50 +49,6 @@ const Pool = function(options, authorizeFn, responseFn) {
   _this.checkAlgorithm(_this.options.primary.coin.algorithms.mining);
   _this.checkAlgorithm(_this.options.primary.coin.algorithms.block);
   _this.checkAlgorithm(_this.options.primary.coin.algorithms.coinbase);
-
-  // Process Block when Found
-  /* istanbul ignore next */
-  this.processBlockNotify = function(blockHash) {
-    const currentJob = _this.manager.currentJob;
-    if ((typeof(currentJob) !== 'undefined') && (blockHash !== currentJob.rpcData.previousblockhash)) {
-      _this.getBlockTemplate((error) => {
-        if (error) {
-          emitErrorLog('Block notify error getting block template for ' + _this.options.primary.coin.name);
-        } else {
-          emitLog('Block template for ' + _this.options.primary.coin.name + ' updated successfully');
-        }
-      });
-    }
-  };
-
-  // Initialize Specific Pool Daemons
-  /* istanbul ignore next */
-  this.setupDaemon = function(daemons, callback) {
-    const daemon = new Daemon(daemons, ((severity, message) => {
-      _this.emit('log', severity , message);
-    }));
-    daemon.once('online', () => callback());
-    daemon.on('connectionFailed', (error) => {
-      emitErrorLog('Failed to connect daemon(s): ' + JSON.stringify(error));
-    });
-    daemon.on('error', (message) => emitErrorLog(message));
-    daemon.initDaemons(() => {});
-    return daemon;
-  };
-
-  // Configure Port Difficulty
-  /* istanbul ignore next */
-  this.setDifficulty = function(port, difficultyConfig) {
-    const currentPort = port.port;
-    if (typeof(_this.difficulty[currentPort]) != 'undefined') {
-      _this.difficulty[currentPort].removeAllListeners();
-    }
-    const difficultyInstance = new Difficulty(currentPort, difficultyConfig, false);
-    _this.difficulty[currentPort] = difficultyInstance;
-    _this.difficulty[currentPort].on('newDifficulty', (client, newDiff) => {
-      client.enqueueNextDifficulty(newDiff);
-    });
-  };
 
   // Start Pool Capabilities
   /* istanbul ignore next */
@@ -110,6 +72,20 @@ const Pool = function(options, authorizeFn, responseFn) {
     });
   };
 
+  // Configure Port Difficulty
+  /* istanbul ignore next */
+  this.setDifficulty = function(port, difficultyConfig) {
+    const currentPort = port.port;
+    if (typeof(_this.difficulty[currentPort]) != 'undefined') {
+      _this.difficulty[currentPort].removeAllListeners();
+    }
+    const difficultyInstance = new Difficulty(currentPort, difficultyConfig, false);
+    _this.difficulty[currentPort] = difficultyInstance;
+    _this.difficulty[currentPort].on('newDifficulty', (client, newDiff) => {
+      client.enqueueNextDifficulty(newDiff);
+    });
+  };
+
   // Initialize Pool Difficulty
   /* istanbul ignore next */
   this.setupDifficulty = function() {
@@ -121,13 +97,37 @@ const Pool = function(options, authorizeFn, responseFn) {
     });
   };
 
+  // Initialize Specific Pool Daemons
+  /* istanbul ignore next */
+  this.setupDaemon = function(daemons, callback) {
+    const daemon = new Daemon(daemons, ((severity, message) => {
+      _this.emit('log', severity , message);
+    }));
+    daemon.once('online', () => callback());
+    daemon.on('connectionFailed', (error) => {
+      emitErrorLog('Failed to connect daemon(s): ' + JSON.stringify(error));
+    });
+    daemon.on('error', (message) => emitErrorLog(message));
+    daemon.initDaemons(() => {});
+    return daemon;
+  };
+
   // Initialize Pool Daemon
   this.setupDaemonInterface = function(callback) {
     if (!Array.isArray(_this.options.primary.daemons) || _this.options.primary.daemons.length < 1) {
-      emitErrorLog('No daemons have been configured - pool cannot start');
+      emitErrorLog('No primary daemons have been configured - pool cannot start');
       return;
     }
-    _this.daemon = _this.setupDaemon(_this.options.primary.daemons, callback);
+    _this.daemon = _this.setupDaemon(_this.options.primary.daemons, () => {});
+    if (options.auxiliary && options.auxiliary.enabled) {
+      if (!Array.isArray(_this.options.auxiliary.daemons) || _this.options.auxiliary.daemons.length < 1) {
+        emitErrorLog('No auxiliary daemons have been configured - pool cannot start');
+        return;
+      }
+      _this.auxdaemon = _this.setupDaemon(_this.options.auxiliary.daemons, callback);
+    } else {
+      callback();
+    }
   };
 
   // Initialize Pool Data
@@ -398,24 +398,19 @@ const Pool = function(options, authorizeFn, responseFn) {
             displayNotSynced();
           }
           setTimeout(checkSynced, 30000);
-          if (!process.env.forkId || process.env.forkId === '0') {
-            generateProgress();
-          }
+          generateProgress();
         }
       });
     };
 
     // Check and Return Message if Not Synced
     checkSynced(() => {
-      if (!process.env.forkId || process.env.forkId === '0') {
-        emitErrorLog('Daemon is still syncing with the network. The server will be started once synced');
-      }
+      emitErrorLog('Daemon is still syncing with the network. The server will be started once synced');
     });
   };
 
-  // Initialize First Pool Job
-  /* istanbul ignore next */
-  this.setupFirstJob = function(callback) {
+  // Initialize First Primary Job
+  this.setupFirstPrimaryJob = function(callback) {
     _this.getBlockTemplate((error) => {
       if (error) {
         emitErrorLog('Error with getblocktemplate on creating first job, server cannot start');
@@ -430,13 +425,35 @@ const Pool = function(options, authorizeFn, responseFn) {
           portWarnings.push('port ' + currentPort + ' w/ diff ' + portDiff);
         }
       });
-      if (portWarnings.length > 0 && (!process.env.forkId || process.env.forkId === '0')) {
-        const warnMessage = 'Network diff of ' + networkDiffAdjusted + ' is lower than '
-                    + portWarnings.join(' and ');
+      if (portWarnings.length > 0) {
+        const warnMessage = 'Network diff of ' + networkDiffAdjusted + ' is lower than ' + portWarnings.join(' and ');
         emitWarningLog(warnMessage);
       }
       callback();
     });
+  }
+
+  // Initialize First Auxiliary Job
+  this.setupFirstAuxiliaryJob = function(callback) {
+    _this.getBlockTemplate((error) => {
+      if (error) {
+        emitErrorLog('Error with getblocktemplate on creating first auxiliary job, server cannot start');
+        return;
+      }
+      callback();
+    });
+  }
+
+  // Initialize First Pool Job
+  /* istanbul ignore next */
+  this.setupFirstJob = function(callback) {
+    _this.setupFirstPrimaryJob(() => {
+      if (options.auxiliary && options.auxiliary.enabled) {
+        _this.setupFirstAuxiliaryJob(() => callback());
+      } else {
+        callback();
+      }
+    })
   };
 
   // Initialize Pool Block Polling
@@ -459,6 +476,21 @@ const Pool = function(options, authorizeFn, responseFn) {
         });
       }
     }, pollingInterval);
+  };
+
+  // Process Block when Found
+  /* istanbul ignore next */
+  this.processBlockNotify = function(blockHash) {
+    const currentJob = _this.manager.currentJob;
+    if ((typeof(currentJob) !== 'undefined') && (blockHash !== currentJob.rpcData.previousblockhash)) {
+      _this.getBlockTemplate((error) => {
+        if (error) {
+          emitErrorLog('Block notify error getting block template for ' + _this.options.primary.coin.name);
+        } else {
+          emitLog('Block template for ' + _this.options.primary.coin.name + ' updated successfully');
+        }
+      });
+    }
   };
 
   // Initialize Pool Peers
@@ -620,10 +652,6 @@ const Pool = function(options, authorizeFn, responseFn) {
   this.outputPoolInfo = function() {
     const startMessage = 'Stratum pool server started for ' + _this.options.primary.coin.name +
       ' [' + _this.options.primary.coin.symbol.toUpperCase() + '] {' + _this.options.primary.coin.algorithms.mining + '}';
-    if (process.env.forkId && process.env.forkId !== '0') {
-      emitLog(startMessage);
-      return;
-    }
     const infoLines = [startMessage,
       'Network Connected:\t' + (_this.options.settings.testnet ? 'Testnet' : 'Mainnet'),
       'Current Block Height:\t' + _this.manager.currentJob.rpcData.height,

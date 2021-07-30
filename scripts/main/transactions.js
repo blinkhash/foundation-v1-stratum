@@ -64,8 +64,7 @@ const Transactions = function() {
       Buffer.from([extraNoncePlaceholder.length]),
     ]);
 
-    if (auxMerkle && options.auxiliary) {
-      if (options.auxiliary.enabled) {
+    if (auxMerkle && options.auxiliary && options.auxiliary.enabled) {
         scriptSigPart1 = Buffer.concat([
           scriptSigPart1,
           Buffer.from(options.auxiliary.coin.header, 'hex'),
