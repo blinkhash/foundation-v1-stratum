@@ -50,7 +50,6 @@ const auxData = {
 
 const options = {
   'settings': {
-    'emitInvalidBlockHashes': true,
     'testnet': false,
   },
   'primary': {
@@ -109,7 +108,7 @@ describe('Test manager functionality', () => {
 
   test('Test job updates given auxpow initialization', () => {
     const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
-    rpcDataCopy.auxdata = auxData;
+    rpcDataCopy.auxData = auxData;
     const response = manager.processTemplate(rpcDataCopy, true);
     expect(response).toBe(true);
   });
@@ -219,7 +218,7 @@ describe('Test manager functionality', () => {
     const time = '6036c54f'.toString('hex');
     const nonce = 'fe1a0000'.toString('hex');
     const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'worker', versionBits, versionMask, true);
-    expect(typeof response.hashInvalid).toBe('string');
+    expect(typeof response.hash).toBe('string');
   });
 
   test('Test share submission process [7]', () => {
@@ -299,6 +298,6 @@ describe('Test manager functionality', () => {
     const time = '6036c54f'.toString('hex');
     const nonce = 'fe1a0000'.toString('hex');
     const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'worker', versionBits, versionMask, true);
-    expect(typeof response.hashInvalid).toBe('string');
+    expect(typeof response.hash).toBe('string');
   });
 });

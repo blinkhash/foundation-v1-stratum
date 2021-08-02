@@ -45,6 +45,12 @@ const rpcData = {
   'default_witness_commitment': '6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9'
 };
 
+const auxData = {
+  'chainid': 1,
+  'hash': '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2',
+  'target': Buffer.from('1', 'hex'),
+};
+
 const blockchainData = {
   'chain': 'main',
   'blocks': 1,
@@ -228,6 +234,20 @@ const options = {
       'percentage': 0.05,
     }],
   },
+  'auxiliary': {
+    'enabled': false,
+    'coin': {
+      'name': 'Namecoin',
+      'symbol': 'NMC',
+      'header': 'fabe6d6d'
+    },
+    'daemons': [{
+      'host': '127.0.0.1',
+      'port': 8336,
+      'user': '',
+      'password': ''
+    }],
+  }
 };
 
 nock.disableNetConnect();
@@ -238,6 +258,13 @@ process.env.forkId = '0';
 
 function mockSetupDaemon(pool, callback) {
   nock('http://127.0.0.1:8332')
+    .post('/', body => body.method === 'getpeerinfo')
+    .reply(200, JSON.stringify({
+      id: 'nocktest',
+      error: null,
+      result: null,
+    }));
+  nock('http://127.0.0.1:8336')
     .post('/', body => body.method === 'getpeerinfo')
     .reply(200, JSON.stringify({
       id: 'nocktest',
@@ -322,11 +349,11 @@ describe('Test pool functionality', () => {
   test('Test initialization of daemon', () => {
     const pool = new Pool(optionsCopy, null, () => {});
     pool.setupDaemonInterface(() => {});
-    expect(typeof pool.daemon).toBe('object');
-    expect(typeof pool.daemon.indexDaemons).toBe('function');
-    expect(typeof pool.daemon.isOnline).toBe('function');
-    expect(typeof pool.daemon.initDaemons).toBe('function');
-    expect(pool.daemon._eventsCount).toBe(3);
+    expect(typeof pool.primary.daemon).toBe('object');
+    expect(typeof pool.primary.daemon.indexDaemons).toBe('function');
+    expect(typeof pool.primary.daemon.isOnline).toBe('function');
+    expect(typeof pool.primary.daemon.initDaemons).toBe('function');
+    expect(pool.primary.daemon._eventsCount).toBe(3);
   });
 
   test('Test pool daemon events [1]', (done) => {
@@ -351,7 +378,7 @@ describe('Test pool functionality', () => {
       done();
     });
     pool.setupDaemonInterface(() => {});
-    pool.daemon.cmd('getpeerinfo', [], () => {});
+    pool.primary.daemon.cmd('getpeerinfo', [], () => {});
   });
 
   test('Test pool daemon events [3]', (done) => {
@@ -381,6 +408,38 @@ describe('Test pool functionality', () => {
       done();
     });
     pool.setupDaemonInterface(() => {});
+  });
+
+  test('Test pool daemon events [5]', (done) => {
+    optionsCopy.auxiliary.enabled = true;
+    optionsCopy.auxiliary.daemons = [];
+    const pool = new Pool(optionsCopy, null, () => {});
+    pool.on('log', (type, text) => {
+      expect(type).toBe('error');
+      expect(text).toBe('No auxiliary daemons have been configured - pool cannot start');
+      done();
+    });
+    pool.setupDaemonInterface(() => {});
+  });
+
+  test('Test pool daemon events [6]', (done) => {
+    optionsCopy.auxiliary.enabled = true;
+    const pool = new Pool(optionsCopy, null, () => {});
+    nock('http://127.0.0.1:8332')
+      .post('/', body => body.method === 'getpeerinfo')
+      .reply(200, JSON.stringify({
+        id: 'nocktest',
+        error: null,
+        result: null,
+      }));
+    nock('http://127.0.0.1:8336')
+      .post('/', body => body.method === 'getpeerinfo')
+      .reply(200, JSON.stringify({
+        id: 'nocktest',
+        error: null,
+        result: null,
+      }));
+    pool.setupDaemonInterface(() => done());
   });
 
   test('Test pool batch data events [1]', (done) => {
@@ -573,7 +632,7 @@ describe('Test pool functionality', () => {
     optionsCopy.primary.recipients = [];
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
-      expect(type).toBe('error');
+      expect(type).toBe('warning');
       expect(text).toBe('No recipients have been added which means that no fees will be taken');
       done();
     });
@@ -627,7 +686,7 @@ describe('Test pool functionality', () => {
       expect(shareValid).toBe(true);
       expect(blockValid).toBe(false);
       expect(shareData.job).toBe(1);
-      expect(shareData.hashInvalid).toBe('example blockhash');
+      expect(shareData.hash).toBe('example blockhash');
       done();
     });
     mockSetupDaemon(pool, () => {
@@ -639,15 +698,19 @@ describe('Test pool functionality', () => {
           port: 'port',
           blockDiff : 1,
           blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
           difficulty: 1,
-          hash: null,
-          hashInvalid: 'example blockhash',
+          hash: 'example blockhash',
+          hex: null,
+          header: null,
+          headerDiff: null,
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
           worker: 'worker',
         };
-        pool.manager.emit('share', shareData, null);
+        pool.manager.emit('share', shareData, false);
       });
     });
   });
@@ -656,7 +719,7 @@ describe('Test pool functionality', () => {
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
-      expect(text).toBe('RPC error with daemon instance 0 when submitting block with submitblock true');
+      expect(text).toBe('RPC error with primary daemon instance 0 when submitting block with submitblock true');
       done();
     });
     mockSetupDaemon(pool, () => {
@@ -675,16 +738,19 @@ describe('Test pool functionality', () => {
           port: 'port',
           blockDiff : 1,
           blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
-          hashInvalid: null,
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
           worker: 'worker',
         };
-        const blockHex = Buffer.from('000011110000111100001111', 'hex');
-        pool.manager.emit('share', shareData, blockHex);
+        pool.manager.emit('share', shareData, true);
       });
     });
   });
@@ -693,7 +759,7 @@ describe('Test pool functionality', () => {
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
-      expect(text).toBe('Daemon instance 0 rejected a supposedly valid block');
+      expect(text).toBe('Primary daemon instance 0 rejected a supposedly valid block');
       done();
     });
     mockSetupDaemon(pool, () => {
@@ -712,16 +778,19 @@ describe('Test pool functionality', () => {
           port: 'port',
           blockDiff : 1,
           blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
-          hashInvalid: null,
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
           worker: 'worker',
         };
-        const blockHex = Buffer.from('000011110000111100001111', 'hex');
-        pool.manager.emit('share', shareData, blockHex);
+        pool.manager.emit('share', shareData, true);
       });
     });
   });
@@ -732,12 +801,12 @@ describe('Test pool functionality', () => {
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 3) {
-        expect(response[0][0]).toBe('debug');
-        expect(response[0][1]).toBe('Submitted Block using submitblock successfully to daemon instance(s)');
+        expect(response[0][0]).toBe('special');
+        expect(response[0][1]).toBe('Submitted primary block successfully to Bitcoin\'s daemon instance(s)');
         expect(response[1][0]).toBe('error');
         expect(response[1][1]).toBe('Block was rejected by the network');
-        expect(response[2][0]).toBe('debug');
-        expect(response[2][1]).toBe('Block notification via RPC after block submission');
+        expect(response[2][0]).toBe('special');
+        expect(response[2][1]).toBe('Block notification via RPC after primary block submission');
         done();
       }
     });
@@ -773,16 +842,20 @@ describe('Test pool functionality', () => {
           port: 'port',
           blockDiff : 1,
           blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
-          hashInvalid: null,
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
           worker: 'worker',
         };
         const blockHex = Buffer.from('000011110000111100001111', 'hex');
-        pool.manager.emit('share', shareData, blockHex);
+        pool.manager.emit('share', shareData, true);
       });
     });
   });
@@ -793,12 +866,12 @@ describe('Test pool functionality', () => {
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 3) {
-        expect(response[0][0]).toBe('debug');
-        expect(response[0][1]).toBe('Submitted Block using getblocktemplate successfully to daemon instance(s)');
+        expect(response[0][0]).toBe('special');
+        expect(response[0][1]).toBe('Submitted primary block successfully to Bitcoin\'s daemon instance(s)');
         expect(response[1][0]).toBe('error');
         expect(response[1][1]).toBe('Block was rejected by the network');
-        expect(response[2][0]).toBe('debug');
-        expect(response[2][1]).toBe('Block notification via RPC after block submission');
+        expect(response[2][0]).toBe('special');
+        expect(response[2][1]).toBe('Block notification via RPC after primary block submission');
         done();
       }
     });
@@ -842,16 +915,20 @@ describe('Test pool functionality', () => {
           port: 'port',
           blockDiff : 1,
           blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
-          hashInvalid: null,
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
           worker: 'worker',
         };
         const blockHex = Buffer.from('000011110000111100001111', 'hex');
-        pool.manager.emit('share', shareData, blockHex);
+        pool.manager.emit('share', shareData, true);
       });
     });
   });
@@ -863,12 +940,12 @@ describe('Test pool functionality', () => {
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 3) {
-        expect(response[0][0]).toBe('debug');
-        expect(response[0][1]).toBe('Submitted Block using getblocktemplate successfully to daemon instance(s)');
+        expect(response[0][0]).toBe('special');
+        expect(response[0][1]).toBe('Submitted primary block successfully to Bitcoin\'s daemon instance(s)');
         expect(response[1][0]).toBe('error');
         expect(response[1][1]).toBe('Block was rejected by the network');
-        expect(response[2][0]).toBe('debug');
-        expect(response[2][1]).toBe('Block notification via RPC after block submission');
+        expect(response[2][0]).toBe('special');
+        expect(response[2][1]).toBe('Block notification via RPC after primary block submission');
         done();
       }
     });
@@ -912,16 +989,19 @@ describe('Test pool functionality', () => {
           port: 'port',
           blockDiff : 1,
           blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
-          hashInvalid: null,
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
           worker: 'worker',
         };
-        const blockHex = Buffer.from('000011110000111100001111', 'hex');
-        pool.manager.emit('share', shareData, blockHex);
+        pool.manager.emit('share', shareData, true);
       });
     });
   });
@@ -931,13 +1011,11 @@ describe('Test pool functionality', () => {
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
-      if (response.length === 3) {
-        expect(response[0][0]).toBe('debug');
-        expect(response[0][1]).toBe('Submitted Block using submitblock successfully to daemon instance(s)');
-        expect(response[1][0]).toBe('debug');
-        expect(response[1][1]).toBe('Block was accepted by the network with 1 confirmations');
-        expect(response[2][0]).toBe('debug');
-        expect(response[2][1]).toBe('Block notification via RPC after block submission');
+      if (response.length === 2) {
+        expect(response[0][0]).toBe('special');
+        expect(response[0][1]).toBe('Submitted primary block successfully to Bitcoin\'s daemon instance(s)');
+        expect(response[1][0]).toBe('special');
+        expect(response[1][1]).toBe('Block notification via RPC after primary block submission');
         done();
       }
     });
@@ -977,16 +1055,19 @@ describe('Test pool functionality', () => {
           port: 'port',
           blockDiff : 1,
           blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
-          hashInvalid: null,
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
           worker: 'worker',
         };
-        const blockHex = Buffer.from('000011110000111100001111', 'hex');
-        pool.manager.emit('share', shareData, blockHex);
+        pool.manager.emit('share', shareData, true);
       });
     });
   });
@@ -997,12 +1078,12 @@ describe('Test pool functionality', () => {
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 3) {
-        expect(response[0][0]).toBe('debug');
-        expect(response[0][1]).toBe('Submitted Block using submitblock successfully to daemon instance(s)');
+        expect(response[0][0]).toBe('special');
+        expect(response[0][1]).toBe('Submitted primary block successfully to Bitcoin\'s daemon instance(s)');
         expect(response[1][0]).toBe('error');
         expect(response[1][1]).toBe('Block was rejected by the network');
-        expect(response[2][0]).toBe('debug');
-        expect(response[2][1]).toBe('Block notification via RPC after block submission');
+        expect(response[2][0]).toBe('special');
+        expect(response[2][1]).toBe('Block notification via RPC after primary block submission');
         done();
       }
     });
@@ -1042,16 +1123,19 @@ describe('Test pool functionality', () => {
           port: 'port',
           blockDiff : 1,
           blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
-          hashInvalid: null,
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
           worker: 'worker',
         };
-        const blockHex = Buffer.from('000011110000111100001111', 'hex');
-        pool.manager.emit('share', shareData, blockHex);
+        pool.manager.emit('share', shareData, true);
       });
     });
   });
@@ -1062,8 +1146,8 @@ describe('Test pool functionality', () => {
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 3) {
-        expect(response[0][0]).toBe('debug');
-        expect(response[0][1]).toBe('Submitted Block using submitblock successfully to daemon instance(s)');
+        expect(response[0][0]).toBe('special');
+        expect(response[0][1]).toBe('Submitted primary block successfully to Bitcoin\'s daemon instance(s)');
         expect(response[1][0]).toBe('error');
         expect(response[1][1]).toBe('Block was rejected by the network');
         expect(response[2][0]).toBe('error');
@@ -1107,16 +1191,19 @@ describe('Test pool functionality', () => {
           port: 'port',
           blockDiff : 1,
           blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
-          hashInvalid: null,
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
           worker: 'worker',
         };
-        const blockHex = Buffer.from('000011110000111100001111', 'hex');
-        pool.manager.emit('share', shareData, blockHex);
+        pool.manager.emit('share', shareData, true);
       });
     });
   });
@@ -1233,6 +1320,65 @@ describe('Test pool functionality', () => {
     });
   });
 
+  test('Test pool job events [3]', (done) => {
+    optionsCopy.auxiliary.enabled = true;
+    rpcDataCopy.auxData = auxData;
+    const auxDataCopy = JSON.parse(JSON.stringify(auxData));
+    const pool = new Pool(optionsCopy, null, () => {});
+    pool.on('share', (shareData, shareValid, blockValid) => {
+      expect(shareValid).toBe(true);
+      expect(blockValid).toBe(false);
+      expect(shareData.job).toBe(1);
+      expect(shareData.hash).toBe('example auxiliary blockhash');
+      nock.cleanAll();
+      done();
+    });
+    mockSetupDaemon(pool, () => {
+      mockSetupData(pool, () => {
+        pool.setupJobManager();
+        mockSetupBlockchain(pool, () => {
+          nock('http://127.0.0.1:8332')
+            .post('/', body => body.method === 'getblocktemplate')
+            .reply(200, JSON.stringify({
+              id: 'nocktest',
+              error: null,
+              result: rpcDataCopy,
+            }));
+          nock('http://127.0.0.1:8336')
+            .persist()
+            .post('/', body => body.method === 'getauxblock')
+            .reply(200, JSON.stringify({
+              id: 'nocktest',
+              error: null,
+              result: auxDataCopy,
+            }));
+          pool.setupFirstJob(() => {
+            const shareData = {
+              job: 1,
+              ip: 'ip_addr',
+              port: 'port',
+              blockDiff : 1,
+              blockDiffActual: 1,
+              blockType: 'auxiliary',
+              coinbase: Buffer.from('000011110000111100001111', 'hex'),
+              difficulty: 1,
+              hash: 'example auxiliary blockhash',
+              hex: Buffer.from('000011110000111100001111', 'hex'),
+              header: Buffer.from('000011110000111100001111', 'hex'),
+              headerDiff: -1,
+              height: 1,
+              reward: 5000000000,
+              shareDiff: 1,
+              worker: 'worker',
+            };
+            pool.manager.emit('share', shareData, true);
+            done();
+          });
+        });
+      });
+    });
+  });
+
   test('Test pool polling events [1]', (done) => {
     const response = [];
     const pool = new Pool(optionsCopy, null, () => {});
@@ -1270,7 +1416,7 @@ describe('Test pool functionality', () => {
         expect(response[0][0]).toBe('warning');
         expect(response[0][1]).toBe('Network diff of 0 is lower than port 3001 w/ diff 32');
         expect(response[1][0]).toBe('debug');
-        expect(response[1][1]).toBe('Block notification via RPC polling');
+        expect(response[1][1]).toBe('Primary chain (Bitcoin) notification via RPC polling at height 2');
         done();
       }
     });

@@ -41,7 +41,6 @@ const Transactions = function() {
 
     let reward = rpcData.coinbasevalue;
     let rewardToPool = reward;
-    const poolIdentifier = options.identifier || 'https://github.com/blinkhash/foundation-server';
     const coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
     const poolAddressScript = options.primary.coin.staking ? (
       utils.pubkeyToScript(options.primary.pubkey)) : (
@@ -52,12 +51,7 @@ const Transactions = function() {
       utils.packUInt32LE(rpcData.curtime) :
       Buffer.from([]);
 
-    // Handle Comments if Necessary
-    const txComment = options.primary.coin.messages === true ?
-      utils.serializeString(poolIdentifier) :
-      Buffer.from([]);
-
-    let scriptSigPart1 = Buffer.concat([
+    let scriptSig = Buffer.concat([
       utils.serializeNumber(rpcData.height),
       coinbaseAux,
       utils.serializeNumber(Date.now() / 1000 | 0),
@@ -65,8 +59,8 @@ const Transactions = function() {
     ]);
 
     if (auxMerkle && options.auxiliary && options.auxiliary.enabled) {
-      scriptSigPart1 = Buffer.concat([
-        scriptSigPart1,
+      scriptSig = Buffer.concat([
+        scriptSig,
         Buffer.from(options.auxiliary.coin.header, 'hex'),
         utils.reverseBuffer(auxMerkle.root),
         utils.packUInt32LE(auxMerkle.data.length),
@@ -74,16 +68,14 @@ const Transactions = function() {
       ]);
     }
 
-    const scriptSigPart2 = utils.serializeString(poolIdentifier);
-
     const p1 = Buffer.concat([
       utils.packUInt32LE(txVersion),
       txTimestamp,
       utils.varIntBuffer(1),
       utils.uint256BufferFromHash(txInPrevOutHash),
       utils.packUInt32LE(txInPrevOutIndex),
-      utils.varIntBuffer(scriptSigPart1.length + extraNoncePlaceholder.length + scriptSigPart2.length),
-      scriptSigPart1
+      utils.varIntBuffer(scriptSig.length + extraNoncePlaceholder.length),
+      scriptSig
     ]);
 
     // Handle Masternodes
@@ -193,11 +185,9 @@ const Transactions = function() {
     ]);
 
     let p2 = Buffer.concat([
-      scriptSigPart2,
       utils.packUInt32LE(txInSequence),
       outputTransactions,
       utils.packUInt32LE(txLockTime),
-      txComment
     ]);
 
     // Check for Extra Transaction Payload

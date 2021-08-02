@@ -63,6 +63,46 @@ const Merkle = function(data) {
     return steps;
   };
 
+  // Calculate Merkle Hash Proof
+  /* istanbul ignore next */
+  this.getHashProof = function(hash) {
+    let data = this.data;
+    if (data.length === 1) {
+      return Buffer.concat([utils.varIntBuffer(0), utils.packInt32LE(0)]);
+    }
+    const dataArray = data.map((tx) => tx.toString('hex'));
+    let index = dataArray.indexOf(hash.toString('hex'));
+    if (index < 0) {
+      return undefined;
+    }
+    let branchLen = 0;
+    let bufferHash = Buffer.alloc(0);
+    let sideMask;
+    for (;data.length > 1; branchLen += 1) {
+      if (data.length % 2 !== 0) {
+        data.push(data[data.length - 1]);
+      }
+      if(index % 2 === 0) {
+        Buffer.concat([bufferHash, data[index + 1]]);
+      } else {
+        Buffer.concat([bufferHash, data[index - 1]]);
+        sideMask = sideMask & (1 << branchLen);
+      }
+      const output = [];
+      for (let i = 0; i < data.length; i += 2) {
+        output.push(_this.concatHash(data[i], data[i + 1]));
+      }
+      data = output;
+      index = Math.floor(index / 2);
+    }
+    branchLen += 1;
+    return Buffer.concat([
+      utils.varIntBuffer(branchLen),
+      bufferHash,
+      utils.serializeNumber(sideMask)
+    ]);
+  };
+
   // Validate Data Struture
   this.validateData = function(data) {
     if (data) {

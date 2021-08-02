@@ -57,7 +57,7 @@ const Manager = function(options) {
   this.jobCounter = new JobCounter();
   this.extraNonceCounter = new ExtraNonceCounter(_this.options.instanceId);
   this.extraNoncePlaceholder = Buffer.from('f000000ff111111f', 'hex');
-  this.extraNonce2Size = this.extraNoncePlaceholder.length - this.extraNonceCounter.size;
+  this.extraNonce2Size = _this.extraNoncePlaceholder.length - _this.extraNonceCounter.size;
 
   // Determine Block Hash Function
   /* istanbul ignore next */
@@ -93,18 +93,18 @@ const Manager = function(options) {
 
   // Update Current Managed Job
   this.updateCurrentJob = function(rpcData) {
-    const auxMerkleTree = _this.buildMerkleTree(rpcData.auxdata);
+    const auxMerkle = _this.buildMerkleTree(rpcData.auxData);
     const tmpTemplate = new Template(
-      this.jobCounter.next(),
+      _this.jobCounter.next(),
       Object.assign({}, rpcData),
       _this.extraNoncePlaceholder,
-      auxMerkleTree,
+      auxMerkle,
       _this.options
     );
     _this.currentJob = tmpTemplate;
     _this.emit('updatedBlock', tmpTemplate);
     _this.validJobs[tmpTemplate.jobId] = tmpTemplate;
-    _this.auxMerkleTree = auxMerkleTree;
+    _this.auxMerkle = auxMerkle;
   };
 
   // Check if New Block is Processed
@@ -125,12 +125,12 @@ const Manager = function(options) {
     }
 
     // Build New Block Template
-    const auxMerkleTree = _this.buildMerkleTree(rpcData.auxdata);
+    const auxMerkle = _this.buildMerkleTree(rpcData.auxData);
     const tmpTemplate = new Template(
-      this.jobCounter.next(),
+      _this.jobCounter.next(),
       Object.assign({}, rpcData),
       _this.extraNoncePlaceholder,
-      auxMerkleTree,
+      auxMerkle,
       _this.options
     );
 
@@ -138,7 +138,7 @@ const Manager = function(options) {
     _this.currentJob = tmpTemplate;
     _this.emit('newBlock', tmpTemplate);
     _this.validJobs[tmpTemplate.jobId] = tmpTemplate;
-    _this.auxMerkleTree = auxMerkleTree;
+    _this.auxMerkle = auxMerkle;
     return true;
   };
 
@@ -161,13 +161,9 @@ const Manager = function(options) {
       return {error: error, result: null};
     };
 
-    let blockHash = null;
-    let blockHashInvalid = null;
-    let blockHex = null;
-
     // Edge Cases to Check if Share is Invalid
     const submitTime = Date.now() / 1000 | 0;
-    const job = this.validJobs[jobId];
+    const job = _this.validJobs[jobId];
     if (extraNonce2.length / 2 !== _this.extraNonce2Size)
       return shareError([20, 'incorrect size of extranonce2']);
     if (typeof job === 'undefined' || job.jobId != jobId) {
@@ -198,11 +194,14 @@ const Manager = function(options) {
       version = (version & ~vMask) | (vBit & vMask);
     }
 
+    let blockValid = false;
+    let blockType = 'auxiliary';
+
     // Establish Share Information
     const extraNonce1Buffer = Buffer.from(extraNonce1, 'hex');
     const extraNonce2Buffer = Buffer.from(extraNonce2, 'hex');
     const coinbaseBuffer = job.serializeCoinbase(extraNonce1Buffer, extraNonce2Buffer);
-    const coinbaseHash = this.coinbaseHasher(coinbaseBuffer);
+    const coinbaseHash = _this.coinbaseHasher(coinbaseBuffer);
     const merkleRoot = utils.reverseBuffer(job.merkle.withFirst(coinbaseHash)).toString('hex');
 
     // Start Generating Block Hash
@@ -214,16 +213,15 @@ const Manager = function(options) {
     // Calculate Share Difficulty
     const shareDiff = diff1 / headerBigNum.toNumber() * shareMultiplier;
     const blockDiffAdjusted = job.difficulty * shareMultiplier;
+    const blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer).toString('hex');
+    const blockHash = _this.blockHasher(headerBuffer, nTime).toString('hex');
 
     // Check if Share is Valid Block Candidate
     /* istanbul ignore next */
     if (job.target.ge(headerBigNum)) {
-      blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer).toString('hex');
-      blockHash = this.blockHasher(headerBuffer, nTime).toString('hex');
+      blockValid = true;
+      blockType = 'primary';
     } else {
-      if (_this.options.settings.emitInvalidBlockHashes) {
-        blockHashInvalid = utils.reverseBuffer(utils.sha256d(headerBuffer)).toString('hex');
-      }
       if (shareDiff / difficulty < 0.99) {
         if (previousDifficulty && shareDiff >= previousDifficulty) {
           difficulty = previousDifficulty;
@@ -239,19 +237,22 @@ const Manager = function(options) {
       port: port,
       blockDiff : blockDiffAdjusted,
       blockDiffActual: job.difficulty,
+      blockType: blockType,
+      coinbase: coinbaseBuffer,
       difficulty: difficulty,
       hash: blockHash,
-      hashInvalid: blockHashInvalid,
+      hex: blockHex,
+      header: headerHash,
+      headerDiff: headerBigNum,
       height: job.rpcData.height,
       reward: job.rpcData.coinbasevalue,
       shareDiff: shareDiff.toFixed(8),
       worker: workerName,
-    }, blockHex);
+    }, blockValid);
 
     return {
       error: null,
       hash: blockHash,
-      hashInvalid: blockHashInvalid,
       hex: blockHex,
       result: true,
     };

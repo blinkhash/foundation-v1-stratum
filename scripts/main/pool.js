@@ -4,7 +4,10 @@
  *
  */
 
+const bignum = require('bignum');
 const events = require('events');
+const utils = require('./utils');
+
 const Algorithms = require('./algorithms');
 const Difficulty = require('./difficulty');
 const Daemon = require('./daemon');
@@ -22,19 +25,24 @@ const Pool = function(options, authorizeFn, responseFn) {
   this.authorizeFn = authorizeFn;
   this.responseFn = responseFn;
 
-  const logMessage = (text, level) => {
-    if (process.env.forkId && process.env.forkId === '0') {
-      _this.emit('log', level, text);
-    }
-  }
+  this.primary = {};
+  this.auxiliary = {};
 
-  const emitLog = (text) => logMessage(text, 'debug');
-  const emitWarningLog = (text) => logMessage(text, 'warning');
-  const emitSpecialLog = (text) => logMessage(text, 'special');
+  const emitLog = (text) => _this.emit('log', 'debug', text);
+  const emitWarningLog = (text) => _this.emit('log', 'warning', text);
+  const emitSpecialLog = (text) => _this.emit('log', 'special', text);
   const emitErrorLog = (text) => {
-    logMessage(text, 'error');
+    _this.emit('log', 'error', text);
     _this.responseFn(text);
   };
+
+  // Ensure Logger Only Gets Called Once
+  /* istanbul ignore next */
+  const limitMessages = (callback) => {
+    if (!process.env.forkId || process.env.forkId === '0') {
+      callback();
+    }
+  }
 
   // Validate Pool Algorithms
   /* istanbul ignore next */
@@ -118,13 +126,13 @@ const Pool = function(options, authorizeFn, responseFn) {
       emitErrorLog('No primary daemons have been configured - pool cannot start');
       return;
     }
-    _this.daemon = _this.setupDaemon(_this.options.primary.daemons, () => {});
-    if (options.auxiliary && options.auxiliary.enabled) {
+    _this.primary.daemon = _this.setupDaemon(_this.options.primary.daemons, () => {});
+    if (_this.options.auxiliary && _this.options.auxiliary.enabled) {
       if (!Array.isArray(_this.options.auxiliary.daemons) || _this.options.auxiliary.daemons.length < 1) {
         emitErrorLog('No auxiliary daemons have been configured - pool cannot start');
         return;
       }
-      _this.auxdaemon = _this.setupDaemon(_this.options.auxiliary.daemons, callback);
+      _this.auxiliary.daemon = _this.setupDaemon(_this.options.auxiliary.daemons, callback);
     } else {
       callback();
     }
@@ -147,7 +155,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     }
 
     // Manage RPC Batches
-    _this.daemon.batchCmd(batchRPCCommand, (error, results) => {
+    _this.primary.daemon.batchCmd(batchRPCCommand, (error, results) => {
       if (error || !results) {
         emitErrorLog('Could not start pool, error with init batch RPC call');
         return;
@@ -171,13 +179,13 @@ const Pool = function(options, authorizeFn, responseFn) {
       }
 
       // Check if Address is Owned by Wallet (PoS Only)
-      if (options.primary.coin.staking && typeof rpcResults.validateaddress.pubkey === 'undefined') {
+      if (_this.options.primary.coin.staking && typeof rpcResults.validateaddress.pubkey === 'undefined') {
         emitErrorLog('The address provided is not from the daemon wallet - this is required for PoS coins.');
         return;
       }
 
       // Store Derived PubKey if Necessary (PoS Only)
-      if (options.primary.coin.staking) {
+      if (_this.options.primary.coin.staking) {
         _this.options.primary.pubkey = rpcResults.validateaddress.pubkey;
       }
 
@@ -219,7 +227,7 @@ const Pool = function(options, authorizeFn, responseFn) {
   // Initialize Pool Recipients
   this.setupRecipients = function() {
     if (_this.options.primary.recipients.length === 0) {
-      emitErrorLog('No recipients have been added which means that no fees will be taken');
+      emitWarningLog('No recipients have been added which means that no fees will be taken');
     }
     _this.options.settings.feePercentage = 0;
     _this.options.primary.recipients.forEach(recipient => {
@@ -227,7 +235,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     });
   };
 
-  // Submit Block to Stratum Server
+  // Submit Primary Block to Stratum Server
   this.submitBlock = function(blockHex, callback) {
 
     // Check which Submit Method is Supported
@@ -241,33 +249,79 @@ const Pool = function(options, authorizeFn, responseFn) {
     }
 
     // Establish Submission Functionality
-    _this.daemon.cmd(rpcCommand, rpcArgs, (results) => {
+    _this.primary.daemon.cmd(rpcCommand, rpcArgs, (results) => {
       for (let i = 0; i < results.length; i += 1) {
         const result = results[i];
         if (result.error) {
-          emitErrorLog('RPC error with daemon instance ' +
+          emitErrorLog('RPC error with primary daemon instance ' +
             result.instance.index + ' when submitting block with ' + rpcCommand + ' ' +
             JSON.stringify(result.error));
           return;
         } else if (result.response === 'rejected') {
-          emitErrorLog('Daemon instance ' + result.instance.index + ' rejected a supposedly valid block');
+          emitErrorLog('Primary daemon instance ' + result.instance.index + ' rejected a supposedly valid block');
           return;
         }
       }
-      emitLog('Submitted Block using ' + rpcCommand + ' successfully to daemon instance(s)');
+      emitSpecialLog('Submitted primary block successfully to ' + _this.options.primary.coin.name + '\'s daemon instance(s)');
       callback();
     });
   };
 
+  // Submit Auxiliary Block to Stratum Server
+  /* istanbul ignore next */
+  this.submitAuxBlock = function(headerBuffer, coinbaseBuffer, blockHash, callback) {
+
+    // Build Branch Proof from Block Hash
+    const branch = utils.uint256BufferFromHash(_this.auxiliary.rpcData.hash)
+    const branchProof = _this.manager.auxMerkle.getHashProof(branch);
+    if (!branchProof) {
+      branchProof = Buffer.concat([utils.varIntBuffer(0), utils.packInt32LE(0)]);
+    }
+
+    // Build Coinbase Proof from Current Job Data
+    const coinbaseProof = Buffer.concat([
+      utils.varIntBuffer(_this.manager.currentJob.merkle.steps.length),
+      Buffer.concat(_this.manager.currentJob.merkle.steps),
+      utils.packInt32LE(0)
+    ]);
+
+    // Build AuxPoW Block to Submit to Auxiliary Daemon
+    const auxPow = Buffer.concat([
+      coinbaseBuffer,
+      blockHash,
+      coinbaseProof,
+      branchProof,
+      headerBuffer
+    ]);
+
+    // Submit AuxPow Block to Auxiliary Daemon
+    const rpcArgs = [_this.auxiliary.rpcData.hash, auxPow.toString('hex')];
+    _this.auxiliary.daemon.cmd('getauxblock', rpcArgs, (results) => {
+      for (let i = 0; i < results.length; i += 1) {
+        const result = results[i];
+        if (result.error) {
+          emitErrorLog('RPC error with auxiliary daemon instance ' +
+            result.instance.index + ' when submitting block with getauxblock ' +
+            JSON.stringify(result.error));
+          return;
+        } else if (!result.response || result.response === 'rejected') {
+          emitErrorLog('Auxiliary daemon instance ' + result.instance.index + ' rejected a supposedly valid block');
+          return;
+        }
+      }
+      emitSpecialLog('Submitted auxiliary block successfully to ' + _this.options.auxiliary.coin.name + '\'s daemon instance(s)');
+      callback(_this.auxiliary.rpcData.hash);
+    });
+  }
+
   // Check Whether Block was Accepted by Daemon
-  this.checkBlockAccepted = function(blockHash, callback) {
-    _this.daemon.cmd('getblock', [blockHash], (results) => {
+  this.checkBlockAccepted = function(blockHash, daemon, callback) {
+    daemon.cmd('getblock', [blockHash], (results) => {
       const validResults = results.filter((result) => {
         return result.response && (result.response.hash === blockHash);
       });
       if (validResults.length >= 1) {
         if (validResults[0].response.confirmations >= 0) {
-          emitLog('Block was accepted by the network with ' + validResults[0].response.confirmations + ' confirmations');
           callback(true, validResults[0].response.tx[0]);
         } else {
           emitErrorLog('Block was rejected by the network');
@@ -281,7 +335,7 @@ const Pool = function(options, authorizeFn, responseFn) {
   };
 
   // Load Current Block Template
-  this.getBlockTemplate = function(callback) {
+  this.getBlockTemplate = function(callback, force) {
     const callConfig = {
       'capabilities': [
         'coinbasetxn',
@@ -294,17 +348,47 @@ const Pool = function(options, authorizeFn, responseFn) {
     }
 
     // Handle Block Templates/Subsidy
-    _this.daemon.cmd('getblocktemplate', [callConfig], (result) => {
+    _this.primary.daemon.cmd('getblocktemplate', [callConfig], (result) => {
       if (result.error) {
         emitErrorLog('getblocktemplate call failed for daemon instance ' +
           result.instance.index + ' with error ' + JSON.stringify(result.error));
         callback(result.error);
       } else {
-        const processedNewBlock = _this.manager.processTemplate(result.response, false);
+        if (_this.options.auxiliary && _this.options.auxiliary.enabled) {
+          result.response.auxData = _this.auxiliary.rpcData;
+        }
+        const processedNewBlock = _this.manager.processTemplate(result.response, force);
         callback(null, result.response, processedNewBlock);
       }
     }, true);
   };
+
+  // Update Work for Auxiliary Chain
+  /* istanbul ignore next */
+  this.getAuxTemplate = function(callback) {
+    if (_this.options.auxiliary && _this.options.auxiliary.enabled) {
+      _this.auxiliary.daemon.cmd('getauxblock', [], (result) => {
+        if (result[0].error) {
+          emitErrorLog('getauxblock call failed for daemon instance ' +
+            result[0].instance.index + ' with error ' + JSON.stringify(result[0].error));
+          callback(result[0].error);
+        } else {
+          let updateTemplate = false;
+          const target = utils.uint256BufferFromHash(result[0].response.target, {endian: 'little', size: 32});
+          if (_this.auxiliary.rpcData) {
+            if (_this.auxiliary.rpcData.hash != result[0].response.hash) {
+              updateTemplate = true;
+            }
+          }
+          _this.auxiliary.rpcData = result[0].response;
+          _this.auxiliary.rpcData.target = bignum.fromBuffer(target);
+          callback(null, result[0].response, updateTemplate);
+        }
+      });
+    } else {
+      callback(null, null, false);
+    }
+  }
 
   // Initialize Pool Job Manager
   /* istanbul ignore next */
@@ -322,27 +406,47 @@ const Pool = function(options, authorizeFn, responseFn) {
     });
 
     // Handle Share Submissions
-    _this.manager.on('share', (shareData, blockHex) => {
+    _this.manager.on('share', (shareData, blockValid) => {
       const shareValid = !shareData.error;
-      let blockValid = !!blockHex;
+
+      // Process Share Submission to Auxiliary Chain
+      if (shareValid && _this.options.auxiliary && _this.options.auxiliary.enabled) {
+        if (_this.auxiliary.rpcData.target.ge(shareData.headerDiff)) {
+          const hexBuffer = Buffer.from(shareData.hex, 'hex').slice(0, 80);
+          _this.submitAuxBlock(hexBuffer, shareData.coinbase, shareData.header, (hash) => {
+            _this.checkBlockAccepted(hash, _this.auxiliary.daemon, (accepted, tx) => {
+              _this.auxiliary.daemon.cmd('gettransaction', [tx], (result) => {
+                if (result[0].error) {
+                  emitErrorLog('Auxiliary block was rejected by the network');
+                } else {
+                  _this.emit('share', shareData, shareValid, accepted, () => {});
+                  emitSpecialLog('Block notification via RPC after auxiliary block submission');
+                }
+              });
+            });
+          });
+        }
+      }
+
+      // Process Share Submission to Primary Chain
       if (!blockValid)
         _this.emit('share', shareData, shareValid, blockValid, () => {});
       else {
-        _this.submitBlock(blockHex, () => {
-          _this.checkBlockAccepted(shareData.hash, (isAccepted, tx) => {
-            blockValid = isAccepted;
+        _this.submitBlock(shareData.hex, () => {
+          _this.checkBlockAccepted(shareData.hash, _this.primary.daemon, (accepted, tx) => {
             shareData.transaction = tx;
-            _this.emit('share', shareData, shareValid, blockValid, () => {});
+            _this.emit('share', shareData, shareValid, accepted, () => {});
             _this.getBlockTemplate((error, result, foundNewBlock) => {
-              if (foundNewBlock)
-                emitLog('Block notification via RPC after block submission');
-            });
+              if (foundNewBlock) {
+                emitSpecialLog('Block notification via RPC after primary block submission');
+              }
+            }, false);
           });
         });
       }
     });
 
-    // Handle Block Submissions
+    // Handle Updated Block Data
     _this.manager.on('updatedBlock', (blockTemplate) => {
       if (_this.stratum) {
         const job = blockTemplate.getJobParams();
@@ -369,13 +473,13 @@ const Pool = function(options, authorizeFn, responseFn) {
     // Calculate Current Progress on Sync
     const generateProgress = function() {
       const cmd = _this.options.primary.coin.getinfo ? 'getinfo' : 'getblockchaininfo';
-      _this.daemon.cmd(cmd, [], (results) => {
+      _this.primary.daemon.cmd(cmd, [], (results) => {
         const blockCount = Math.max.apply(null, results
           .flatMap(result => result.response)
           .flatMap(response => response.blocks));
 
         // Compare with Peers to Get Percentage Synced
-        _this.daemon.cmd('getpeerinfo', [], (results) => {
+        _this.primary.daemon.cmd('getpeerinfo', [], (results) => {
           const peers = results[0].response;
           const totalBlocks = Math.max.apply(null, peers
             .flatMap(response => response.startingheight));
@@ -387,7 +491,7 @@ const Pool = function(options, authorizeFn, responseFn) {
 
     // Check for Blockchain to be Fully Synced
     const checkSynced = function(displayNotSynced) {
-      _this.daemon.cmd('getblocktemplate', [callConfig], (results) => {
+      _this.primary.daemon.cmd('getblocktemplate', [callConfig], (results) => {
         const synced = results.every((r) => {
           return !r.error || r.error.code !== -10;
         });
@@ -398,62 +502,45 @@ const Pool = function(options, authorizeFn, responseFn) {
             displayNotSynced();
           }
           setTimeout(checkSynced, 30000);
-          generateProgress();
+          limitMessages(() => generateProgress());
         }
       });
     };
 
     // Check and Return Message if Not Synced
     checkSynced(() => {
-      emitErrorLog('Daemon is still syncing with the network. The server will be started once synced');
+      limitMessages(() => {
+        emitErrorLog('Daemon is still syncing with the network. The server will be started once synced');
+      });
     });
   };
-
-  // Initialize First Primary Job
-  this.setupFirstPrimaryJob = function(callback) {
-    _this.getBlockTemplate((error) => {
-      if (error) {
-        emitErrorLog('Error with getblocktemplate on creating first job, server cannot start');
-        return;
-      }
-      const portWarnings = [];
-      const networkDiffAdjusted = _this.options.statistics.difficulty;
-      _this.options.ports.forEach(port => {
-        const currentPort = port.port;
-        const portDiff = port.difficulty.initial;
-        if (networkDiffAdjusted < portDiff) {
-          portWarnings.push('port ' + currentPort + ' w/ diff ' + portDiff);
-        }
-      });
-      if (portWarnings.length > 0) {
-        const warnMessage = 'Network diff of ' + networkDiffAdjusted + ' is lower than ' + portWarnings.join(' and ');
-        emitWarningLog(warnMessage);
-      }
-      callback();
-    });
-  }
-
-  // Initialize First Auxiliary Job
-  this.setupFirstAuxiliaryJob = function(callback) {
-    _this.getBlockTemplate((error) => {
-      if (error) {
-        emitErrorLog('Error with getblocktemplate on creating first auxiliary job, server cannot start');
-        return;
-      }
-      callback();
-    });
-  }
 
   // Initialize First Pool Job
   /* istanbul ignore next */
   this.setupFirstJob = function(callback) {
-    _this.setupFirstPrimaryJob(() => {
-      if (options.auxiliary && options.auxiliary.enabled) {
-        _this.setupFirstAuxiliaryJob(() => callback());
-      } else {
+    _this.getAuxTemplate(() => {
+      _this.getBlockTemplate((error) => {
+        if (error) {
+          emitErrorLog('Error with getblocktemplate on creating first job, server cannot start');
+          return;
+        }
+        const portWarnings = [];
+        const networkDiffAdjusted = _this.options.statistics.difficulty;
+        _this.options.ports.forEach(port => {
+          const currentPort = port.port;
+          const portDiff = port.difficulty.initial;
+          if (networkDiffAdjusted < portDiff) {
+            portWarnings.push('port ' + currentPort + ' w/ diff ' + portDiff);
+          }
+        });
+        if (portWarnings.length > 0) {
+          limitMessages(() => {
+            emitWarningLog('Network diff of ' + networkDiffAdjusted + ' is lower than ' + portWarnings.join(' and '))
+          });
+        }
         callback();
-      }
-    })
+      }, false);
+    });
   };
 
   // Initialize Pool Block Polling
@@ -468,11 +555,20 @@ const Pool = function(options, authorizeFn, responseFn) {
     setInterval(() => {
       if (pollingFlag === false) {
         pollingFlag = true;
-        _this.getBlockTemplate((error, result, foundNewBlock) => {
-          if (foundNewBlock) {
-            emitLog('Block notification via RPC polling');
-          }
-          pollingFlag = false;
+        _this.getAuxTemplate((auxililaryError, auxiliaryResult, auxiliaryUpdate) => {
+          _this.getBlockTemplate((primaryError, primaryResult, primaryUpdate) => {
+            pollingFlag = false;
+            if (primaryUpdate && !auxiliaryUpdate) {
+              limitMessages(() => {
+                emitLog('Primary chain (' + _this.options.primary.coin.name + ') notification via RPC polling at height ' + primaryResult.height)
+              });
+            }
+            if (auxiliaryUpdate) {
+              limitMessages(() => {
+                emitLog('Auxiliary chain (' + _this.options.auxiliary.coin.name + ') notification via RPC polling at height ' + auxiliaryResult.height)
+              });
+            }
+          }, auxiliaryUpdate);
         });
       }
     }, pollingInterval);
@@ -489,7 +585,7 @@ const Pool = function(options, authorizeFn, responseFn) {
         } else {
           emitLog('Block template for ' + _this.options.primary.coin.name + ' updated successfully');
         }
-      });
+      }, false);
     }
   };
 
@@ -503,7 +599,9 @@ const Pool = function(options, authorizeFn, responseFn) {
 
     // Check for P2P Configuration
     if (!_this.options.p2p || !_this.options.p2p.enabled) {
-      emitLog('p2p has been disabled in the configuration');
+      limitMessages(() => {
+        emitLog('p2p has been disabled in the configuration');
+      })
       return;
     }
     if (_this.options.settings.testnet && !_this.options.primary.coin.testnet.peerMagic) {
@@ -517,7 +615,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     // Establish Peer Server
     _this.peer = new Peer(_this.options);
     _this.peer.on('blockFound', (hash) => {
-      emitLog('Block notification via p2p');
+      emitLog('Block notification via p2p', false);
       _this.processBlockNotify(hash);
     });
     _this.peer.on('connectionFailed', () => {
@@ -560,7 +658,7 @@ const Pool = function(options, authorizeFn, responseFn) {
         if (_this.options.debug) {
           emitLog('Updated existing job for current block template');
         }
-      });
+      }, false);
     });
 
     // Establish New Connection Functionality
@@ -664,7 +762,9 @@ const Pool = function(options, authorizeFn, responseFn) {
     if (typeof _this.options.settings.blockRefreshInterval === 'number' && _this.options.settings.blockRefreshInterval > 0) {
       infoLines.push('Block Polling Every:\t' + _this.options.settings.blockRefreshInterval + ' ms');
     }
-    emitSpecialLog(infoLines.join('\n\t\t\t\t\t\t'));
+    limitMessages(() => {
+      emitSpecialLog(infoLines.join('\n\t\t\t\t\t\t'));
+    });
     _this.responseFn(true);
   };
 };
