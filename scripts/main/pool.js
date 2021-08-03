@@ -42,7 +42,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     if (!process.env.forkId || process.env.forkId === '0') {
       callback();
     }
-  }
+  };
 
   // Validate Pool Algorithms
   /* istanbul ignore next */
@@ -272,8 +272,8 @@ const Pool = function(options, authorizeFn, responseFn) {
   this.submitAuxBlock = function(headerBuffer, coinbaseBuffer, blockHash, callback) {
 
     // Build Branch Proof from Block Hash
-    const branch = utils.uint256BufferFromHash(_this.auxiliary.rpcData.hash)
-    const branchProof = _this.manager.auxMerkle.getHashProof(branch);
+    const branch = utils.uint256BufferFromHash(_this.auxiliary.rpcData.hash);
+    let branchProof = _this.manager.auxMerkle.getHashProof(branch);
     if (!branchProof) {
       branchProof = Buffer.concat([utils.varIntBuffer(0), utils.packInt32LE(0)]);
     }
@@ -312,7 +312,7 @@ const Pool = function(options, authorizeFn, responseFn) {
       emitSpecialLog(`Submitted auxiliary block successfully to ${ _this.options.auxiliary.coin.name }'s daemon instance(s)`);
       callback(_this.auxiliary.rpcData.hash);
     });
-  }
+  };
 
   // Check Whether Block was Accepted by Daemon
   this.checkBlockAccepted = function(blockHash, daemon, callback) {
@@ -388,7 +388,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     } else {
       callback(null, null, false);
     }
-  }
+  };
 
   // Initialize Pool Job Manager
   /* istanbul ignore next */
@@ -602,7 +602,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     if (!_this.options.p2p || !_this.options.p2p.enabled) {
       limitMessages(() => {
         emitLog('p2p has been disabled in the configuration');
-      })
+      });
       return;
     }
     if (_this.options.settings.testnet && !_this.options.primary.coin.testnet.peerMagic) {

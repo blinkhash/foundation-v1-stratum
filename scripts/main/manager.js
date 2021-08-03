@@ -249,7 +249,7 @@ const Manager = function(options) {
       height: job.rpcData.height,
       reward: job.rpcData.coinbasevalue,
       shareDiff: shareDiff.toFixed(8),
-    }
+    };
 
     const auxShareData = {
       job: jobId,
@@ -267,7 +267,7 @@ const Manager = function(options) {
       header: headerHash,
       headerDiff: headerBigNum,
       shareDiff: shareDiff.toFixed(8),
-    }
+    };
 
     _this.emit('share', shareData, auxShareData, blockValid);
     return { error: null, hash: blockHash, hex: blockHex, result: true };

@@ -76,7 +76,7 @@ const Merkle = function(data) {
       return undefined;
     }
     let branchLen = 0;
-    let bufferHash = Buffer.alloc(0);
+    const bufferHash = Buffer.alloc(0);
     let sideMask;
     for (;data.length > 1; branchLen += 1) {
       if (data.length % 2 !== 0) {

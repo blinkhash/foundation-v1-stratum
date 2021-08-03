@@ -65,7 +65,7 @@ describe('Test merkle functionality', () => {
   test('Text proof hash calculations', () => {
     const branchProof = merkle6.getHashProof(Buffer.from('27a35a38e70cd01488e0d5ece6ded04a9bc8125865471d36b9d5c47a08a5907c', 'hex'));
     expect(branchProof).toStrictEqual(Buffer.from('040100', 'hex'));
-  })
+  });
 
   test('Test withFirst calculations', () => {
     const coinbaseHash = Buffer.from('afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b53031', 'hex');

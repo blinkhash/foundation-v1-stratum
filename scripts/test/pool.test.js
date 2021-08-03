@@ -732,7 +732,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           shareDiff: 1,
-        }
+        };
         pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
@@ -790,7 +790,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           shareDiff: 1,
-        }
+        };
         pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
@@ -872,7 +872,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           shareDiff: 1,
-        }
+        };
         pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
@@ -962,7 +962,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           shareDiff: 1,
-        }
+        };
         pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
@@ -1053,7 +1053,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           shareDiff: 1,
-        }
+        };
         pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
@@ -1137,7 +1137,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           shareDiff: 1,
-        }
+        };
         pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
@@ -1223,7 +1223,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           shareDiff: 1,
-        }
+        };
         pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
@@ -1309,7 +1309,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           shareDiff: 1,
-        }
+        };
 
         pool.manager.emit('share', shareData, auxShareData, true);
       });
@@ -1499,7 +1499,7 @@ describe('Test pool functionality', () => {
               header: Buffer.from('000011110000111100001111', 'hex'),
               headerDiff: -1,
               shareDiff: 1,
-            }
+            };
             pool.manager.emit('share', shareData, auxShareData, false);
             done();
           });
