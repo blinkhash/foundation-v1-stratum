@@ -145,8 +145,8 @@ const Manager = function(options) {
   // Process New Submitted Share
   this.processShare = function(
     jobId, previousDifficulty, difficulty, extraNonce1, extraNonce2,
-    nTime, nonce, ipAddress, port, workerName, versionBit, versionMask,
-    asicBoost) {
+    nTime, nonce, ipAddress, port, addrPrimary, addrAuxiliary, versionBit,
+    versionMask, asicBoost) {
 
     // Share is Invalid
     const shareError = function(error) {
@@ -155,9 +155,9 @@ const Manager = function(options) {
         ip: ipAddress,
         port: port,
         difficulty: difficulty,
+        worker: addrPrimary,
         error: error[1],
-        worker: workerName,
-      });
+      }, null, null);
       return {error: error, result: null};
     };
 
@@ -194,10 +194,9 @@ const Manager = function(options) {
       version = (version & ~vMask) | (vBit & vMask);
     }
 
-    let blockValid = false;
-    let blockType = 'auxiliary';
 
     // Establish Share Information
+    let blockValid = false;
     const extraNonce1Buffer = Buffer.from(extraNonce1, 'hex');
     const extraNonce2Buffer = Buffer.from(extraNonce2, 'hex');
     const coinbaseBuffer = job.serializeCoinbase(extraNonce1Buffer, extraNonce2Buffer);
@@ -220,7 +219,6 @@ const Manager = function(options) {
     /* istanbul ignore next */
     if (job.target.ge(headerBigNum)) {
       blockValid = true;
-      blockType = 'primary';
     } else {
       if (shareDiff / difficulty < 0.99) {
         if (previousDifficulty && shareDiff >= previousDifficulty) {
@@ -231,13 +229,17 @@ const Manager = function(options) {
       }
     }
 
-    _this.emit('share', {
+    // Build Share Object Data
+    /* istanbul ignore next */
+    const shareData = {
       job: jobId,
       ip: ipAddress,
       port: port,
+      addrPrimary: addrPrimary,
+      addrAuxiliary: addrAuxiliary,
       blockDiff : blockDiffAdjusted,
       blockDiffActual: job.difficulty,
-      blockType: blockType,
+      blockType: blockValid ? 'primary' : 'share',
       coinbase: coinbaseBuffer,
       difficulty: difficulty,
       hash: blockHash,
@@ -247,15 +249,28 @@ const Manager = function(options) {
       height: job.rpcData.height,
       reward: job.rpcData.coinbasevalue,
       shareDiff: shareDiff.toFixed(8),
-      worker: workerName,
-    }, blockValid);
+    }
 
-    return {
-      error: null,
+    const auxShareData = {
+      job: jobId,
+      ip: ipAddress,
+      port: port,
+      addrPrimary: addrPrimary,
+      addrAuxiliary: addrAuxiliary,
+      blockDiff : blockDiffAdjusted,
+      blockDiffActual: job.difficulty,
+      blockType: 'auxiliary',
+      coinbase: coinbaseBuffer,
+      difficulty: difficulty,
       hash: blockHash,
       hex: blockHex,
-      result: true,
-    };
+      header: headerHash,
+      headerDiff: headerBigNum,
+      shareDiff: shareDiff.toFixed(8),
+    }
+
+    _this.emit('share', shareData, auxShareData, blockValid);
+    return { error: null, hash: blockHash, hex: blockHex, result: true };
   };
 };
 

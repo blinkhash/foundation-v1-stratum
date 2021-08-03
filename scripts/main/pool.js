@@ -48,7 +48,7 @@ const Pool = function(options, authorizeFn, responseFn) {
   /* istanbul ignore next */
   this.checkAlgorithm = function(algorithm) {
     if (!(algorithm in Algorithms)) {
-      emitErrorLog('The ' + algorithm + ' algorithm is not supported.');
+      emitErrorLog(`The ${ algorithm } algorithm is not supported.`);
       throw new Error();
     }
   };
@@ -113,7 +113,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     }));
     daemon.once('online', () => callback());
     daemon.on('connectionFailed', (error) => {
-      emitErrorLog('Failed to connect daemon(s): ' + JSON.stringify(error));
+      emitErrorLog(`Failed to connect daemon(s): ${ JSON.stringify(error) }`);
     });
     daemon.on('error', (message) => emitErrorLog(message));
     daemon.initDaemons(() => {});
@@ -167,7 +167,7 @@ const Pool = function(options, authorizeFn, responseFn) {
         const rpcCall = batchRPCCommand[idx][0];
         rpcResults[rpcCall] = output.result || output.error;
         if (rpcCall !== 'submitblock' && (output.error || !output.result)) {
-          emitErrorLog('Could not start pool, error with init RPC call: ' + rpcCall + ' - ' + JSON.stringify(output.error));
+          emitErrorLog(`Could not start pool, error with init RPC call: ${ rpcCall } - ${ JSON.stringify(output.error)}`);
           return;
         }
       });
@@ -258,11 +258,11 @@ const Pool = function(options, authorizeFn, responseFn) {
             JSON.stringify(result.error));
           return;
         } else if (result.response === 'rejected') {
-          emitErrorLog('Primary daemon instance ' + result.instance.index + ' rejected a supposedly valid block');
+          emitErrorLog(`Primary daemon instance ${ result.instance.index } rejected a supposedly valid block`);
           return;
         }
       }
-      emitSpecialLog('Submitted primary block successfully to ' + _this.options.primary.coin.name + '\'s daemon instance(s)');
+      emitSpecialLog(`Submitted primary block successfully to ${ _this.options.primary.coin.name }'s daemon instance(s)`);
       callback();
     });
   };
@@ -305,11 +305,11 @@ const Pool = function(options, authorizeFn, responseFn) {
             JSON.stringify(result.error));
           return;
         } else if (!result.response || result.response === 'rejected') {
-          emitErrorLog('Auxiliary daemon instance ' + result.instance.index + ' rejected a supposedly valid block');
+          emitErrorLog(`Auxiliary daemon instance ${ result.instance.index } rejected a supposedly valid block`);
           return;
         }
       }
-      emitSpecialLog('Submitted auxiliary block successfully to ' + _this.options.auxiliary.coin.name + '\'s daemon instance(s)');
+      emitSpecialLog(`Submitted auxiliary block successfully to ${ _this.options.auxiliary.coin.name }'s daemon instance(s)`);
       callback(_this.auxiliary.rpcData.hash);
     });
   }
@@ -406,32 +406,13 @@ const Pool = function(options, authorizeFn, responseFn) {
     });
 
     // Handle Share Submissions
-    _this.manager.on('share', (shareData, blockValid) => {
+    _this.manager.on('share', (shareData, auxShareData, blockValid) => {
       const shareValid = !shareData.error;
 
-      // Process Share Submission to Auxiliary Chain
-      if (shareValid && _this.options.auxiliary && _this.options.auxiliary.enabled) {
-        if (_this.auxiliary.rpcData.target.ge(shareData.headerDiff)) {
-          const hexBuffer = Buffer.from(shareData.hex, 'hex').slice(0, 80);
-          _this.submitAuxBlock(hexBuffer, shareData.coinbase, shareData.header, (hash) => {
-            _this.checkBlockAccepted(hash, _this.auxiliary.daemon, (accepted, tx) => {
-              _this.auxiliary.daemon.cmd('gettransaction', [tx], (result) => {
-                if (result[0].error) {
-                  emitErrorLog('Auxiliary block was rejected by the network');
-                } else {
-                  _this.emit('share', shareData, shareValid, accepted, () => {});
-                  emitSpecialLog('Block notification via RPC after auxiliary block submission');
-                }
-              });
-            });
-          });
-        }
-      }
-
-      // Process Share Submission to Primary Chain
-      if (!blockValid)
+      // Process Share/Primary Submission
+      if (!blockValid) {
         _this.emit('share', shareData, shareValid, blockValid, () => {});
-      else {
+      } else {
         _this.submitBlock(shareData.hex, () => {
           _this.checkBlockAccepted(shareData.hash, _this.primary.daemon, (accepted, tx) => {
             shareData.transaction = tx;
@@ -443,6 +424,26 @@ const Pool = function(options, authorizeFn, responseFn) {
             }, false);
           });
         });
+      }
+
+      // Process Auxiliary Block Submission
+      if (shareValid && _this.options.auxiliary && _this.options.auxiliary.enabled) {
+        if (_this.auxiliary.rpcData.target.ge(auxShareData.headerDiff)) {
+          const hexBuffer = Buffer.from(auxShareData.hex, 'hex').slice(0, 80);
+          _this.submitAuxBlock(hexBuffer, auxShareData.coinbase, auxShareData.header, (hash) => {
+            _this.checkBlockAccepted(hash, _this.auxiliary.daemon, (accepted, tx) => {
+              auxShareData.transaction = tx;
+              auxShareData.height = _this.auxiliary.rpcData.height;
+              auxShareData.reward = _this.auxiliary.rpcData.coinbasevalue;
+              _this.emit('share', auxShareData, shareValid, accepted, () => {});
+              _this.getBlockTemplate((error, result, foundNewBlock) => {
+                if (foundNewBlock) {
+                  emitSpecialLog('Block notification via RPC after auxiliary block submission');
+                }
+              }, true);
+            });
+          });
+        }
       }
     });
 
@@ -484,7 +485,7 @@ const Pool = function(options, authorizeFn, responseFn) {
           const totalBlocks = Math.max.apply(null, peers
             .flatMap(response => response.startingheight));
           const percent = (blockCount / totalBlocks * 100).toFixed(2);
-          emitWarningLog('Downloaded ' + percent + '% of blockchain from ' + peers.length + ' peers');
+          emitWarningLog(`Downloaded ${ percent }% of blockchain from ${ peers.length } peers`);
         });
       });
     };
@@ -530,12 +531,12 @@ const Pool = function(options, authorizeFn, responseFn) {
           const currentPort = port.port;
           const portDiff = port.difficulty.initial;
           if (networkDiffAdjusted < portDiff) {
-            portWarnings.push('port ' + currentPort + ' w/ diff ' + portDiff);
+            portWarnings.push(`port ${ currentPort } w/ diff ${ portDiff}`);
           }
         });
         if (portWarnings.length > 0) {
           limitMessages(() => {
-            emitWarningLog('Network diff of ' + networkDiffAdjusted + ' is lower than ' + portWarnings.join(' and '))
+            emitWarningLog(`Network diff of ${ networkDiffAdjusted } is lower than ${ portWarnings.join(' and ') }`);
           });
         }
         callback();
@@ -560,12 +561,12 @@ const Pool = function(options, authorizeFn, responseFn) {
             pollingFlag = false;
             if (primaryUpdate && !auxiliaryUpdate) {
               limitMessages(() => {
-                emitLog('Primary chain (' + _this.options.primary.coin.name + ') notification via RPC polling at height ' + primaryResult.height)
+                emitLog(`Primary chain (${ _this.options.primary.coin.name }) notification via RPC polling at height ${ primaryResult.height }`);
               });
             }
             if (auxiliaryUpdate) {
               limitMessages(() => {
-                emitLog('Auxiliary chain (' + _this.options.auxiliary.coin.name + ') notification via RPC polling at height ' + auxiliaryResult.height)
+                emitLog(`Auxiliary chain (${ _this.options.auxiliary.coin.name }) notification via RPC polling at height ${ auxiliaryResult.height }`);
               });
             }
           }, auxiliaryUpdate);
@@ -581,9 +582,9 @@ const Pool = function(options, authorizeFn, responseFn) {
     if ((typeof(currentJob) !== 'undefined') && (blockHash !== currentJob.rpcData.previousblockhash)) {
       _this.getBlockTemplate((error) => {
         if (error) {
-          emitErrorLog('Block notify error getting block template for ' + _this.options.primary.coin.name);
+          emitErrorLog(`Block notify error getting block template for ${ _this.options.primary.coin.name }`);
         } else {
-          emitLog('Block template for ' + _this.options.primary.coin.name + ' updated successfully');
+          emitLog(`Block template for ${ _this.options.primary.coin.name } updated successfully`);
         }
       }, false);
     }
@@ -625,10 +626,10 @@ const Pool = function(options, authorizeFn, responseFn) {
       emitErrorLog('p2p connection failed - likely incorrect p2p magic value');
     });
     _this.peer.on('error', (msg) => {
-      emitErrorLog('p2p had an error: ' + msg);
+      emitErrorLog(`p2p had an error: ${ msg }`);
     });
     _this.peer.on('socketError', (e) => {
-      emitErrorLog('p2p had a socket error: ' + JSON.stringify(e));
+      emitErrorLog(`p2p had a socket error: ${ JSON.stringify(e) }`);
     });
   };
 
@@ -650,7 +651,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     // Establish Timeout Functionality
     _this.stratum.on('broadcastTimeout', () => {
       if (_this.options.debug) {
-        emitLog('No new blocks for ' + _this.options.settings.jobRebroadcastTimeout + ' seconds - updating transactions & rebroadcasting work');
+        emitLog(`No new blocks for ${ _this.options.settings.jobRebroadcastTimeout } seconds - updating transactions & rebroadcasting work`);
       }
       _this.getBlockTemplate((error, rpcData, processedBlock) => {
         if (error || processedBlock) return;
@@ -668,7 +669,7 @@ const Pool = function(options, authorizeFn, responseFn) {
       }
 
       client.on('difficultyChanged', (diff) => {
-        _this.emit('difficultyUpdate', client.workerName, diff);
+        _this.emit('difficultyUpdate', client.addrPrimary, diff);
       });
 
       // Establish Client Subscription Functionality
@@ -699,7 +700,8 @@ const Pool = function(options, authorizeFn, responseFn) {
           message.params[4],
           client.remoteAddress,
           client.socket.localPort,
-          message.params[0],
+          client.addrPrimary,
+          client.addrAuxiliary,
           message.params[5],
           client.versionMask,
           client.asicBoost,
@@ -709,35 +711,35 @@ const Pool = function(options, authorizeFn, responseFn) {
 
       // Establish Miscellaneous Client Functionality
       client.on('malformedMessage', (message) => {
-        emitWarningLog('Malformed message from ' + client.getLabel() + ': ' + JSON.stringify(message));
+        emitWarningLog(`Malformed message from ${ client.getLabel() }: ${ JSON.stringify(message) }`);
       });
       client.on('socketError', (e) => {
-        emitWarningLog('Socket error from ' + client.getLabel() + ': ' + JSON.stringify(e));
+        emitWarningLog(`Socket error from ${ client.getLabel() }: ${ JSON.stringify(e) }`);
       });
       client.on('socketTimeout', (reason) => {
-        emitWarningLog('Connection timed out for ' + client.getLabel() + ': ' + reason);
+        emitWarningLog(`Connection timed out for ${ client.getLabel() }: ${ reason }`);
       });
       client.on('socketDisconnect', () => {
-        emitWarningLog('Socket disconnect for ' + client.getLabel());
+        emitWarningLog(`Socket disconnect for ${ client.getLabel() }`);
       });
       client.on('kickedBannedIP', (remainingBanTime) => {
-        emitLog('Rejected incoming connection from ' + client.remoteAddress + '. The client is banned for ' + remainingBanTime + ' seconds');
+        emitLog(`Rejected incoming connection from ${ client.remoteAddress }. The client is banned for ${ remainingBanTime } seconds.`);
       });
       client.on('forgaveBannedIP', () => {
-        emitLog('Forgave banned IP ' + client.remoteAddress);
+        emitLog(`Forgave banned IP ${ client.remoteAddress }`);
       });
       client.on('unknownStratumMethod', (fullMessage) => {
-        emitLog('Unknown stratum method from ' + client.getLabel() + ': ' + fullMessage.method);
+        emitLog(`Unknown stratum method from ${ client.getLabel() }: ${ fullMessage.method }`);
       });
       client.on('socketFlooded', () => {
-        emitWarningLog('Detected socket flooding from ' + client.getLabel());
+        emitWarningLog(`Detected socket flooding from ${ client.getLabel() }`);
       });
       client.on('tcpProxyError', (data) => {
-        emitErrorLog('Client IP detection failed, tcpProxyProtocol is enabled yet did not receive proxy protocol message, instead got data: ' + data);
+        emitErrorLog(`Client IP detection failed, tcpProxyProtocol is enabled yet did not receive proxy protocol message, instead got data: ${ data }`);
       });
       client.on('triggerBan', (reason) => {
-        emitWarningLog('Ban triggered for ' + client.getLabel() + ': ' + reason);
-        _this.emit('banIP', client.remoteAddress, client.workerName);
+        emitWarningLog(`Ban triggered for ${ client.getLabel() }: ${ reason }`);
+        _this.emit('banIP', client.remoteAddress, client.addrPrimary);
       });
 
       // Indicate that Client Created Successfully
@@ -751,16 +753,16 @@ const Pool = function(options, authorizeFn, responseFn) {
     const startMessage = 'Stratum pool server started for ' + _this.options.primary.coin.name +
       ' [' + _this.options.primary.coin.symbol.toUpperCase() + '] {' + _this.options.primary.coin.algorithms.mining + '}';
     const infoLines = [startMessage,
-      'Network Connected:\t' + (_this.options.settings.testnet ? 'Testnet' : 'Mainnet'),
-      'Current Block Height:\t' + _this.manager.currentJob.rpcData.height,
-      'Current Connect Peers:\t' + _this.options.statistics.connections,
-      'Current Block Diff:\t' + _this.manager.currentJob.difficulty * Algorithms[_this.options.primary.coin.algorithms.mining].multiplier,
-      'Network Difficulty:\t' + _this.options.statistics.difficulty,
-      'Stratum Port(s):\t' + _this.options.statistics.stratumPorts.join(', '),
-      'Pool Fee Percentage:\t' + (_this.options.settings.feePercentage * 100) + '%'
+      `Network Connected:\t${ _this.options.settings.testnet ? 'Testnet' : 'Mainnet' }`,
+      `Current Block Height:\t${ _this.manager.currentJob.rpcData.height }`,
+      `Current Connect Peers:\t${ _this.options.statistics.connections }`,
+      `Current Block Diff:\t${ _this.manager.currentJob.difficulty * Algorithms[_this.options.primary.coin.algorithms.mining].multiplier }`,
+      `Network Difficulty:\t${ _this.options.statistics.difficulty }`,
+      `Stratum Port(s):\t${ _this.options.statistics.stratumPorts.join(', ') }`,
+      `Pool Fee Percentage:\t${ _this.options.settings.feePercentage * 100 }%`,
     ];
     if (typeof _this.options.settings.blockRefreshInterval === 'number' && _this.options.settings.blockRefreshInterval > 0) {
-      infoLines.push('Block Polling Every:\t' + _this.options.settings.blockRefreshInterval + ' ms');
+      infoLines.push(`Block Polling Every:\t${ _this.options.settings.blockRefreshInterval } ms`);
     }
     limitMessages(() => {
       emitSpecialLog(infoLines.join('\n\t\t\t\t\t\t'));

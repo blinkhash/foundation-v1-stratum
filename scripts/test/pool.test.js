@@ -682,41 +682,6 @@ describe('Test pool functionality', () => {
 
   test('Test pool manager events [3]', (done) => {
     const pool = new Pool(optionsCopy, null, () => {});
-    pool.on('share', (shareData, shareValid, blockValid) => {
-      expect(shareValid).toBe(true);
-      expect(blockValid).toBe(false);
-      expect(shareData.job).toBe(1);
-      expect(shareData.hash).toBe('example blockhash');
-      done();
-    });
-    mockSetupDaemon(pool, () => {
-      mockSetupData(pool, () => {
-        pool.setupJobManager();
-        const shareData = {
-          job: 1,
-          ip: 'ip_addr',
-          port: 'port',
-          blockDiff : 1,
-          blockDiffActual: 1,
-          blockType: 'auxiliary',
-          coinbase: null,
-          difficulty: 1,
-          hash: 'example blockhash',
-          hex: null,
-          header: null,
-          headerDiff: null,
-          height: 1,
-          reward: 5000000000,
-          shareDiff: 1,
-          worker: 'worker',
-        };
-        pool.manager.emit('share', shareData, false);
-      });
-    });
-  });
-
-  test('Test pool manager events [4]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
       expect(text).toBe('RPC error with primary daemon instance 0 when submitting block with submitblock true');
@@ -736,9 +701,11 @@ describe('Test pool functionality', () => {
           job: 1,
           ip: 'ip_addr',
           port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
           blockDiff : 1,
           blockDiffActual: 1,
-          blockType: 'auxiliary',
+          blockType: 'primary',
           coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
@@ -748,14 +715,30 @@ describe('Test pool functionality', () => {
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
-          worker: 'worker',
         };
-        pool.manager.emit('share', shareData, true);
+        const auxShareData = {
+          job: 1,
+          ip: 'ip_addr',
+          port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
+          blockDiff : 1,
+          blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
+          difficulty: 1,
+          hash: 'example auxiliary blockhash',
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
+          shareDiff: 1,
+        }
+        pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
   });
-
-  test('Test pool manager events [5]', (done) => {
+  //
+  test('Test pool manager events [4]', (done) => {
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
@@ -776,9 +759,11 @@ describe('Test pool functionality', () => {
           job: 1,
           ip: 'ip_addr',
           port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
           blockDiff : 1,
           blockDiffActual: 1,
-          blockType: 'auxiliary',
+          blockType: 'primary',
           coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
@@ -788,14 +773,30 @@ describe('Test pool functionality', () => {
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
-          worker: 'worker',
         };
-        pool.manager.emit('share', shareData, true);
+        const auxShareData = {
+          job: 1,
+          ip: 'ip_addr',
+          port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
+          blockDiff : 1,
+          blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
+          difficulty: 1,
+          hash: 'example auxiliary blockhash',
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
+          shareDiff: 1,
+        }
+        pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
   });
 
-  test('Test pool manager events [6]', (done) => {
+  test('Test pool manager events [5]', (done) => {
     const response = [];
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
@@ -840,9 +841,11 @@ describe('Test pool functionality', () => {
           job: 1,
           ip: 'ip_addr',
           port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
           blockDiff : 1,
           blockDiffActual: 1,
-          blockType: 'auxiliary',
+          blockType: 'primary',
           coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
@@ -852,15 +855,30 @@ describe('Test pool functionality', () => {
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
-          worker: 'worker',
         };
-        const blockHex = Buffer.from('000011110000111100001111', 'hex');
-        pool.manager.emit('share', shareData, true);
+        const auxShareData = {
+          job: 1,
+          ip: 'ip_addr',
+          port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
+          blockDiff : 1,
+          blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
+          difficulty: 1,
+          hash: 'example auxiliary blockhash',
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
+          shareDiff: 1,
+        }
+        pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
   });
 
-  test('Test pool manager events [7]', (done) => {
+  test('Test pool manager events [6]', (done) => {
     const response = [];
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
@@ -913,9 +931,11 @@ describe('Test pool functionality', () => {
           job: 1,
           ip: 'ip_addr',
           port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
           blockDiff : 1,
           blockDiffActual: 1,
-          blockType: 'auxiliary',
+          blockType: 'primary',
           coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
@@ -925,15 +945,30 @@ describe('Test pool functionality', () => {
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
-          worker: 'worker',
         };
-        const blockHex = Buffer.from('000011110000111100001111', 'hex');
-        pool.manager.emit('share', shareData, true);
+        const auxShareData = {
+          job: 1,
+          ip: 'ip_addr',
+          port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
+          blockDiff : 1,
+          blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
+          difficulty: 1,
+          hash: 'example auxiliary blockhash',
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
+          shareDiff: 1,
+        }
+        pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
   });
 
-  test('Test pool manager events [8]', (done) => {
+  test('Test pool manager events [7]', (done) => {
     const response = [];
     optionsCopy.primary.coin.segwit = false;
     const pool = new Pool(optionsCopy, null, () => {});
@@ -987,9 +1022,11 @@ describe('Test pool functionality', () => {
           job: 1,
           ip: 'ip_addr',
           port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
           blockDiff : 1,
           blockDiffActual: 1,
-          blockType: 'auxiliary',
+          blockType: 'primary',
           coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
@@ -999,14 +1036,30 @@ describe('Test pool functionality', () => {
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
-          worker: 'worker',
         };
-        pool.manager.emit('share', shareData, true);
+        const auxShareData = {
+          job: 1,
+          ip: 'ip_addr',
+          port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
+          blockDiff : 1,
+          blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
+          difficulty: 1,
+          hash: 'example auxiliary blockhash',
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
+          shareDiff: 1,
+        }
+        pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
   });
 
-  test('Test pool manager events [9]', (done) => {
+  test('Test pool manager events [8]', (done) => {
     const response = [];
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
@@ -1053,9 +1106,11 @@ describe('Test pool functionality', () => {
           job: 1,
           ip: 'ip_addr',
           port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
           blockDiff : 1,
           blockDiffActual: 1,
-          blockType: 'auxiliary',
+          blockType: 'primary',
           coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
@@ -1065,14 +1120,30 @@ describe('Test pool functionality', () => {
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
-          worker: 'worker',
         };
-        pool.manager.emit('share', shareData, true);
+        const auxShareData = {
+          job: 1,
+          ip: 'ip_addr',
+          port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
+          blockDiff : 1,
+          blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
+          difficulty: 1,
+          hash: 'example auxiliary blockhash',
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
+          shareDiff: 1,
+        }
+        pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
   });
 
-  test('Test pool manager events [10]', (done) => {
+  test('Test pool manager events [9]', (done) => {
     const response = [];
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
@@ -1121,9 +1192,11 @@ describe('Test pool functionality', () => {
           job: 1,
           ip: 'ip_addr',
           port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
           blockDiff : 1,
           blockDiffActual: 1,
-          blockType: 'auxiliary',
+          blockType: 'primary',
           coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
@@ -1133,14 +1206,30 @@ describe('Test pool functionality', () => {
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
-          worker: 'worker',
         };
-        pool.manager.emit('share', shareData, true);
+        const auxShareData = {
+          job: 1,
+          ip: 'ip_addr',
+          port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
+          blockDiff : 1,
+          blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
+          difficulty: 1,
+          hash: 'example auxiliary blockhash',
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
+          shareDiff: 1,
+        }
+        pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
   });
 
-  test('Test pool manager events [11]', (done) => {
+  test('Test pool manager events [10]', (done) => {
     const response = [];
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('log', (type, text) => {
@@ -1189,9 +1278,11 @@ describe('Test pool functionality', () => {
           job: 1,
           ip: 'ip_addr',
           port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
           blockDiff : 1,
           blockDiffActual: 1,
-          blockType: 'auxiliary',
+          blockType: 'primary',
           coinbase: null,
           difficulty: 1,
           hash: 'example blockhash',
@@ -1201,9 +1292,26 @@ describe('Test pool functionality', () => {
           height: 1,
           reward: 5000000000,
           shareDiff: 1,
-          worker: 'worker',
         };
-        pool.manager.emit('share', shareData, true);
+        const auxShareData = {
+          job: 1,
+          ip: 'ip_addr',
+          port: 'port',
+          addrPrimary: 'addr1',
+          addrAuxiliary: 'addr2',
+          blockDiff : 1,
+          blockDiffActual: 1,
+          blockType: 'auxiliary',
+          coinbase: null,
+          difficulty: 1,
+          hash: 'example auxiliary blockhash',
+          hex: Buffer.from('000011110000111100001111', 'hex'),
+          header: null,
+          headerDiff: null,
+          shareDiff: 1,
+        }
+
+        pool.manager.emit('share', shareData, auxShareData, true);
       });
     });
   });
@@ -1326,12 +1434,15 @@ describe('Test pool functionality', () => {
     const auxDataCopy = JSON.parse(JSON.stringify(auxData));
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('share', (shareData, shareValid, blockValid) => {
-      expect(shareValid).toBe(true);
-      expect(blockValid).toBe(false);
-      expect(shareData.job).toBe(1);
-      expect(shareData.hash).toBe('example auxiliary blockhash');
-      nock.cleanAll();
-      done();
+      if (shareData.blockType === 'auxiliary') {
+        expect(shareValid).toBe(true);
+        expect(blockValid).toBe(false);
+        expect(shareData.job).toBe(1);
+        expect(shareData.hash).toBe('example auxiliary blockhash');
+        expect(shareData.blockType).toBe('auxiliary');
+        nock.cleanAll();
+        done();
+      }
     });
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
@@ -1357,6 +1468,27 @@ describe('Test pool functionality', () => {
               job: 1,
               ip: 'ip_addr',
               port: 'port',
+              addrPrimary: 'addr1',
+              addrAuxiliary: 'addr2',
+              blockDiff : 1,
+              blockDiffActual: 1,
+              blockType: 'share',
+              coinbase: Buffer.from('000011110000111100001111', 'hex'),
+              difficulty: 1,
+              hash: 'example share',
+              hex: Buffer.from('000011110000111100001111', 'hex'),
+              header: Buffer.from('000011110000111100001111', 'hex'),
+              headerDiff: -1,
+              height: 1,
+              reward: 5000000000,
+              shareDiff: 1,
+            };
+            const auxShareData = {
+              job: 1,
+              ip: 'ip_addr',
+              port: 'port',
+              addrPrimary: 'addr1',
+              addrAuxiliary: 'addr2',
               blockDiff : 1,
               blockDiffActual: 1,
               blockType: 'auxiliary',
@@ -1366,12 +1498,9 @@ describe('Test pool functionality', () => {
               hex: Buffer.from('000011110000111100001111', 'hex'),
               header: Buffer.from('000011110000111100001111', 'hex'),
               headerDiff: -1,
-              height: 1,
-              reward: 5000000000,
               shareDiff: 1,
-              worker: 'worker',
-            };
-            pool.manager.emit('share', shareData, true);
+            }
+            pool.manager.emit('share', shareData, auxShareData, false);
             done();
           });
         });
@@ -2037,7 +2166,7 @@ describe('Test pool functionality', () => {
         expect(response[0][0]).toBe('warning');
         expect(response[0][1]).toBe('Network diff of 0 is lower than port 3001 w/ diff 32');
         expect(response[1][0]).toBe('debug');
-        expect(response[1][1]).toBe('Rejected incoming connection from 127.0.0.1. The client is banned for 100000 seconds');
+        expect(response[1][1]).toBe('Rejected incoming connection from 127.0.0.1. The client is banned for 100000 seconds.');
         pool.stratum.stopServer();
       }
     });
@@ -2307,7 +2436,8 @@ describe('Test pool functionality', () => {
               client = new events.EventEmitter();
               client.socket = socket;
               client.socket.localPort = 3001;
-              client.workerName = 'worker1';
+              client.addrPrimary = 'worker1';
+              client.addrAuxiliary = 'worker1';
               client.getLabel = () => {
                 return 'client [example]';
               };

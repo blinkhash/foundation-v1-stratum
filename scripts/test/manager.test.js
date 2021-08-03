@@ -153,7 +153,7 @@ describe('Test manager functionality', () => {
     const extraNonce2 = '00'.toString('hex');
     const versionBits = '00000000';
     const versionMask = '1fffe000';
-    const response = manager.processShare(1, 0, 0, 0, extraNonce2, 0, 0, 'ip_addr', 'port', 'worker', versionBits, versionMask, true);
+    const response = manager.processShare(1, 0, 0, 0, extraNonce2, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('incorrect size of extranonce2');
   });
@@ -164,7 +164,7 @@ describe('Test manager functionality', () => {
     const extraNonce2 = '00000000'.toString('hex');
     const versionBits = '00000000';
     const versionMask = '1fffe000';
-    const response = manager.processShare(0, 0, 0, 0, extraNonce2, 0, 0, 'ip_addr', 'port', 'worker', versionBits, versionMask, true);
+    const response = manager.processShare(0, 0, 0, 0, extraNonce2, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
     expect(response.error[0]).toBe(21);
     expect(response.error[1]).toBe('job not found');
   });
@@ -176,7 +176,7 @@ describe('Test manager functionality', () => {
     const versionBits = '00000000';
     const versionMask = '1fffe000';
     const time = '00'.toString('hex');
-    const response = manager.processShare(1, 0, 0, 0, extraNonce2, time, 0, 'ip_addr', 'port', 'worker', versionBits, versionMask, true);
+    const response = manager.processShare(1, 0, 0, 0, extraNonce2, time, 0, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('incorrect size of ntime');
   });
@@ -188,7 +188,7 @@ describe('Test manager functionality', () => {
     const versionBits = '00000000';
     const versionMask = '1fffe000';
     const time = '7036c54f'.toString('hex');
-    const response = manager.processShare(1, 0, 0, 0, extraNonce2, time, 0, 'ip_addr', 'port', 'worker', versionBits, versionMask, true);
+    const response = manager.processShare(1, 0, 0, 0, extraNonce2, time, 0, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('ntime out of range');
   });
@@ -201,7 +201,7 @@ describe('Test manager functionality', () => {
     const versionMask = '1fffe000';
     const time = '6036c54f'.toString('hex');
     const nonce = '00'.toString('hex');
-    const response = manager.processShare(1, 0, 0, 0, extraNonce2, time, nonce, 'ip_addr', 'port', 'worker', versionBits, versionMask, true);
+    const response = manager.processShare(1, 0, 0, 0, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('incorrect size of nonce');
   });
@@ -217,7 +217,7 @@ describe('Test manager functionality', () => {
     const versionMask = '1fffe000';
     const time = '6036c54f'.toString('hex');
     const nonce = 'fe1a0000'.toString('hex');
-    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'worker', versionBits, versionMask, true);
+    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
     expect(typeof response.hash).toBe('string');
   });
 
@@ -232,8 +232,8 @@ describe('Test manager functionality', () => {
     const versionMask = '1fffe000';
     const time = '6036c54f'.toString('hex');
     const nonce = 'fe1a0000'.toString('hex');
-    manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'worker', versionBits, versionMask, true);
-    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'worker', versionBits, versionMask, true);
+    manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
+    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
     expect(response.error[0]).toBe(22);
     expect(response.error[1]).toBe('duplicate share');
   });
@@ -249,7 +249,7 @@ describe('Test manager functionality', () => {
     const versionMask = '1fffe000';
     const time = '6036c54f'.toString('hex');
     const nonce = 'fe1a0000'.toString('hex');
-    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'worker', versionBits, versionMask, true);
+    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('invalid version bit');
   });
@@ -265,7 +265,7 @@ describe('Test manager functionality', () => {
     const versionMask = '1fffe000';
     const time = '6036c54f'.toString('hex');
     const nonce = 'fe1a0000'.toString('hex');
-    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'worker', versionBits, versionMask, true);
+    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
     expect(response.error[0]).toBe(23);
     expect(response.error[1].slice(0, 23)).toBe('low difficulty share of');
   });
@@ -281,7 +281,7 @@ describe('Test manager functionality', () => {
     const versionMask = '1fffe000';
     const time = '6036c54f'.toString('hex');
     const nonce = 'fe1a0000'.toString('hex');
-    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'worker', versionBits, versionMask, false);
+    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, false);
     expect(response.error[0]).toBe(23);
     expect(response.error[1].slice(0, 23)).toBe('low difficulty share of');
   });
@@ -297,7 +297,7 @@ describe('Test manager functionality', () => {
     const versionMask = '1fffe000';
     const time = '6036c54f'.toString('hex');
     const nonce = 'fe1a0000'.toString('hex');
-    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'worker', versionBits, versionMask, true);
+    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
     expect(typeof response.hash).toBe('string');
   });
 });

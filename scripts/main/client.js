@@ -31,9 +31,14 @@ const Client = function(options) {
   // Validate Worker Name
   this.validateName = function(name) {
     if (name.length >= 1) {
-      name = name.toString().replace(/[^a-zA-Z0-9.]+/g, '');
+      name = name.toString().replace(/[^a-zA-Z0-9.,]+/g, '');
     }
-    return name;
+    const addresses = name.split(',');
+    if (addresses.length > 1) {
+      return [addresses[0], addresses[1]];
+    } else {
+      return [addresses[0], null];
+    }
   };
 
   // Validate Worker Password
@@ -201,12 +206,15 @@ const Client = function(options) {
 
   // Manage Stratum Authorization
   this.handleAuthorize = function(message) {
-    _this.workerName = _this.validateName(message.params[0]);
+    const workerData = _this.validateName(message.params[0]);
+    _this.addrPrimary = workerData[0];
+    _this.addrAuxiliary = workerData[1];
     _this.workerPassword = _this.validatePassword(message.params[1]);
     _this.options.authorizeFn(
       _this.remoteAddress,
       _this.options.socket.localPort,
-      _this.workerName,
+      _this.addrPrimary,
+      _this.addrAuxiliary,
       _this.workerPassword,
       (result) => {
         _this.authorized = (!result.error && result.authorized);
@@ -269,8 +277,10 @@ const Client = function(options) {
   // Manage Stratum Submission
   /* istanbul ignore next */
   this.handleSubmit = function(message) {
-    if (!_this.workerName) {
-      _this.workerName = _this.validateName(message.params[0]);
+    if (!_this.addrPrimary) {
+      const workerData = _this.validateName(message.params[0]);
+      _this.addrPrimary = workerData[0];
+      _this.addrAuxiliary = workerData[1];
     }
     if (!_this.authorized) {
       _this.sendJson({
@@ -305,7 +315,7 @@ const Client = function(options) {
 
   // Get Label of Stratum Client
   this.getLabel = function() {
-    return (_this.workerName || '(unauthorized)') + ' [' + _this.remoteAddress + ']';
+    return (_this.addrPrimary || '(unauthorized)') + ' [' + _this.remoteAddress + ']';
   };
 
   // Push Updated Difficulty to Difficulty Queue
