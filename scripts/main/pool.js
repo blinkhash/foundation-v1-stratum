@@ -750,9 +750,9 @@ const Pool = function(options, authorizeFn, responseFn) {
   // Output Derived Pool Information
   /* istanbul ignore next */
   this.outputPoolInfo = function() {
-    const startMessage = 'Stratum pool server started for ' + _this.options.primary.coin.name +
-      ' [' + _this.options.primary.coin.symbol.toUpperCase() + '] {' + _this.options.primary.coin.algorithms.mining + '}';
+    const startMessage = `Stratum pool server started for ${ _this.options.name }`;
     const infoLines = [startMessage,
+      `Coins Connected:\t${ _this.options.coins }`,
       `Network Connected:\t${ _this.options.settings.testnet ? 'Testnet' : 'Mainnet' }`,
       `Current Block Height:\t${ _this.manager.currentJob.rpcData.height }`,
       `Current Connect Peers:\t${ _this.options.statistics.connections }`,
