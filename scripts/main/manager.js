@@ -146,7 +146,7 @@ const Manager = function(options) {
   this.processShare = function(
     jobId, previousDifficulty, difficulty, extraNonce1, extraNonce2,
     nTime, nonce, ipAddress, port, addrPrimary, addrAuxiliary, versionBit,
-    versionMask, asicBoost) {
+    versionMask, asicboost) {
 
     // Share is Invalid
     const shareError = function(error) {
@@ -183,9 +183,9 @@ const Manager = function(options) {
       return shareError([22, 'duplicate share']);
     }
 
-    // Check for AsicBoost Support
+    // Check for asicboost Support
     let version = job.rpcData.version;
-    if (asicBoost && versionBit !== undefined) {
+    if (asicboost && versionBit !== undefined) {
       const vBit = parseInt('0x' + versionBit);
       const vMask = parseInt('0x' + versionMask);
       if ((vBit & ~vMask) !== 0) {

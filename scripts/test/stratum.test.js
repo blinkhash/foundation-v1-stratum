@@ -42,7 +42,7 @@ const options = {
     'coin': {
       'name': 'Bitcoin',
       'symbol': 'BTC',
-      'asicBoost': true,
+      'asicboost': true,
       'getinfo': false,
       'segwit': true,
       'rewards': '',
@@ -499,7 +499,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [6]', (done) => {
     const response = [];
-    optionsCopy.primary.coin.asicBoost = false;
+    optionsCopy.primary.coin.asicboost = false;
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
@@ -513,7 +513,7 @@ describe('Test stratum functionality', () => {
       }
     });
     client.handleMessage({ id: null, method: 'mining.configure' });
-    expect(client.asicBoost).toBe(false);
+    expect(client.asicboost).toBe(false);
     expect(client.versionMask).toBe('00000000');
   });
 
@@ -532,18 +532,18 @@ describe('Test stratum functionality', () => {
       }
     });
     client.handleMessage({ id: null, method: 'mining.configure' });
-    expect(client.asicBoost).toBe(true);
+    expect(client.asicboost).toBe(true);
     expect(client.versionMask).toBe('1fffe000');
   });
 
   test('Test stratum message handling [8]', () => {
-    optionsCopy.primary.coin.asicBoost = false;
+    optionsCopy.primary.coin.asicboost = false;
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
     client.handleMessage({ id: null, method: 'mining.multi_version', params: [1] });
-    expect(client.asicBoost).toBe(false);
+    expect(client.asicboost).toBe(false);
     expect(client.versionMask).toBe('00000000');
     stratum.stopServer();
   });
@@ -554,7 +554,7 @@ describe('Test stratum functionality', () => {
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
     client.handleMessage({ id: null, method: 'mining.multi_version', params: [1] });
-    expect(client.asicBoost).toBe(false);
+    expect(client.asicboost).toBe(false);
     expect(client.versionMask).toBe('00000000');
     stratum.stopServer();
   });
@@ -565,7 +565,7 @@ describe('Test stratum functionality', () => {
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
     client.handleMessage({ id: null, method: 'mining.multi_version', params: [4] });
-    expect(client.asicBoost).toBe(true);
+    expect(client.asicboost).toBe(true);
     expect(client.versionMask).toBe('1fffe000');
     stratum.stopServer();
   });

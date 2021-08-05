@@ -2581,7 +2581,7 @@ describe('Test pool functionality', () => {
               };
               client.sendDifficulty = () => {};
               client.sendMiningJob = () => {};
-              client.asicBoost = true;
+              client.asicboost = true;
               client.versionMask = '1fffe000';
               pool.stratum.emit('client.connected', client);
             });

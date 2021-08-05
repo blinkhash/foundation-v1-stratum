@@ -704,7 +704,7 @@ const Pool = function(options, authorizeFn, responseFn) {
           client.addrAuxiliary,
           message.params[5],
           client.versionMask,
-          client.asicBoost,
+          client.asicboost,
         );
         callback(result.error, result.result ? true : null);
       });

@@ -53,7 +53,7 @@ const options = {
   'primary': {
     'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
     'coin': {
-      'asicBoost': true,
+      'asicboost': true,
       'rewards': '',
       'algorithms': {
         'mining': 'scrypt',

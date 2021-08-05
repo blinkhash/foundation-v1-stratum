@@ -231,7 +231,7 @@ const Client = function(options) {
 
   // Manage Stratum Configuration
   this.handleConfigure = function(message) {
-    if (!_this.options.asicBoost) {
+    if (!_this.options.asicboost) {
       _this.sendJson({
         id: message.id,
         result: {
@@ -239,7 +239,7 @@ const Client = function(options) {
         },
         error: null
       });
-      _this.asicBoost = false;
+      _this.asicboost = false;
       _this.versionMask = '00000000';
     } else {
       _this.sendJson({
@@ -250,7 +250,7 @@ const Client = function(options) {
         },
         error: null
       });
-      _this.asicBoost = true;
+      _this.asicboost = true;
       _this.versionMask = '1fffe000';
     }
     return true;
@@ -258,16 +258,16 @@ const Client = function(options) {
 
   // Manage Stratum Multi-Versions
   this.handleMultiVersion = function(message) {
-    if (!_this.options.asicBoost) {
-      _this.asicBoost = false;
+    if (!_this.options.asicboost) {
+      _this.asicboost = false;
       _this.versionMask = '00000000';
     } else {
       const mVersion = parseInt(message.params[0]);
       if (mVersion > 1) {
-        _this.asicBoost = true;
+        _this.asicboost = true;
         _this.versionMask = '1fffe000';
       } else {
-        _this.asicBoost = false;
+        _this.asicboost = false;
         _this.versionMask = '00000000';
       }
     }
