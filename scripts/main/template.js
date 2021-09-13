@@ -6,11 +6,11 @@
 
 const bignum = require('bignum');
 const utils = require('./utils');
+const Algorithms = require('./algorithms');
 const Merkle = require('./merkle');
 const Transactions = require('./transactions');
 
 // Max Difficulty
-const diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -23,8 +23,9 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
   this.rpcData = rpcData;
   this.jobId = jobId;
 
+  const algorithm = _this.options.primary.coin.algorithms.mining;
   this.target = _this.rpcData.target ? bignum(_this.rpcData.target, 16) : utils.bignumFromBitsHex(_this.rpcData.bits);
-  this.difficulty = parseFloat((diff1 / _this.target.toNumber()).toFixed(9));
+  this.difficulty = parseFloat((Algorithms[algorithm].diff / _this.target.toNumber()).toFixed(9));
 
   // Calculate Merkle Hashes
   this.getMerkleHashes = function(steps) {

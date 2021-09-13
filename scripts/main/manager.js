@@ -12,9 +12,6 @@ const Algorithms = require('./algorithms');
 const Merkle = require('./merkle');
 const Template = require('./template');
 
-// Max Difficulty
-const diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
-
 ////////////////////////////////////////////////////////////////////////////////
 
 // Generate Unique ExtraNonce for each Subscriber
@@ -210,7 +207,7 @@ const Manager = function(options) {
     const headerBigNum = bignum.fromBuffer(headerHash, {endian: 'little', size: 32});
 
     // Calculate Share Difficulty
-    const shareDiff = diff1 / headerBigNum.toNumber() * shareMultiplier;
+    const shareDiff = Algorithms[algorithm].diff / headerBigNum.toNumber() * shareMultiplier;
     const blockDiffAdjusted = job.difficulty * shareMultiplier;
     const blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer).toString('hex');
     const blockHash = _this.blockHasher(headerBuffer, nTime).toString('hex');

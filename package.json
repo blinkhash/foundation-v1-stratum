@@ -39,6 +39,8 @@
     "async": "1.5.2",
     "bchaddrjs": "^0.4.9",
     "bignum": "0.13.1",
+    "foundation-equihash": "0.0.3",
+    "foundation-kawpow": "0.0.1",
     "foundation-utxo-lib": "0.0.1",
     "foundation-multi-hashing": "0.0.1"
   },
