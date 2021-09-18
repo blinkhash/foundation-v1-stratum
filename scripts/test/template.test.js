@@ -55,6 +55,7 @@ const options = {
     'coin': {
       'asicboost': true,
       'rewards': '',
+      'version': 1,
       'algorithms': {
         'mining': 'scrypt',
         'block': 'scrypt',
