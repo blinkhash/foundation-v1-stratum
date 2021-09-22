@@ -1,6 +1,6 @@
 {
   "name": "foundation-stratum",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "High performance Stratum poolserver in Node.js",
   "main": "./scripts/main.js",
   "keywords": [
@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "async": "1.5.2",
-    "bchaddrjs": "^0.4.9",
+    "bchaddrjs": "^0.5.2",
     "bignum": "0.13.1",
     "foundation-equihash": "0.0.3",
     "foundation-kawpow": "0.0.1",
