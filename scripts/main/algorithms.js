@@ -197,10 +197,10 @@ const Algorithms = {
       const parameters = options.parameters || {};
       const N = parameters.N || 200;
       const K = parameters.K || 9;
-      const P = parameters.P || "ZcashPoW";
+      const P = parameters.P || 'ZcashPoW';
       return function() {
         return equihash.verify.apply(this, [arguments[0], arguments[1], P, N, K]);
-      }
+      };
     }
   },
 
@@ -211,7 +211,7 @@ const Algorithms = {
     hash: function() {
       return function() {
         return kawpow.verify.apply(this, arguments);
-      }
+      };
     }
   }
 };

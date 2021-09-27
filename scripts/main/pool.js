@@ -374,7 +374,7 @@ const Pool = function(options, authorizeFn, responseFn) {
           callback(result[0].error);
         } else {
           let updateTemplate = false;
-          const hash = result[0].response.target || result[0].response._target || "";
+          const hash = result[0].response.target || result[0].response._target || '';
           const target = utils.uint256BufferFromHash(hash, {endian: 'little', size: 32});
           if (_this.auxiliary.rpcData) {
             if (_this.auxiliary.rpcData.hash != result[0].response.hash) {
