@@ -20,12 +20,24 @@ const Transactions = function() {
     const txInPrevOutIndex = Math.pow(2, 32) - 1;
     const txOutputBuffers = [];
 
+    let txExtraPayload;
+    let txVersion = options.primary.coin.version;
+    const network = !options.settings.testnet ? options.primary.coin.mainnet : options.primary.coin.testnet;
+
+    // Handle Version w/ CoinbaseTxn
+    if (rpcData.coinbasetxn && rpcData.coinbasetxn.data) {
+      txVersion = parseInt(utils.reverseHex(rpcData.coinbasetxn.data.slice(0, 8)), 16);
+    }
+
+    // Support Coinbase v3 Block Template
+    if (rpcData.coinbase_payload && rpcData.coinbase_payload.length > 0) {
+      txExtraPayload = Buffer.from(rpcData.coinbase_payload, 'hex');
+      txVersion = txVersion + (5 << 16);
+    }
+
     let reward = rpcData.coinbasevalue;
     let rewardToPool = reward;
-    const network = !options.settings.testnet ? options.primary.coin.mainnet : options.primary.coin.testnet;
     const coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
-
-    // Calculate Pool Address
     const poolAddressScript = options.primary.coin.staking ? (
       utils.pubkeyToScript(options.primary.pubkey)) : (
       utils.addressToScript(options.primary.address, network));
@@ -35,7 +47,6 @@ const Transactions = function() {
       utils.packUInt32LE(rpcData.curtime) :
       Buffer.from([]);
 
-    // Generate ScriptSig
     let scriptSig = Buffer.concat([
       utils.serializeNumber(rpcData.height),
       coinbaseAux,
@@ -43,7 +54,6 @@ const Transactions = function() {
       Buffer.from([extraNoncePlaceholder.length]),
     ]);
 
-    // Handle Auxiliary Chains (AuxPoW)
     if (auxMerkle && options.auxiliary && options.auxiliary.enabled) {
       scriptSig = Buffer.concat([
         scriptSig,
@@ -54,9 +64,8 @@ const Transactions = function() {
       ]);
     }
 
-    // Build First Part of Transaction
     const p1 = Buffer.concat([
-      utils.packUInt32LE(options.primary.coin.version),
+      utils.packUInt32LE(txVersion),
       txTimestamp,
       utils.varIntBuffer(1),
       utils.uint256BufferFromHash(txInPrevOutHash),
@@ -166,18 +175,25 @@ const Transactions = function() {
       ]));
     }
 
-    // Combine all Transactions
     const outputTransactions = Buffer.concat([
       utils.varIntBuffer(txOutputBuffers.length),
       Buffer.concat(txOutputBuffers)
     ]);
 
-    // Build Second Part of Transaction
     let p2 = Buffer.concat([
       utils.packUInt32LE(txInSequence),
       outputTransactions,
       utils.packUInt32LE(txLockTime),
     ]);
+
+    // Check for Extra Transaction Payload
+    if (txExtraPayload !== undefined) {
+      p2 = Buffer.concat([
+        p2,
+        utils.varIntBuffer(txExtraPayload.length),
+        txExtraPayload
+      ]);
+    }
 
     return [p1, p2];
   };
