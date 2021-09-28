@@ -49,7 +49,7 @@ const Pool = function(options, authorizeFn, responseFn) {
   this.checkAlgorithm = function(algorithm) {
     if (!(algorithm in Algorithms)) {
       emitErrorLog(`The ${ algorithm } algorithm is not supported.`);
-      throw new Error();
+      throw new Error(`The ${ algorithm } algorithm is not supported.`);
     }
   };
 
@@ -432,7 +432,9 @@ const Pool = function(options, authorizeFn, responseFn) {
 
         // Calculate Auxiliary Difficulty
         const algorithm = _this.options.primary.coin.algorithms.mining;
-        shareData.blockDiffAuxiliary = parseFloat((Algorithms[algorithm].diff / _this.auxiliary.rpcData.target.toNumber()).toFixed(9));
+        const shareMultiplier = Algorithms[algorithm].multiplier;
+        const difficulty = parseFloat((Algorithms[algorithm].diff / _this.auxiliary.rpcData.target.toNumber()).toFixed(9));
+        auxShareData.blockDiffAuxiliary = difficulty * shareMultiplier;
 
         // Check if Share is Valid Block Candidate
         if (_this.auxiliary.rpcData.target.ge(auxShareData.headerDiff)) {

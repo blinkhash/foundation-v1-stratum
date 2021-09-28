@@ -27,6 +27,13 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
   this.target = _this.rpcData.target ? bignum(_this.rpcData.target, 16) : utils.bignumFromBitsHex(_this.rpcData.bits);
   this.difficulty = parseFloat((Algorithms[algorithm].diff / _this.target.toNumber()).toFixed(9));
 
+  // Check if Configuration Supported
+  this.checkSupported = function() {
+    if (rpcData.coinbase_payload && _this.options.auxiliary && _this.options.auxiliary.enabled) {
+      throw new Error(`Merged mining is not supported with coins that pass an extra coinbase payload.`);
+    }
+  }();
+
   // Calculate Merkle Hashes
   this.getMerkleHashes = function(steps) {
     return steps.map((step) => {
