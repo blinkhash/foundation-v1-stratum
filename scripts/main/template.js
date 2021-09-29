@@ -30,7 +30,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
   // Check if Configuration Supported
   this.checkSupported = function() {
     if (rpcData.coinbase_payload && _this.options.auxiliary && _this.options.auxiliary.enabled) {
-      throw new Error(`Merged mining is not supported with coins that pass an extra coinbase payload.`);
+      throw new Error('Merged mining is not supported with coins that pass an extra coinbase payload.');
     }
   }();
 

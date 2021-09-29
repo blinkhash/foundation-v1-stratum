@@ -287,8 +287,10 @@ describe('Test block functionality', () => {
   test('Test if configuration is not supported', () => {
     const rpcDataCopy = Object.assign({}, rpcData);
     const optionsCopy = Object.assign({}, options);
-    rpcDataCopy.coinbase_payload = "example";
+    rpcDataCopy.coinbase_payload = 'example';
     optionsCopy.auxiliary = { enabled: true };
-    expect(() => { new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy) }).toThrow(Error);
+    expect(() => {
+      new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy); 
+    }).toThrow(Error);
   });
 });
