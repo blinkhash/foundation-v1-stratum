@@ -651,8 +651,6 @@ describe('Test pool functionality', () => {
       mockSetupData(pool, () => {
         pool.setupJobManager();
         expect(typeof pool.manager).toBe('object');
-        expect(typeof pool.manager.blockHasher).toBe('function');
-        expect(typeof pool.manager.coinbaseHasher).toBe('function');
         expect(typeof pool.manager.updateCurrentJob).toBe('function');
         expect(pool.manager._eventsCount).toBe(3);
         done();

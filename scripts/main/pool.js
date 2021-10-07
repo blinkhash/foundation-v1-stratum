@@ -399,7 +399,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     _this.manager = new Manager(_this.options);
     _this.manager.on('newBlock', (blockTemplate) => {
       if (_this.stratum) {
-        _this.stratum.broadcastMiningJobs(blockTemplate.getJobParams());
+        _this.stratum.broadcastMiningJobs(blockTemplate, true);
         if (_this.options.debug) {
           emitLog('Established new job for updated block template');
         }
@@ -459,9 +459,7 @@ const Pool = function(options, authorizeFn, responseFn) {
     // Handle Updated Block Data
     _this.manager.on('updatedBlock', (blockTemplate) => {
       if (_this.stratum) {
-        const job = blockTemplate.getJobParams();
-        job[8] = false;
-        _this.stratum.broadcastMiningJobs(job);
+        _this.stratum.broadcastMiningJobs(blockTemplate, false);
       }
     });
   };
@@ -653,7 +651,7 @@ const Pool = function(options, authorizeFn, responseFn) {
         .filter(port => port.enabled)
         .flatMap(port => port.port);
       _this.options.statistics.stratumPorts = stratumPorts;
-      _this.stratum.broadcastMiningJobs(_this.manager.currentJob.getJobParams());
+      _this.stratum.broadcastMiningJobs(_this.manager.currentJob, true);
       callback();
     });
 
@@ -694,7 +692,7 @@ const Pool = function(options, authorizeFn, responseFn) {
         } else {
           client.sendDifficulty(8);
         }
-        client.sendMiningJob(_this.manager.currentJob.getJobParams());
+        client.sendMiningJob(_this.manager.currentJob.getJobParams(client, true));
       });
 
       // Establish Client Submission Functionality

@@ -128,9 +128,10 @@ const Network = function(options, authorizeFn) {
 
   // Broadcast New Jobs to Clients
   /* istanbul ignore next */
-  this.broadcastMiningJobs = function(jobParams) {
+  this.broadcastMiningJobs = function(template, cleanJobs) {
     Object.keys(_this.stratumClients).forEach(clientId => {
       const client = _this.stratumClients[clientId];
+      const jobParams = template.getJobParams(client, cleanJobs);
       client.sendMiningJob(jobParams);
     });
     clearTimeout(rebroadcastTimeout);

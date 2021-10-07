@@ -56,26 +56,6 @@ const Manager = function(options) {
   this.extraNoncePlaceholder = Buffer.from('f000000ff111111f', 'hex');
   this.extraNonce2Size = _this.extraNoncePlaceholder.length - _this.extraNonceCounter.size;
 
-  // Determine Block Hash Function
-  /* istanbul ignore next */
-  this.blockHasher = function() {
-    const algorithm = _this.options.primary.coin.algorithms.block;
-    const hashDigest = Algorithms[algorithm].hash(_this.options.primary.coin);
-    return function () {
-      return utils.reverseBuffer(hashDigest.apply(this, arguments));
-    };
-  }();
-
-  // Determine Coinbase Hash Function
-  /* istanbul ignore next */
-  this.coinbaseHasher = function() {
-    const algorithm = _this.options.primary.coin.algorithms.coinbase;
-    const hashDigest = Algorithms[algorithm].hash(_this.options.primary.coin);
-    return function () {
-      return hashDigest.apply(this, arguments);
-    };
-  }();
-
   // Build Merkle Tree from Auxiliary Chain
   this.buildMerkleTree = function(auxData) {
     if (auxData) {
@@ -191,13 +171,12 @@ const Manager = function(options) {
       version = (version & ~vMask) | (vBit & vMask);
     }
 
-
     // Establish Share Information
     let blockValid = false;
     const extraNonce1Buffer = Buffer.from(extraNonce1, 'hex');
     const extraNonce2Buffer = Buffer.from(extraNonce2, 'hex');
     const coinbaseBuffer = job.serializeCoinbase(extraNonce1Buffer, extraNonce2Buffer);
-    const coinbaseHash = _this.coinbaseHasher(coinbaseBuffer);
+    const coinbaseHash = job.coinbaseHasher(coinbaseBuffer);
     const merkleRoot = utils.reverseBuffer(job.merkle.withFirst(coinbaseHash)).toString('hex');
 
     // Start Generating Block Hash
@@ -210,7 +189,7 @@ const Manager = function(options) {
     const shareDiff = Algorithms[algorithm].diff / headerBigNum.toNumber() * shareMultiplier;
     const blockDiffAdjusted = job.difficulty * shareMultiplier;
     const blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer).toString('hex');
-    const blockHash = _this.blockHasher(headerBuffer, nTime).toString('hex');
+    const blockHash = job.blockHasher(headerBuffer, nTime).toString('hex');
 
     // Check if Share is Valid Block Candidate
     /* istanbul ignore next */
