@@ -101,6 +101,7 @@ const Network = function(options, authorizeFn) {
       subscriptionId: subscriptionId,
       authorizeFn: authorizeFn,
       socket: socket,
+      algorithm: _this.options.primary.coin.algorithms.mining,
       asicboost: _this.options.primary.coin.asicboost,
       banning: _this.options.banning,
       connectionTimeout: _this.options.settings.connectionTimeout,

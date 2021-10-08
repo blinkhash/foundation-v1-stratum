@@ -164,9 +164,10 @@ function mockClient() {
 
 describe('Test stratum functionality', () => {
 
-  let optionsCopy;
+  let optionsCopy, rpcDataCopy;
   beforeEach(() => {
     optionsCopy = JSON.parse(JSON.stringify(options));
+    rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
   });
 
   test('Test initialization of stratum network', (done) => {
@@ -338,7 +339,7 @@ describe('Test stratum functionality', () => {
   test('Test stratum job broadcasting [1]', (done) => {
     optionsCopy.settings.connectionTimeout = -1;
     const stratum = new Network(optionsCopy, () => {});
-    const template = new Template(jobId.toString(16), rpcData, extraNonce, null, options);
+    const template = new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy);
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -353,7 +354,7 @@ describe('Test stratum functionality', () => {
   test('Test stratum job broadcasting [2]', (done) => {
     const response = [];
     const stratum = new Network(optionsCopy, () => {});
-    const template = new Template(jobId.toString(16), rpcData, extraNonce, null, options);
+    const template = new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy);
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -373,10 +374,30 @@ describe('Test stratum functionality', () => {
   test('Test stratum job broadcasting [3]', (done) => {
     const response = [];
     const stratum = new Network(optionsCopy, () => {});
-    const template = new Template(jobId.toString(16), rpcData, extraNonce, null, options);
+    const template = new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy);
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(JSON.parse(response[0]).method).toBe("mining.notify");
+        stratum.stopServer();
+      }
+    });
+    stratum.broadcastMiningJobs(template, true);
+  });
+
+  test('Test stratum job broadcasting [4]', (done) => {
+    const response = [];
+    optionsCopy.primary.coin.algorithms.mining = "kawpow";
+    const stratum = new Network(optionsCopy, () => {});
+    const template = new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy);
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.extraNonce1 = "76000000";
     client.socket.on('log', text => {
       response.push(text);
       if (response.length === 1) {
@@ -421,7 +442,7 @@ describe('Test stratum functionality', () => {
     stratum.stopServer();
   });
 
-  test('Test stratum client difficulty management', (done) => {
+  test('Test stratum client difficulty [1]', (done) => {
     const response = [];
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
@@ -432,6 +453,25 @@ describe('Test stratum functionality', () => {
       if (response.length === 1) {
         stratum.on('stopped', () => done());
         expect(response[0]).toBe('{"id":null,"method":"mining.set_difficulty","params":[8]}\n');
+        stratum.stopServer();
+      }
+    });
+    expect(client.sendDifficulty(0)).toBe(false);
+    expect(client.sendDifficulty(8)).toBe(true);
+  });
+
+  test('Test stratum client difficulty [2]', (done) => {
+    const response = [];
+    optionsCopy.primary.coin.algorithms.mining = "kawpow";
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"method":"mining.set_target","params":["000000001fffe000000000000000000000000000000000000000000000000000"]}\n');
         stratum.stopServer();
       }
     });
@@ -462,6 +502,50 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [2]', (done) => {
     const response = [];
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.authorized = true;
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":null,"error":true}\n');
+        stratum.stopServer();
+      }
+    });
+    client.on('subscription', (params, resultCallback) => {
+      resultCallback(true, null, null);
+    });
+    client.handleMessage({ id: null, method: 'mining.subscribe' });
+  });
+
+  test('Test stratum message handling [3]', (done) => {
+    const response = [];
+    optionsCopy.primary.coin.algorithms.mining = "kawpow";
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.authorized = true;
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":[null,"extraNonce1"],"error":null}\n');
+        stratum.stopServer();
+      }
+    });
+    client.on('subscription', (params, resultCallback) => {
+      resultCallback(null, 'extraNonce1', 'extraNonce2Size');
+    });
+    client.handleMessage({ id: null, method: 'mining.subscribe' });
+  });
+
+  test('Test stratum message handling [4]', (done) => {
+    const response = [];
+    optionsCopy.primary.coin.algorithms.mining = "kawpow";
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);

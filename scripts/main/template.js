@@ -220,7 +220,6 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
           _this.rpcData.bits
         ];
       }
-
       break;
 
     // Default Parameters
@@ -238,7 +237,6 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
           cleanJobs
         ];
       }
-
       break;
     }
 

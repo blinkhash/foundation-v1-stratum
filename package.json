@@ -1,6 +1,6 @@
 {
   "name": "foundation-stratum",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "High performance Stratum poolserver in Node.js",
   "main": "./scripts/main.js",
   "keywords": [
@@ -40,10 +40,10 @@
     "bchaddrjs": "^0.5.2",
     "bignum": "0.13.1",
     "foundation-equihash": "0.0.3",
-    "foundation-kawpow": "0.0.1",
+    "foundation-kawpow": "0.0.3",
     "foundation-multi-hashing": "0.0.1",
-    "foundation-utxo-lib": "0.0.1",
-    "sha3": "^2.1.2"
+    "foundation-utxo-lib": "0.0.2",
+    "sha3": "2.1.2"
   },
   "devDependencies": {
     "codecov": "^3.8.1",

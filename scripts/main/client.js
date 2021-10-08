@@ -4,6 +4,7 @@
  *
  */
 
+const Algorithms = require('./algorithms');
 const events = require('events');
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -183,25 +184,47 @@ const Client = function(options) {
 
   // Manage Stratum Subscription
   this.handleSubscribe = function(message) {
-    _this.emit('subscription', {}, (error, extraNonce1, extraNonce2Size) => {
-      if (error) {
-        _this.sendJson({ id: message.id, result: null, error: error });
-        return;
-      }
-      _this.extraNonce1 = extraNonce1;
-      _this.sendJson({
-        id: message.id,
-        result: [
-          [
-            ['mining.set_difficulty', _this.options.subscriptionId],
-            ['mining.notify', _this.options.subscriptionId]
-          ],
-          extraNonce1,
-          extraNonce2Size
-        ],
-        error: null
+    switch (_this.options.algorithm) {
+
+    // Kawpow Subscription
+    case 'kawpow':
+      _this.emit('subscription', {}, (error, extraNonce1, extraNonce2Size) => {
+        if (error) {
+          _this.sendJson({ id: message.id, result: null, error: error });
+          return;
+        }
+        _this.extraNonce1 = extraNonce1;
+        _this.sendJson({
+          id: message.id,
+          result: [null, extraNonce1],
+          error: null
+        });
       });
-    });
+      break;
+
+    // Default Subscription
+    default:
+      _this.emit('subscription', {}, (error, extraNonce1, extraNonce2Size) => {
+        if (error) {
+          _this.sendJson({ id: message.id, result: null, error: error });
+          return;
+        }
+        _this.extraNonce1 = extraNonce1;
+        _this.sendJson({
+          id: message.id,
+          result: [
+            [
+              ['mining.set_difficulty', _this.options.subscriptionId],
+              ['mining.notify', _this.options.subscriptionId]
+            ],
+            extraNonce1,
+            extraNonce2Size
+          ],
+          error: null
+        });
+      });
+      break;
+    }
   };
 
   // Manage Stratum Authorization
@@ -325,29 +348,60 @@ const Client = function(options) {
   };
 
   // Broadcast Difficulty to Stratum Client
+  /* istanbul ignore next */
   this.sendDifficulty = function(difficulty) {
     if (difficulty === _this.difficulty) {
       return false;
     }
     _this.previousDifficulty = _this.difficulty;
     _this.difficulty = difficulty;
-    _this.sendJson({
-      id: null,
-      method: 'mining.set_difficulty',
-      params: [difficulty],
-    });
+
+    // Process Algorithm Difficulty
+    switch (_this.options.algorithm) {
+
+    // Kawpow Difficulty
+    case 'kawpow':
+
+      // Calculate Difficulty Padding
+      let zeroPad = '';
+      const adjPow = Algorithms['kawpow'].diff / _this.difficulty;
+      if ((64 - adjPow.toString(16).length) !== 0) {
+        zeroPad = '0';
+        zeroPad = zeroPad.repeat((64 - (adjPow.toString(16).length)));
+      }
+      _this.sendJson({
+        id: null,
+        method: 'mining.set_target',
+        params: [(zeroPad + adjPow.toString(16)).substr(0, 64)],
+      });
+      break;
+
+    // Default Difficulty
+    default:
+      _this.sendJson({
+        id: null,
+        method: 'mining.set_difficulty',
+        params: [difficulty],
+      });
+      break;
+    }
+
     return true;
   };
 
   // Broadcast Mining Job to Stratum Client
   /* istanbul ignore next */
   this.sendMiningJob = function(jobParams) {
+
+    // Check Processed Shares
     const lastActivityAgo = Date.now() - _this.lastActivity;
     if (lastActivityAgo > _this.options.connectionTimeout * 1000) {
       _this.emit('socketTimeout', 'last submitted a share was ' + (lastActivityAgo / 1000 | 0) + ' seconds ago');
       _this.socket.destroy();
       return;
     }
+
+    // Update Pending Difficulty
     if (_this.pendingDifficulty != null) {
       const result = _this.sendDifficulty(_this.pendingDifficulty);
       _this.pendingDifficulty = null;
@@ -355,11 +409,37 @@ const Client = function(options) {
         _this.emit('difficultyChanged', _this.difficulty);
       }
     }
-    _this.sendJson({
-      id: null,
-      method: 'mining.notify',
-      params: jobParams
-    });
+
+    // Process Job Broadcasting
+    switch (_this.options.algorithm) {
+
+    // Kawpow Broadcasting
+    case 'kawpow':
+
+      // Calculate Difficulty Padding
+      let zeroPad = '';
+      const adjPow = Algorithms['kawpow'].diff / _this.difficulty;
+      if ((64 - adjPow.toString(16).length) !== 0) {
+        zeroPad = '0';
+        zeroPad = zeroPad.repeat((64 - (adjPow.toString(16).length)));
+      }
+      jobParams[3] = (zeroPad + adjPow.toString(16)).substr(0, 64);
+      _this.sendJson({
+        id: null,
+        method: 'mining.notify',
+        params: jobParams
+      });
+      break;
+
+    // Default Broadcasting
+    default:
+      _this.sendJson({
+        id: null,
+        method: 'mining.notify',
+        params: jobParams
+      });
+      break;
+    }
   };
 };
 
