@@ -1,6 +1,6 @@
 /*
  *
- * Blocks (Updated)
+ * Template (Updated)
  *
  */
 
@@ -94,7 +94,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
 
   // Create Generation Transaction
   this.createGeneration = function(rpcData, extraNoncePlaceholder, auxMerkle, options) {
-    return new Transactions().bitcoin(rpcData, extraNoncePlaceholder, auxMerkle, options);
+    return new Transactions().default(rpcData, extraNoncePlaceholder, auxMerkle, options);
   };
 
   this.merkle = _this.createMerkle(_this.rpcData);
@@ -106,12 +106,29 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
 
   // Serialize Block Coinbase
   this.serializeCoinbase = function(extraNonce1, extraNonce2) {
-    return Buffer.concat([
-      _this.generation[0],
-      extraNonce1,
-      extraNonce2,
-      _this.generation[1]
-    ]);
+    let buffer;
+    switch (_this.options.primary.coin.algorithms.mining) {
+
+    // Kawpow Block Header
+    case 'kawpow':
+      buffer = Buffer.concat([
+        _this.generation[0],
+        extraNonce1,
+        _this.generation[1]
+      ]);
+      break;
+
+    default:
+      buffer = Buffer.concat([
+        _this.generation[0],
+        extraNonce1,
+        extraNonce2,
+        _this.generation[1]
+      ]);
+      break;
+    }
+
+    return buffer;
   };
 
   // Serialize Block Headers
@@ -119,7 +136,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
     let header = Buffer.alloc(80);
     let position = 0;
 
-    switch (options.primary.coin.algorithms.mining) {
+    switch (_this.options.primary.coin.algorithms.mining) {
 
     // Kawpow Block Header
     case 'kawpow':
@@ -147,15 +164,35 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
   };
 
   // Serialize Entire Block
-  this.serializeBlock = function(header, secondary) {
-    const buffer = Buffer.concat([
-      header,
-      utils.varIntBuffer(_this.rpcData.transactions.length + 1),
-      secondary,
-      _this.transactions,
-      _this.getVoteData(),
-      Buffer.from(_this.options.primary.coin.staking ? [0] : [])
-    ]);
+  this.serializeBlock = function(header, coinbase, nonce, mixHash) {
+    let buffer;
+    switch (_this.options.primary.coin.algorithms.mining) {
+
+    // Kawpow Block Structure
+    case 'kawpow':
+      buffer = Buffer.concat([
+        header,
+        utils.reverseBuffer(nonce),
+        utils.reverseBuffer(mixHash),
+        utils.varIntBuffer(_this.rpcData.transactions.length + 1),
+        coinbase,
+        _this.transactions,
+      ]);
+      break;
+
+    // Default Block Structure
+    default:
+      buffer = Buffer.concat([
+        header,
+        utils.varIntBuffer(_this.rpcData.transactions.length + 1),
+        coinbase,
+        _this.transactions,
+        _this.getVoteData(),
+        Buffer.from(_this.options.primary.coin.staking ? [0] : [])
+      ]);
+      break;
+    }
+
     return buffer;
   };
 
@@ -172,7 +209,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
   // Get Current Job Parameters
   /* istanbul ignore next */
   this.getJobParams = function(client, cleanJobs) {
-    switch (options.primary.coin.algorithms.mining) {
+    switch (_this.options.primary.coin.algorithms.mining) {
 
     // Kawpow Parameters
     case 'kawpow':
@@ -181,7 +218,6 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
         const nTime = utils.packUInt32BE(_this.rpcData.curtime).toString('hex');
         const adjPow = Algorithms['kawpow'].diff / _this.difficulty;
         const extraNonce1Buffer = Buffer.from(client.extraNonce1, 'hex');
-        const extraNonce2Buffer = Buffer.from('00000000', 'hex');
         const epochLength = Math.floor(this.rpcData.height / Algorithms['kawpow'].epochLength);
 
         // Calculate Difficulty Padding
@@ -196,7 +232,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
         let seedHashBuffer = Buffer.alloc(32);
 
         // Generate Block Header Hash
-        const coinbaseBuffer = _this.serializeCoinbase(extraNonce1Buffer, extraNonce2Buffer);
+        const coinbaseBuffer = _this.serializeCoinbase(extraNonce1Buffer);
         const coinbaseHash = _this.coinbaseHasher(coinbaseBuffer);
         const merkleRoot = utils.reverseBuffer(_this.merkle.withFirst(coinbaseHash)).toString('hex');
         const header = _this.serializeHeader(merkleRoot, nTime, 0, _this.rpcData.version);

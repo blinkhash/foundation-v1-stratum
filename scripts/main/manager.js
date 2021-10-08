@@ -119,11 +119,10 @@ const Manager = function(options) {
     return true;
   };
 
-  // Process New Submitted Share
+  // Process Submitted Share
   this.processShare = function(
-    jobId, previousDifficulty, difficulty, extraNonce1, extraNonce2,
-    nTime, nonce, ipAddress, port, addrPrimary, addrAuxiliary, versionBit,
-    versionMask, asicboost) {
+    jobId, previousDifficulty, difficulty, ipAddress, port, addrPrimary,
+    addrAuxiliary, submission) {
 
     // Share is Invalid
     const shareError = function(error) {
@@ -138,113 +137,125 @@ const Manager = function(options) {
       return {error: error, result: null};
     };
 
-    // Edge Cases to Check if Share is Invalid
-    const submitTime = Date.now() / 1000 | 0;
-    const job = _this.validJobs[jobId];
-    if (extraNonce2.length / 2 !== _this.extraNonce2Size)
-      return shareError([20, 'incorrect size of extranonce2']);
-    if (typeof job === 'undefined' || job.jobId != jobId) {
-      return shareError([21, 'job not found']);
-    }
-    if (nTime.length !== 8) {
-      return shareError([20, 'incorrect size of ntime']);
-    }
-    const nTimeInt = parseInt(nTime, 16);
-    if (nTimeInt < job.rpcData.curtime || nTimeInt > submitTime + 7200) {
-      return shareError([20, 'ntime out of range']);
-    }
-    if (nonce.length !== 8) {
-      return shareError([20, 'incorrect size of nonce']);
-    }
-    if (!job.registerSubmit([extraNonce1, extraNonce2, nTime, nonce])) {
-      return shareError([22, 'duplicate share']);
-    }
+    // Process Submitted Share
+    switch (_this.options.primary.coin.algorithms.mining) {
 
-    // Check for asicboost Support
-    let version = job.rpcData.version;
-    if (asicboost && versionBit !== undefined) {
-      const vBit = parseInt('0x' + versionBit);
-      const vMask = parseInt('0x' + versionMask);
-      if ((vBit & ~vMask) !== 0) {
-        return shareError([20, 'invalid version bit']);
+    // Kawpow Share Submission
+    case "kawpow":
+      console.log(submission);
+      return { error: true, hash: null, hex: null, result: false };
+
+    // Default Share Submission
+    default:
+
+      // Edge Cases to Check if Share is Invalid
+      const submitTime = Date.now() / 1000 | 0;
+      const job = _this.validJobs[jobId];
+      if (submission.extraNonce2.length / 2 !== _this.extraNonce2Size)
+        return shareError([20, 'incorrect size of extranonce2']);
+      if (typeof job === 'undefined' || job.jobId != jobId) {
+        return shareError([21, 'job not found']);
       }
-      version = (version & ~vMask) | (vBit & vMask);
-    }
+      if (submission.nTime.length !== 8) {
+        return shareError([20, 'incorrect size of ntime']);
+      }
+      const nTimeInt = parseInt(submission.nTime, 16);
+      if (nTimeInt < job.rpcData.curtime || nTimeInt > submitTime + 7200) {
+        return shareError([20, 'ntime out of range']);
+      }
+      if (submission.nonce.length !== 8) {
+        return shareError([20, 'incorrect size of nonce']);
+      }
+      if (!job.registerSubmit([submission.extraNonce1, submission.extraNonce2, submission.nTime, submission.nonce])) {
+        return shareError([22, 'duplicate share']);
+      }
 
-    // Establish Share Information
-    let blockValid = false;
-    const extraNonce1Buffer = Buffer.from(extraNonce1, 'hex');
-    const extraNonce2Buffer = Buffer.from(extraNonce2, 'hex');
-    const coinbaseBuffer = job.serializeCoinbase(extraNonce1Buffer, extraNonce2Buffer);
-    const coinbaseHash = job.coinbaseHasher(coinbaseBuffer);
-    const merkleRoot = utils.reverseBuffer(job.merkle.withFirst(coinbaseHash)).toString('hex');
+      // Check for asicboost Support
+      let version = job.rpcData.version;
+      if (submission.asicboost && submission.versionBit !== undefined) {
+        const vBit = parseInt('0x' + submission.versionBit);
+        const vMask = parseInt('0x' + submission.versionMask);
+        if ((vBit & ~vMask) !== 0) {
+          return shareError([20, 'invalid version bit']);
+        }
+        version = (version & ~vMask) | (vBit & vMask);
+      }
 
-    // Start Generating Block Hash
-    const headerDigest = Algorithms[algorithm].hash(_this.options.primary.coin);
-    const headerBuffer = job.serializeHeader(merkleRoot, nTime, nonce, version);
-    const headerHash = headerDigest(headerBuffer, nTimeInt);
-    const headerBigNum = bignum.fromBuffer(headerHash, {endian: 'little', size: 32});
+      // Establish Share Information
+      let blockValid = false;
+      const extraNonce1Buffer = Buffer.from(submission.extraNonce1, 'hex');
+      const extraNonce2Buffer = Buffer.from(submission.extraNonce2, 'hex');
+      const coinbaseBuffer = job.serializeCoinbase(extraNonce1Buffer, extraNonce2Buffer);
+      const coinbaseHash = job.coinbaseHasher(coinbaseBuffer);
+      const merkleRoot = utils.reverseBuffer(job.merkle.withFirst(coinbaseHash)).toString('hex');
 
-    // Calculate Share Difficulty
-    const shareDiff = Algorithms[algorithm].diff / headerBigNum.toNumber() * shareMultiplier;
-    const blockDiffAdjusted = job.difficulty * shareMultiplier;
-    const blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer).toString('hex');
-    const blockHash = job.blockHasher(headerBuffer, nTime).toString('hex');
+      // Start Generating Block Hash
+      const headerDigest = Algorithms[algorithm].hash(_this.options.primary.coin);
+      const headerBuffer = job.serializeHeader(merkleRoot, submission.nTime, submission.nonce, version);
+      const headerHash = headerDigest(headerBuffer, nTimeInt);
+      const headerBigNum = bignum.fromBuffer(headerHash, {endian: 'little', size: 32});
 
-    // Check if Share is Valid Block Candidate
-    /* istanbul ignore next */
-    if (job.target.ge(headerBigNum)) {
-      blockValid = true;
-    } else {
-      if (shareDiff / difficulty < 0.99) {
-        if (previousDifficulty && shareDiff >= previousDifficulty) {
-          difficulty = previousDifficulty;
-        } else {
-          return shareError([23, 'low difficulty share of ' + shareDiff]);
+      // Calculate Share Difficulty
+      const shareDiff = Algorithms[algorithm].diff / headerBigNum.toNumber() * shareMultiplier;
+      const blockDiffAdjusted = job.difficulty * shareMultiplier;
+      const blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer, null, null).toString('hex');
+      const blockHash = job.blockHasher(headerBuffer, submission.nTime).toString('hex');
+
+      // Check if Share is Valid Block Candidate
+      /* istanbul ignore next */
+      if (job.target.ge(headerBigNum)) {
+        blockValid = true;
+      } else {
+        if (shareDiff / difficulty < 0.99) {
+          if (previousDifficulty && shareDiff >= previousDifficulty) {
+            difficulty = previousDifficulty;
+          } else {
+            return shareError([23, 'low difficulty share of ' + shareDiff]);
+          }
         }
       }
+
+      // Build Share Object Data
+      /* istanbul ignore next */
+      const shareData = {
+        job: jobId,
+        ip: ipAddress,
+        port: port,
+        addrPrimary: addrPrimary,
+        addrAuxiliary: addrAuxiliary,
+        blockDiffPrimary : blockDiffAdjusted,
+        blockType: blockValid ? 'primary' : 'share',
+        coinbase: coinbaseBuffer,
+        difficulty: difficulty,
+        hash: blockHash,
+        hex: blockHex,
+        header: headerHash,
+        headerDiff: headerBigNum,
+        height: job.rpcData.height,
+        reward: job.rpcData.coinbasevalue,
+        shareDiff: shareDiff.toFixed(8),
+      };
+
+      const auxShareData = {
+        job: jobId,
+        ip: ipAddress,
+        port: port,
+        addrPrimary: addrPrimary,
+        addrAuxiliary: addrAuxiliary,
+        blockDiffPrimary : blockDiffAdjusted,
+        blockType: 'auxiliary',
+        coinbase: coinbaseBuffer,
+        difficulty: difficulty,
+        hash: blockHash,
+        hex: blockHex,
+        header: headerHash,
+        headerDiff: headerBigNum,
+        shareDiff: shareDiff.toFixed(8),
+      };
+
+      _this.emit('share', shareData, auxShareData, blockValid);
+      return { error: null, hash: blockHash, hex: blockHex, result: true };
     }
-
-    // Build Share Object Data
-    /* istanbul ignore next */
-    const shareData = {
-      job: jobId,
-      ip: ipAddress,
-      port: port,
-      addrPrimary: addrPrimary,
-      addrAuxiliary: addrAuxiliary,
-      blockDiffPrimary : blockDiffAdjusted,
-      blockType: blockValid ? 'primary' : 'share',
-      coinbase: coinbaseBuffer,
-      difficulty: difficulty,
-      hash: blockHash,
-      hex: blockHex,
-      header: headerHash,
-      headerDiff: headerBigNum,
-      height: job.rpcData.height,
-      reward: job.rpcData.coinbasevalue,
-      shareDiff: shareDiff.toFixed(8),
-    };
-
-    const auxShareData = {
-      job: jobId,
-      ip: ipAddress,
-      port: port,
-      addrPrimary: addrPrimary,
-      addrAuxiliary: addrAuxiliary,
-      blockDiffPrimary : blockDiffAdjusted,
-      blockType: 'auxiliary',
-      coinbase: coinbaseBuffer,
-      difficulty: difficulty,
-      hash: blockHash,
-      hex: blockHex,
-      header: headerHash,
-      headerDiff: headerBigNum,
-      shareDiff: shareDiff.toFixed(8),
-    };
-
-    _this.emit('share', shareData, auxShareData, blockValid);
-    return { error: null, hash: blockHash, hex: blockHex, result: true };
   };
 };
 

@@ -195,12 +195,6 @@ describe('Test stratum functionality', () => {
     expect(client.validateName('example!@#$%^&')).toStrictEqual(['example', null]);
   });
 
-  test('Text validation of worker password', () => {
-    const socket = { socket: mockSocket() };
-    const client = new Client(socket);
-    expect(client.validatePassword('test')).toBe('test');
-  });
-
   test('Test stratum banning capabilities [1]', (done) => {
     const stratum = new Network(optionsCopy, () => {});
     const client = mockClient();

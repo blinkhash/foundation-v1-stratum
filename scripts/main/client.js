@@ -42,11 +42,6 @@ const Client = function(options) {
     }
   };
 
-  // Validate Worker Password
-  this.validatePassword = function(password) {
-    return password;
-  };
-
   // Check for Banning Users
   this.considerBan = function(shareValid) {
     if (shareValid === true) {
@@ -232,7 +227,7 @@ const Client = function(options) {
     const workerData = _this.validateName(message.params[0]);
     _this.addrPrimary = workerData[0];
     _this.addrAuxiliary = workerData[1];
-    _this.workerPassword = _this.validatePassword(message.params[1]);
+    _this.workerPassword = message.params[1];
     _this.options.authorizeFn(
       _this.remoteAddress,
       _this.options.socket.localPort,
@@ -324,7 +319,6 @@ const Client = function(options) {
       return;
     }
     message.params[0] = _this.validateName(message.params[0]);
-    message.params[1] = _this.validatePassword(message.params[1]);
     _this.emit('submit', message, (error, result) => {
       if (!_this.considerBan(result)) {
         _this.sendJson({

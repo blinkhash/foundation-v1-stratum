@@ -11,8 +11,8 @@ const utils = require('./utils');
 // Main Transactions Function
 const Transactions = function() {
 
-  // Structure Bitcoin Protocol Transaction
-  this.bitcoin = function(rpcData, extraNoncePlaceholder, auxMerkle, options) {
+  // Default Transaction Protocol
+  this.default = function(rpcData, extraNoncePlaceholder, auxMerkle, options) {
 
     const txLockTime = 0;
     const txInSequence = 0;

@@ -697,22 +697,53 @@ const Pool = function(options, authorizeFn, responseFn) {
 
       // Establish Client Submission Functionality
       client.on('submit', (message, callback) => {
-        const result = _this.manager.processShare(
-          message.params[1],
-          client.previousDifficulty,
-          client.difficulty,
-          client.extraNonce1,
-          message.params[2],
-          message.params[3],
-          message.params[4],
-          client.remoteAddress,
-          client.socket.localPort,
-          client.addrPrimary,
-          client.addrAuxiliary,
-          message.params[5],
-          client.versionMask,
-          client.asicboost,
-        );
+        let result, submission;
+        switch (_this.options.primary.coin.algorithms.mining) {
+
+        // Kawpow Submission
+        case 'kawpow':
+          submission = {
+            extraNonce1: client.extraNonce1,
+            nonce: message.params[2],
+            headerHash: message.params[3],
+            mixHash: message.params[4],
+          };
+          result = _this.manager.processShare(
+            message.params[1],
+            client.previousDifficulty,
+            client.difficulty,
+            client.remoteAddress,
+            client.socket.localPort,
+            client.addrPrimary,
+            client.addrAuxiliary,
+            submission,
+          );
+          break;
+
+        // Default Submission
+        default:
+          submission = {
+            extraNonce1: client.extraNonce1,
+            extraNonce2: message.params[2],
+            nTime: message.params[3],
+            nonce: message.params[4],
+            versionBit: message.params[5],
+            versionMask: client.versionMask,
+            asicboost: client.asicboost,
+          };
+          result = _this.manager.processShare(
+            message.params[1],
+            client.previousDifficulty,
+            client.difficulty,
+            client.remoteAddress,
+            client.socket.localPort,
+            client.addrPrimary,
+            client.addrAuxiliary,
+            submission,
+          );
+          break;
+        }
+
         callback(result.error, result.result ? true : null);
       });
 

@@ -150,10 +150,16 @@ describe('Test manager functionality', () => {
   test('Test share submission process [1]', () => {
     const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
     manager.processTemplate(rpcDataCopy, false);
-    const extraNonce2 = '00'.toString('hex');
-    const versionBits = '00000000';
-    const versionMask = '1fffe000';
-    const response = manager.processShare(1, 0, 0, 0, extraNonce2, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
+    const submission = {
+      extraNonce1: 0,
+      extraNonce2: '00'.toString('hex'),
+      nTime: 0,
+      nonce: 0,
+      versionBit: '00000000',
+      versionMask: '1fffe000',
+      asicboost: true,
+    };
+    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('incorrect size of extranonce2');
   });
@@ -161,10 +167,16 @@ describe('Test manager functionality', () => {
   test('Test share submission process [2]', () => {
     const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
     manager.processTemplate(rpcDataCopy, false);
-    const extraNonce2 = '00000000'.toString('hex');
-    const versionBits = '00000000';
-    const versionMask = '1fffe000';
-    const response = manager.processShare(0, 0, 0, 0, extraNonce2, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
+    const submission = {
+      extraNonce1: 0,
+      extraNonce2: '00000000'.toString('hex'),
+      nTime: 0,
+      nonce: 0,
+      versionBit: '00000000',
+      versionMask: '1fffe000',
+      asicboost: true,
+    };
+    const response = manager.processShare(0, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(21);
     expect(response.error[1]).toBe('job not found');
   });
@@ -172,11 +184,16 @@ describe('Test manager functionality', () => {
   test('Test share submission process [3]', () => {
     const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
     manager.processTemplate(rpcDataCopy, false);
-    const extraNonce2 = '00000000'.toString('hex');
-    const versionBits = '00000000';
-    const versionMask = '1fffe000';
-    const time = '00'.toString('hex');
-    const response = manager.processShare(1, 0, 0, 0, extraNonce2, time, 0, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
+    const submission = {
+      extraNonce1: 0,
+      extraNonce2: '00000000'.toString('hex'),
+      nTime: '00'.toString('hex'),
+      nonce: 0,
+      versionBit: '00000000',
+      versionMask: '1fffe000',
+      asicboost: true,
+    };
+    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('incorrect size of ntime');
   });
@@ -184,11 +201,16 @@ describe('Test manager functionality', () => {
   test('Test share submission process [4]', () => {
     const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
     manager.processTemplate(rpcDataCopy, false);
-    const extraNonce2 = '00000000'.toString('hex');
-    const versionBits = '00000000';
-    const versionMask = '1fffe000';
-    const time = '7036c54f'.toString('hex');
-    const response = manager.processShare(1, 0, 0, 0, extraNonce2, time, 0, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
+    const submission = {
+      extraNonce1: 0,
+      extraNonce2: '00000000'.toString('hex'),
+      nTime: '7036c54f'.toString('hex'),
+      nonce: 0,
+      versionBit: '00000000',
+      versionMask: '1fffe000',
+      asicboost: true,
+    };
+    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('ntime out of range');
   });
@@ -196,12 +218,16 @@ describe('Test manager functionality', () => {
   test('Test share submission process [5]', () => {
     const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
     manager.processTemplate(rpcDataCopy, false);
-    const extraNonce2 = '00000000'.toString('hex');
-    const versionBits = '00000000';
-    const versionMask = '1fffe000';
-    const time = '6036c54f'.toString('hex');
-    const nonce = '00'.toString('hex');
-    const response = manager.processShare(1, 0, 0, 0, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
+    const submission = {
+      extraNonce1: 0,
+      extraNonce2: '00000000'.toString('hex'),
+      nTime: '6036c54f'.toString('hex'),
+      nonce: '00'.toString('hex'),
+      versionBit: '00000000',
+      versionMask: '1fffe000',
+      asicboost: true,
+    };
+    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('incorrect size of nonce');
   });
@@ -209,31 +235,33 @@ describe('Test manager functionality', () => {
   test('Test share submission process [6]', () => {
     const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
     manager.processTemplate(rpcDataCopy, false);
-    const previousDifficulty = 0.0000001;
-    const difficulty = 0.0000001;
-    const extraNonce1 = '00000001'.toString('hex');
-    const extraNonce2 = '00000000'.toString('hex');
-    const versionBits = '00000000';
-    const versionMask = '1fffe000';
-    const time = '6036c54f'.toString('hex');
-    const nonce = 'fe1a0000'.toString('hex');
-    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
+    const submission = {
+      extraNonce1: '00000001'.toString('hex'),
+      extraNonce2: '00000000'.toString('hex'),
+      nTime: '6036c54f'.toString('hex'),
+      nonce: 'fe1a0000'.toString('hex'),
+      versionBit: '00000000',
+      versionMask: '1fffe000',
+      asicboost: true,
+    };
+    const response = manager.processShare(1, 0.0000001, 0.0000001, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(typeof response.hash).toBe('string');
   });
 
   test('Test share submission process [7]', () => {
     const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
     manager.processTemplate(rpcDataCopy, false);
-    const previousDifficulty = 0.0000001;
-    const difficulty = 0.0000001;
-    const extraNonce1 = '00000001'.toString('hex');
-    const extraNonce2 = '00000000'.toString('hex');
-    const versionBits = '00000000';
-    const versionMask = '1fffe000';
-    const time = '6036c54f'.toString('hex');
-    const nonce = 'fe1a0000'.toString('hex');
-    manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
-    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
+    const submission = {
+      extraNonce1: '00000001'.toString('hex'),
+      extraNonce2: '00000000'.toString('hex'),
+      nTime: '6036c54f'.toString('hex'),
+      nonce: 'fe1a0000'.toString('hex'),
+      versionBit: '00000000',
+      versionMask: '1fffe000',
+      asicboost: true,
+    };
+    manager.processShare(1, 0.0000001, 0.0000001, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(1, 0.0000001, 0.0000001, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(22);
     expect(response.error[1]).toBe('duplicate share');
   });
@@ -241,15 +269,16 @@ describe('Test manager functionality', () => {
   test('Test share submission process [8]', () => {
     const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
     manager.processTemplate(rpcDataCopy, false);
-    const previousDifficulty = 0.0000001;
-    const difficulty = 0.0000001;
-    const extraNonce1 = '00000001'.toString('hex');
-    const extraNonce2 = '00000000'.toString('hex');
-    const versionBits = '20000000';
-    const versionMask = '1fffe000';
-    const time = '6036c54f'.toString('hex');
-    const nonce = 'fe1a0000'.toString('hex');
-    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
+    const submission = {
+      extraNonce1: '00000001'.toString('hex'),
+      extraNonce2: '00000000'.toString('hex'),
+      nTime: '6036c54f'.toString('hex'),
+      nonce: 'fe1a0000'.toString('hex'),
+      versionBit: '20000000',
+      versionMask: '1fffe000',
+      asicboost: true,
+    };
+    const response = manager.processShare(1, 0.0000001, 0.0000001, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('invalid version bit');
   });
@@ -257,15 +286,16 @@ describe('Test manager functionality', () => {
   test('Test share submission process [9]', () => {
     const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
     manager.processTemplate(rpcDataCopy, false);
-    const previousDifficulty = 1;
-    const difficulty = 1;
-    const extraNonce1 = '00000001'.toString('hex');
-    const extraNonce2 = '00000000'.toString('hex');
-    const versionBits = '00000000';
-    const versionMask = '1fffe000';
-    const time = '6036c54f'.toString('hex');
-    const nonce = 'fe1a0000'.toString('hex');
-    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
+    const submission = {
+      extraNonce1: '00000001'.toString('hex'),
+      extraNonce2: '00000000'.toString('hex'),
+      nTime: '6036c54f'.toString('hex'),
+      nonce: 'fe1a0000'.toString('hex'),
+      versionBit: '00000000',
+      versionMask: '1fffe000',
+      asicboost: true,
+    };
+    const response = manager.processShare(1, 1, 1, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(23);
     expect(response.error[1].slice(0, 23)).toBe('low difficulty share of');
   });
@@ -273,15 +303,16 @@ describe('Test manager functionality', () => {
   test('Test share submission process [10]', () => {
     const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
     manager.processTemplate(rpcDataCopy, false);
-    const previousDifficulty = 1;
-    const difficulty = 1;
-    const extraNonce1 = '00000001'.toString('hex');
-    const extraNonce2 = '00000000'.toString('hex');
-    const versionBits = '00000000';
-    const versionMask = '1fffe000';
-    const time = '6036c54f'.toString('hex');
-    const nonce = 'fe1a0000'.toString('hex');
-    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, false);
+    const submission = {
+      extraNonce1: '00000001'.toString('hex'),
+      extraNonce2: '00000000'.toString('hex'),
+      nTime: '6036c54f'.toString('hex'),
+      nonce: 'fe1a0000'.toString('hex'),
+      versionBit: '00000000',
+      versionMask: '1fffe000',
+      asicboost: false,
+    };
+    const response = manager.processShare(1, 1, 1, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(23);
     expect(response.error[1].slice(0, 23)).toBe('low difficulty share of');
   });
@@ -289,15 +320,16 @@ describe('Test manager functionality', () => {
   test('Test share submission process [11]', () => {
     const rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
     manager.processTemplate(rpcDataCopy, false);
-    const previousDifficulty = 0.0000001;
-    const difficulty = 1;
-    const extraNonce1 = '00000001'.toString('hex');
-    const extraNonce2 = '00000000'.toString('hex');
-    const versionBits = '00000000';
-    const versionMask = '1fffe000';
-    const time = '6036c54f'.toString('hex');
-    const nonce = 'fe1a0000'.toString('hex');
-    const response = manager.processShare(1, previousDifficulty, difficulty, extraNonce1, extraNonce2, time, nonce, 'ip_addr', 'port', 'addr1', 'addr2', versionBits, versionMask, true);
+    const submission = {
+      extraNonce1: '00000001'.toString('hex'),
+      extraNonce2: '00000000'.toString('hex'),
+      nTime: '6036c54f'.toString('hex'),
+      nonce: 'fe1a0000'.toString('hex'),
+      versionBit: '00000000',
+      versionMask: '1fffe000',
+      asicboost: false,
+    };
+    const response = manager.processShare(1, 0.0000001, 1, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(typeof response.hash).toBe('string');
   });
 });
