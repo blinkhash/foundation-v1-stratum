@@ -143,7 +143,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
       header.write(utils.packUInt32BE(this.rpcData.height).toString('hex'), position, 4, 'hex');
       header.write(this.rpcData.bits, position += 4, 4, 'hex');
       header.write(nTime, position += 4, 4, 'hex');
-      header.write(merkleRoot, position += 4, 32, 'hex');
+      header.write(utils.reverseBuffer(merkleRoot).toString('hex'), position += 4, 32, 'hex');
       header.write(this.rpcData.previousblockhash, position += 32, 32, 'hex');
       header.writeUInt32BE(version, position + 32, 4);
       break;
@@ -153,7 +153,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
       header.write(nonce, position, 4, 'hex');
       header.write(_this.rpcData.bits, position += 4, 4, 'hex');
       header.write(nTime, position += 4, 4, 'hex');
-      header.write(merkleRoot, position += 4, 32, 'hex');
+      header.write(utils.reverseBuffer(merkleRoot).toString('hex'), position += 4, 32, 'hex');
       header.write(_this.rpcData.previousblockhash, position += 32, 32, 'hex');
       header.writeUInt32BE(version, position + 32);
       break;
@@ -172,7 +172,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
     case 'kawpow':
       buffer = Buffer.concat([
         header,
-        utils.reverseBuffer(nonce),
+        nonce,
         utils.reverseBuffer(mixHash),
         utils.varIntBuffer(_this.rpcData.transactions.length + 1),
         coinbase,
@@ -234,7 +234,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
         // Generate Block Header Hash
         const coinbaseBuffer = _this.serializeCoinbase(extraNonce1Buffer);
         const coinbaseHash = _this.coinbaseHasher(coinbaseBuffer);
-        const merkleRoot = utils.reverseBuffer(_this.merkle.withFirst(coinbaseHash)).toString('hex');
+        const merkleRoot = _this.merkle.withFirst(coinbaseHash);
         const header = _this.serializeHeader(merkleRoot, nTime, 0, _this.rpcData.version);
         const headerBuffer = utils.reverseBuffer(utils.sha256d(header));
 

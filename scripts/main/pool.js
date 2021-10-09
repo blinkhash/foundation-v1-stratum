@@ -704,9 +704,9 @@ const Pool = function(options, authorizeFn, responseFn) {
         case 'kawpow':
           submission = {
             extraNonce1: client.extraNonce1,
-            nonce: message.params[2],
-            headerHash: message.params[3],
-            mixHash: message.params[4],
+            nonce: message.params[2].substr(2),
+            headerHash: message.params[3].substr(2),
+            mixHash: message.params[4].substr(2),
           };
           result = _this.manager.processShare(
             message.params[1],

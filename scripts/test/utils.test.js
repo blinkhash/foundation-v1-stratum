@@ -58,6 +58,13 @@ describe('Test utility functionality', () => {
     expect(utils.getAuxMerklePosition(3, 10)).toBe(5);
   });
 
+  test('Test implemented isHexString', () => {
+    expect(utils.isHexString('test')).toBe(false);
+    expect(utils.isHexString('67f526e8e91affcd72621d4c4fa00312dc44ea559fa5f5d240528276bc4ab73d')).toBe(true);
+    expect(utils.isHexString('r7f526e8e91affcd72621d4c4fa00312dc44ea559fa5f5d240528276bc4ab73d')).toBe(false);
+    expect(utils.isHexString('a67f526e8e91affcd72621d4c4fa00312dc44ea559fa5f5d240528276bc4ab73d')).toBe(false);
+  });
+
   test('Test implemented packUInt16LE', () => {
     expect(utils.packUInt16LE(21243)).toStrictEqual(Buffer.from('fb52', 'hex'));
     expect(utils.packUInt16LE(13815)).toStrictEqual(Buffer.from('f735', 'hex'));

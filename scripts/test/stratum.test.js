@@ -385,7 +385,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum job broadcasting [4]', (done) => {
     const response = [];
-    optionsCopy.primary.coin.algorithms.mining = "kawpow";
+    optionsCopy.primary.coin.algorithms.mining = 'kawpow';
     const stratum = new Network(optionsCopy, () => {});
     const template = new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy);
     const socket = mockSocket();
@@ -456,7 +456,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum client difficulty [2]', (done) => {
     const response = [];
-    optionsCopy.primary.coin.algorithms.mining = "kawpow";
+    optionsCopy.primary.coin.algorithms.mining = 'kawpow';
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
@@ -517,7 +517,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [3]', (done) => {
     const response = [];
-    optionsCopy.primary.coin.algorithms.mining = "kawpow";
+    optionsCopy.primary.coin.algorithms.mining = 'kawpow';
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
@@ -539,7 +539,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [4]', (done) => {
     const response = [];
-    optionsCopy.primary.coin.algorithms.mining = "kawpow";
+    optionsCopy.primary.coin.algorithms.mining = 'kawpow';
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
