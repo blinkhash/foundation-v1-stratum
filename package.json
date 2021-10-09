@@ -43,7 +43,7 @@
     "foundation-kawpow": "0.0.3",
     "foundation-multi-hashing": "0.0.1",
     "foundation-utxo-lib": "0.0.2",
-    "sha3": "2.1.2"
+    "sha3": "2.1.4"
   },
   "devDependencies": {
     "codecov": "^3.8.1",
