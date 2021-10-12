@@ -228,7 +228,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
         }
 
         let sha3Hash = new Sha3.SHA3Hash(256);
-        let target = (zeroPad + adjPow.toString(16)).substr(0, 64);
+        const target = (zeroPad + adjPow.toString(16)).substr(0, 64);
         let seedHashBuffer = Buffer.alloc(32);
 
         // Generate Block Header Hash

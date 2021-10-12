@@ -73,7 +73,7 @@ const rpcDataKawpow = {
   'bits': '1d056ed8',
   'height': 923982,
   'default_witness_commitment': '6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9'
-}
+};
 
 const auxData = {
   'chainid': 1,
@@ -555,6 +555,21 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [22]', () => {
+    MockDate.set(1633741339294);
+    const manager = new Manager(optionsKawpowCopy);
+    manager.processTemplate(rpcDataKawpowCopy, false);
+    const submission = {
+      extraNonce1: '3fffffff',
+      nonce: '3fffffff85464bd4',
+      headerHash: '513100d04ea119861ee21c1837b81c7a2176915862847171646bdd8abf78bf56',
+      mixHash: '53de6c650e3731f1c4a227b615742a244ad7f0cd71f7be62e5d7eb014b553701'
+    };
+    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    expect(response.error[0]).toBe(20);
+    expect(response.error[1]).toBe('submission is not valid');
+  });
+
+  test('Test share submission process [23]', () => {
     MockDate.set(1633741339294);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);

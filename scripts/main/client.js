@@ -183,7 +183,7 @@ const Client = function(options) {
 
     // Kawpow Subscription
     case 'kawpow':
-      _this.emit('subscription', {}, (error, extraNonce1, extraNonce2Size) => {
+      _this.emit('subscription', {}, (error, extraNonce1) => {
         if (error) {
           _this.sendJson({ id: message.id, result: null, error: error });
           return;
@@ -354,7 +354,7 @@ const Client = function(options) {
     switch (_this.options.algorithm) {
 
     // Kawpow Difficulty
-    case 'kawpow':
+    case 'kawpow': {
 
       // Calculate Difficulty Padding
       let zeroPad = '';
@@ -369,6 +369,7 @@ const Client = function(options) {
         params: [(zeroPad + adjPow.toString(16)).substr(0, 64)],
       });
       break;
+    }
 
     // Default Difficulty
     default:
@@ -408,7 +409,7 @@ const Client = function(options) {
     switch (_this.options.algorithm) {
 
     // Kawpow Broadcasting
-    case 'kawpow':
+    case 'kawpow': {
 
       // Calculate Difficulty Padding
       let zeroPad = '';
@@ -424,7 +425,8 @@ const Client = function(options) {
         params: jobParams
       });
       break;
-
+    }
+    
     // Default Broadcasting
     default:
       _this.sendJson({

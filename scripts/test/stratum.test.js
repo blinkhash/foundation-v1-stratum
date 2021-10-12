@@ -358,7 +358,7 @@ describe('Test stratum functionality', () => {
       if (response.length === 2) {
         stratum.on('stopped', () => done());
         expect(response[0]).toBe('{"id":null,"method":"mining.set_difficulty","params":[8]}\n');
-        expect(JSON.parse(response[1]).method).toBe("mining.notify");
+        expect(JSON.parse(response[1]).method).toBe('mining.notify');
         stratum.stopServer();
       }
     });
@@ -376,7 +376,7 @@ describe('Test stratum functionality', () => {
       response.push(text);
       if (response.length === 1) {
         stratum.on('stopped', () => done());
-        expect(JSON.parse(response[0]).method).toBe("mining.notify");
+        expect(JSON.parse(response[0]).method).toBe('mining.notify');
         stratum.stopServer();
       }
     });
@@ -391,12 +391,12 @@ describe('Test stratum functionality', () => {
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-    client.extraNonce1 = "76000000";
+    client.extraNonce1 = '76000000';
     client.socket.on('log', text => {
       response.push(text);
       if (response.length === 1) {
         stratum.on('stopped', () => done());
-        expect(JSON.parse(response[0]).method).toBe("mining.notify");
+        expect(JSON.parse(response[0]).method).toBe('mining.notify');
         stratum.stopServer();
       }
     });

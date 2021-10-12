@@ -311,8 +311,8 @@ describe('Test template functionality', () => {
     const jobParams = [
       template.jobId,
       null,
-      "0000000000000000000000000000000000000000000000000000000000000000",
-      "00000fffee63b0a80e8000000000000000000000000000000000000000000000",
+      '0000000000000000000000000000000000000000000000000000000000000000',
+      '00000fffee63b0a80e8000000000000000000000000000000000000000000000',
       true,
       template.rpcData.height,
       template.rpcData.bits
@@ -329,8 +329,8 @@ describe('Test template functionality', () => {
     const jobParams = [
       template.jobId,
       null,
-      "eeaf89f399eb3a301462d94af98532e0b70fa15bbf6b8af0a7deadaf5e11b68d",
-      "00000fffee63b0a80e8000000000000000000000000000000000000000000000",
+      'eeaf89f399eb3a301462d94af98532e0b70fa15bbf6b8af0a7deadaf5e11b68d',
+      '00000fffee63b0a80e8000000000000000000000000000000000000000000000',
       true,
       template.rpcData.height,
       template.rpcData.bits
@@ -345,9 +345,9 @@ describe('Test template functionality', () => {
     const template = new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy);
     const jobParams = [
       template.jobId,
-      "89208d72161845a008ea2da0ea0107545c15bdfbd1b39c035cfd0c4757177cc6",
-      "0000000000000000000000000000000000000000000000000000000000000000",
-      "00000fffee63b0a80e8000000000000000000000000000000000000000000000",
+      '89208d72161845a008ea2da0ea0107545c15bdfbd1b39c035cfd0c4757177cc6',
+      '0000000000000000000000000000000000000000000000000000000000000000',
+      '00000fffee63b0a80e8000000000000000000000000000000000000000000000',
       true,
       template.rpcData.height,
       template.rpcData.bits

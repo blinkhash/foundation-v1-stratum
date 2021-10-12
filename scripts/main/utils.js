@@ -60,26 +60,30 @@ exports.getAuxMerklePosition = function(chain_id, size) {
 
 // Check if Input is Hex String
 exports.isHexString = function(s) {
-  var check = String(s).toLowerCase();
+  const check = String(s).toLowerCase();
   if(check.length % 2) {
     return false;
   }
-  for (i = 0; i < check.length; i=i+2) {
-  var c = check[i] + check[i+1];
-  if (!exports.isHex(c))
-    return false;
+  for (let i = 0; i < check.length; i = i + 2) {
+    const c = check[i] + check[i+1];
+    if (!exports.isHex(c))
+      return false;
   }
   return true;
-}
+};
 
 // Check if Input is Hex
 exports.isHex = function(c) {
-  var a = parseInt(c,16);
-  var b = a.toString(16).toLowerCase();
-  if(b.length % 2) { b = '0' + b; }
-  if (b !== c) { return false; }
+  const a = parseInt(c,16);
+  let b = a.toString(16).toLowerCase();
+  if(b.length % 2) {
+    b = '0' + b;
+  }
+  if (b !== c) {
+    return false;
+  }
   return true;
-}
+};
 
 // Alloc/Write UInt16LE
 exports.packUInt16LE = function(num) {

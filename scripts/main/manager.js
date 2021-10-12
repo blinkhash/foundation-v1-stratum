@@ -53,7 +53,7 @@ const Manager = function(options) {
   this.validJobs = {};
   this.jobCounter = new JobCounter();
   this.extraNonceCounter = new ExtraNonceCounter(_this.options.instanceId);
-  this.extraNoncePlaceholder = algorithm === "kawpow" ? Buffer.from('f000000f', 'hex') : Buffer.from('f000000ff111111f', 'hex');
+  this.extraNoncePlaceholder = algorithm === 'kawpow' ? Buffer.from('f000000f', 'hex') : Buffer.from('f000000ff111111f', 'hex');
   this.extraNonce2Size = _this.extraNoncePlaceholder.length - _this.extraNonceCounter.size;
 
   // Build Merkle Tree from Auxiliary Chain
@@ -142,6 +142,7 @@ const Manager = function(options) {
     let extraNonce1Buffer, extraNonce2Buffer, nonceBuffer, mixHashBuffer;
     let coinbaseBuffer, coinbaseHash, merkleRoot;
     let headerDigest, headerBuffer, headerHash, headerBigNum;
+    let headerHashBuffer, hashOutputBuffer, isValid;
     let shareDiff, blockDiffAdjusted, blockHex, blockHash;
     let shareData, auxShareData;
 
@@ -199,14 +200,19 @@ const Manager = function(options) {
       headerHash = headerHashBuffer.toString('hex');
 
       // Check if Generated Header Matches
-      if (submission.headerHash !== headerHashBuffer.toString('hex')) {
+      if (submission.headerHash !== headerHash) {
         return shareError([20, 'invalid header submission [2]']);
       }
 
       // Check Validity of Solution
-      const hashOutputBuffer = Buffer.alloc(32);
-      const isValid = headerDigest(headerHashBuffer, nonceBuffer, job.rpcData.height, mixHashBuffer, hashOutputBuffer);
+      hashOutputBuffer = Buffer.alloc(32);
+      isValid = headerDigest(headerHashBuffer, nonceBuffer, job.rpcData.height, mixHashBuffer, hashOutputBuffer);
       headerBigNum = bignum.fromBuffer(hashOutputBuffer, {endian: 'big', size: 32});
+
+      // Check if Submission is Valid Solution
+      if (!isValid) {
+        return shareError([20, 'submission is not valid']);
+      }
 
       // Calculate Share Difficulty
       shareDiff = Algorithms[algorithm].diff / headerBigNum.toNumber() * shareMultiplier;
