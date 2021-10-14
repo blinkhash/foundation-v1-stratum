@@ -15,12 +15,15 @@ const Template = require('./template');
 ////////////////////////////////////////////////////////////////////////////////
 
 // Generate Unique ExtraNonce for each Subscriber
-const ExtraNonceCounter = function(configInstanceId) {
-  const instanceId = configInstanceId || crypto.randomBytes(4).readUInt32LE(0);
-  this.counter = instanceId << 27;
+const ExtraNonceCounter = function() {
   this.size = 4;
+  this.counter = Math.floor(Math.random() * 4294967296);
   this.next = function() {
-    const extraNonce = utils.packUInt32BE(Math.abs(this.counter += 1));
+    this.counter += 1;
+    if (this.counter > 4294967295) {
+      this.counter = 0;
+    }
+    const extraNonce = utils.packUInt32BE(Math.abs(this.counter));
     return extraNonce.toString('hex');
   };
 };
@@ -52,7 +55,7 @@ const Manager = function(options) {
   this.currentJob;
   this.validJobs = {};
   this.jobCounter = new JobCounter();
-  this.extraNonceCounter = new ExtraNonceCounter(_this.options.instanceId);
+  this.extraNonceCounter = new ExtraNonceCounter();
   this.extraNoncePlaceholder = algorithm === 'kawpow' ? Buffer.from('f000000f', 'hex') : Buffer.from('f000000ff111111f', 'hex');
   this.extraNonce2Size = _this.extraNoncePlaceholder.length - _this.extraNonceCounter.size;
 

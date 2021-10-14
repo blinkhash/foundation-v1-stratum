@@ -191,7 +191,7 @@ const Client = function(options) {
         _this.extraNonce1 = extraNonce1;
         _this.sendJson({
           id: message.id,
-          result: [null, extraNonce1],
+          result: [extraNonce1, extraNonce1],
           error: null
         });
       });
