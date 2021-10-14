@@ -15,6 +15,7 @@ const Template = require('./template');
 ////////////////////////////////////////////////////////////////////////////////
 
 // Generate Unique ExtraNonce for each Subscriber
+/* istanbul ignore next */
 const ExtraNonceCounter = function() {
   this.size = 4;
   this.counter = Math.floor(Math.random() * 4294967296);
