@@ -114,6 +114,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
       buffer = Buffer.concat([
         _this.generation[0],
         extraNonce1,
+        Buffer.from(['0000', 'hex']),
         _this.generation[1]
       ]);
       break;

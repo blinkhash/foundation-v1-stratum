@@ -312,7 +312,7 @@ describe('Test template functionality', () => {
       template.jobId,
       null,
       '0000000000000000000000000000000000000000000000000000000000000000',
-      '00000fffee63b0a80e8000000000000000000000000000000000000000000000',
+      '00000fffee8a5814c68000000000000000000000000000000000000000000000',
       true,
       template.rpcData.height,
       template.rpcData.bits
@@ -330,7 +330,7 @@ describe('Test template functionality', () => {
       template.jobId,
       null,
       'eeaf89f399eb3a301462d94af98532e0b70fa15bbf6b8af0a7deadaf5e11b68d',
-      '00000fffee63b0a80e8000000000000000000000000000000000000000000000',
+      '00000fffee8a5814c68000000000000000000000000000000000000000000000',
       true,
       template.rpcData.height,
       template.rpcData.bits

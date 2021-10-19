@@ -465,7 +465,7 @@ describe('Test stratum functionality', () => {
       response.push(text);
       if (response.length === 1) {
         stratum.on('stopped', () => done());
-        expect(response[0]).toBe('{"id":null,"method":"mining.set_target","params":["000000001fffe000000000000000000000000000000000000000000000000000"]}\n');
+        expect(response[0]).toBe('{"id":null,"method":"mining.set_target","params":["000000001fe00000000000000000000000000000000000000000000000000000"]}\n');
         stratum.stopServer();
       }
     });
@@ -527,7 +527,7 @@ describe('Test stratum functionality', () => {
       response.push(text);
       if (response.length === 1) {
         stratum.on('stopped', () => done());
-        expect(response[0]).toBe('{"id":null,"result":["extraNonce1","extraNonce1"],"error":null}\n');
+        expect(response[0]).toBe('{"id":null,"result":[null,"extraNonce1"],"error":null}\n');
         stratum.stopServer();
       }
     });

@@ -191,7 +191,7 @@ const Client = function(options) {
         _this.extraNonce1 = extraNonce1;
         _this.sendJson({
           id: message.id,
-          result: [extraNonce1, extraNonce1],
+          result: [null, extraNonce1],
           error: null
         });
       });
@@ -426,7 +426,7 @@ const Client = function(options) {
       });
       break;
     }
-    
+
     // Default Broadcasting
     default:
       _this.sendJson({

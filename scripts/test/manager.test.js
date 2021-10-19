@@ -52,26 +52,25 @@ const rpcDataKawpow = {
     'messaging_restricted',
     'transfer_script',
     'enforce_value',
-    'coinbase',
-    'p2sh_assets'
+    'coinbase'
   ],
   'vbavailable': {},
   'vbrequired': 0,
-  'previousblockhash': '0000000032ebac337863fe9b55d387a910ef7df422ba7a42425fa13a571a9fb3',
+  'previousblockhash': '000000011f4b872cc86aa92b450d04781519b5163b4a153f5f1f6ca1c88bdcd8',
   'transactions': [],
   'coinbaseaux': { 'flags': '' },
   'coinbasevalue': 500000000000,
-  'longpollid': '0000000032ebac337863fe9b55d387a910ef7df422ba7a42425fa13a571a9fb3220043',
-  'target': '000000056ed80000000000000000000000000000000000000000000000000000',
-  'mintime': 1633740822,
+  'longpollid': '000000011f4b872cc86aa92b450d04781519b5163b4a153f5f1f6ca1c88bdcd8106',
+  'target': '0000000368d70000000000000000000000000000000000000000000000000000',
+  'mintime': 1634655852,
   'mutable': [ 'time', 'transactions', 'prevblock' ],
   'noncerange': '00000000ffffffff',
   'sigoplimit': 80000,
   'sizelimit': 8000000,
   'weightlimit': 8000000,
-  'curtime': 1633741339,
-  'bits': '1d056ed8',
-  'height': 923982,
+  'curtime': 1634656140,
+  'bits': '1d0368d7',
+  'height': 938902,
   'default_witness_commitment': '6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9'
 };
 
@@ -404,7 +403,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [12]', () => {
-    MockDate.set(1633741339294);
+    MockDate.set(1634655621157);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -419,7 +418,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [13]', () => {
-    MockDate.set(1633741339294);
+    MockDate.set(1634655621157);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -434,7 +433,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [14]', () => {
-    MockDate.set(1633741339294);
+    MockDate.set(1634655621157);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -449,7 +448,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [15]', () => {
-    MockDate.set(1633741339294);
+    MockDate.set(1634655621157);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -464,7 +463,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [16]', () => {
-    MockDate.set(1633741339294);
+    MockDate.set(1634655621157);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -479,14 +478,14 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [17]', () => {
-    MockDate.set(1633741339294);
+    MockDate.set(1634655621157);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
-      extraNonce1: '3fffffff',
-      nonce: '3fffffff85464bd4',
-      headerHash: '513100d04ea119861ee21c1837b81c7a2176915862847171646bdd8abf78bf56',
-      mixHash: 'aa63de6c650e3731f1c4a227b615742a244ad7f0cd71f7be62e5d7eb014b553701'
+      extraNonce1: '1952',
+      nonce: '19522aaaad98a7ec',
+      headerHash: '4c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
+      mixHash: '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45caa'
     };
     const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(20);
@@ -494,14 +493,14 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [18]', () => {
-    MockDate.set(1633741339294);
+    MockDate.set(1634655621157);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
-      extraNonce1: '3fffffff',
-      nonce: 'aa3fffffff85464bd4',
-      headerHash: '513100d04ea119861ee21c1837b81c7a2176915862847171646bdd8abf78bf56',
-      mixHash: '63de6c650e3731f1c4a227b615742a244ad7f0cd71f7be62e5d7eb014b553701'
+      extraNonce1: '1952',
+      nonce: '19522aaaad98a7ecaa',
+      headerHash: '4c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
+      mixHash: '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45c'
     };
     const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(20);
@@ -509,14 +508,14 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [19]', () => {
-    MockDate.set(1633741339294);
+    MockDate.set(1634655621157);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
       extraNonce1: '00',
-      nonce: '3fffffff85464bd4',
-      headerHash: '513100d04ea119861ee21c1837b81c7a2176915862847171646bdd8abf78bf56',
-      mixHash: '63de6c650e3731f1c4a227b615742a244ad7f0cd71f7be62e5d7eb014b553701'
+      nonce: '19522aaaad98a7ec',
+      headerHash: '4c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
+      mixHash: '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45c'
     };
     const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(24);
@@ -524,14 +523,14 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [20]', () => {
-    MockDate.set(1633741339294);
+    MockDate.set(1634655621157);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
-      extraNonce1: '3fffffff',
-      nonce: '3fffffff85464bd4',
-      headerHash: '513100d04ea119861ee21c1837b81c7a2176915862847171646bdd8abf78bf56',
-      mixHash: '63de6c650e3731f1c4a227b615742a244ad7f0cd71f7be62e5d7eb014b553701'
+      extraNonce1: '1952',
+      nonce: '19522aaaad98a7ec',
+      headerHash: '4c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
+      mixHash: '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45c'
     };
     manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
@@ -540,14 +539,14 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [21]', () => {
-    MockDate.set(1633741339294);
+    MockDate.set(1634655621157);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
-      extraNonce1: '3ffffffa',
-      nonce: '3fffffff85464bd4',
-      headerHash: '513100d04ea119861ee21c1837b81c7a2176915862847171646bdd8abf78bf56',
-      mixHash: '63de6c650e3731f1c4a227b615742a244ad7f0cd71f7be62e5d7eb014b553701'
+      extraNonce1: '1952',
+      nonce: '19522aaaad98a7ec',
+      headerHash: '3c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
+      mixHash: '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45c'
     };
     const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(20);
@@ -555,29 +554,14 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [22]', () => {
-    MockDate.set(1633741339294);
+    MockDate.set(1634656140610);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
-      extraNonce1: '3fffffff',
-      nonce: '3fffffff85464bd4',
-      headerHash: '513100d04ea119861ee21c1837b81c7a2176915862847171646bdd8abf78bf56',
-      mixHash: '53de6c650e3731f1c4a227b615742a244ad7f0cd71f7be62e5d7eb014b553701'
-    };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
-    expect(response.error[0]).toBe(20);
-    expect(response.error[1]).toBe('submission is not valid');
-  });
-
-  test('Test share submission process [23]', () => {
-    MockDate.set(1633741339294);
-    const manager = new Manager(optionsKawpowCopy);
-    manager.processTemplate(rpcDataKawpowCopy, false);
-    const submission = {
-      extraNonce1: '3fffffff',
-      nonce: '3fffffff85464bd4',
-      headerHash: '513100d04ea119861ee21c1837b81c7a2176915862847171646bdd8abf78bf56',
-      mixHash: '63de6c650e3731f1c4a227b615742a244ad7f0cd71f7be62e5d7eb014b553701'
+      extraNonce1: '9e07',
+      nonce: '9e07555556d9f949',
+      headerHash: 'eeddaf02cbca0b8076fe23ea296573800ba657d459b202e20ae7beea8a6aa728',
+      mixHash: '306dac64fea38ac41eb9d53b109c84e0c4614aae9248fe562a3bc1886833c56e'
     };
     const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(typeof response.hash).toBe('string');

@@ -682,8 +682,19 @@ const Pool = function(options, authorizeFn, responseFn) {
       // Establish Client Subscription Functionality
       client.on('subscription', (params, callback) => {
         const extraNonce = _this.manager.extraNonceCounter.next();
-        const extraNonce2Size = _this.manager.extraNonce2Size;
-        callback(null, extraNonce, extraNonce2Size);
+        switch (_this.options.primary.coin.algorithms.mining) {
+
+        // Kawpow Subscription
+        case 'kawpow':
+          callback(null, extraNonce, extraNonce);
+          break;
+
+        // Default Subscription
+        default:
+          callback(null, extraNonce, _this.manager.extraNonce2Size);
+          break;
+        }
+
         const validPorts = _this.options.ports
           .filter(port => port.port === client.socket.localPort)
           .filter(port => typeof port.difficulty.initial !== undefined);

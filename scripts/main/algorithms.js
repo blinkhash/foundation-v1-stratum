@@ -206,8 +206,8 @@ const Algorithms = {
 
   // Kawpow Algorithm
   'kawpow': {
-    multiplier: Math.pow(2, 8),
-    diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
+    multiplier: 1,
+    diff: parseInt('0x00000000ff000000000000000000000000000000000000000000000000000000'),
     epochLength: 7500,
     hash: function() {
       return function() {

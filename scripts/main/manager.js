@@ -16,16 +16,10 @@ const Template = require('./template');
 
 // Generate Unique ExtraNonce for each Subscriber
 /* istanbul ignore next */
-const ExtraNonceCounter = function() {
-  this.size = 4;
-  this.counter = Math.floor(Math.random() * 4294967296);
+const ExtraNonceCounter = function(size) {
+  this.size = size;
   this.next = function() {
-    this.counter += 1;
-    if (this.counter > 4294967295) {
-      this.counter = 0;
-    }
-    const extraNonce = utils.packUInt32BE(Math.abs(this.counter));
-    return extraNonce.toString('hex');
+    return(crypto.randomBytes(this.size).toString('hex'));
   };
 };
 
@@ -52,12 +46,13 @@ const Manager = function(options) {
 
   const algorithm = _this.options.primary.coin.algorithms.mining;
   const shareMultiplier = Algorithms[algorithm].multiplier;
+  const extraNonceSize = algorithm === 'kawpow' ? 2 : 4;
 
   this.currentJob;
   this.validJobs = {};
   this.jobCounter = new JobCounter();
-  this.extraNonceCounter = new ExtraNonceCounter();
   this.extraNoncePlaceholder = algorithm === 'kawpow' ? Buffer.from('f000000f', 'hex') : Buffer.from('f000000ff111111f', 'hex');
+  this.extraNonceCounter = new ExtraNonceCounter(extraNonceSize);
   this.extraNonce2Size = _this.extraNoncePlaceholder.length - _this.extraNonceCounter.size;
 
   // Build Merkle Tree from Auxiliary Chain
@@ -116,6 +111,7 @@ const Manager = function(options) {
     );
 
     // Update Current Template
+    _this.validJobs = {};
     _this.currentJob = tmpTemplate;
     _this.emit('newBlock', tmpTemplate);
     _this.validJobs[tmpTemplate.jobId] = tmpTemplate;
@@ -214,6 +210,7 @@ const Manager = function(options) {
       headerBigNum = bignum.fromBuffer(hashOutputBuffer, {endian: 'big', size: 32});
 
       // Check if Submission is Valid Solution
+      /* istanbul ignore next */
       if (!isValid) {
         return shareError([20, 'submission is not valid']);
       }
