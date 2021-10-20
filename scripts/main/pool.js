@@ -703,7 +703,8 @@ const Pool = function(options, authorizeFn, responseFn) {
         } else {
           client.sendDifficulty(8);
         }
-        client.sendMiningJob(_this.manager.currentJob.getJobParams(client, true));
+        const jobParams = _this.manager.currentJob.getJobParams(client, true);
+        client.sendMiningJob(jobParams);
       });
 
       // Establish Client Submission Functionality

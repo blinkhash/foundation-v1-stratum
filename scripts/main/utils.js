@@ -51,6 +51,17 @@ exports.commandStringBuffer = function(s) {
   return buff;
 };
 
+// Generate Unique ExtraNonce for each Subscriber
+/* istanbul ignore next */
+exports.extraNonceCounter = function(size) {
+  return {
+    size: size,
+    next: function() {
+      return(crypto.randomBytes(this.size).toString('hex'));
+    }
+  };
+};
+
 // Calculate Merkle Hash Position
 // https://github.com/p2pool/p2pool/blob/53c438bbada06b9d4a9a465bc13f7694a7a322b7/p2pool/bitcoin/data.py#L218
 // https://stackoverflow.com/questions/8569113/why-1103515245-is-used-in-rand
@@ -83,6 +94,24 @@ exports.isHex = function(c) {
     return false;
   }
   return true;
+};
+
+// Generate Unique Job for each Template
+/* istanbul ignore next */
+exports.jobCounter = function() {
+  return {
+    counter: 0,
+    next: function() {
+      this.counter += 1;
+      if (this.counter % 0xffff === 0) {
+        this.counter = 1;
+      }
+      return this.cur();
+    },
+    cur: function() {
+      return this.counter.toString(16);
+    }
+  };
 };
 
 // Alloc/Write UInt16LE

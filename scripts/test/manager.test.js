@@ -56,21 +56,21 @@ const rpcDataKawpow = {
   ],
   'vbavailable': {},
   'vbrequired': 0,
-  'previousblockhash': '000000011f4b872cc86aa92b450d04781519b5163b4a153f5f1f6ca1c88bdcd8',
+  'previousblockhash': '0000000427a793d87387a1b733ba46fe2bc07983d607651dd21f3c771810a9ff',
   'transactions': [],
   'coinbaseaux': { 'flags': '' },
   'coinbasevalue': 500000000000,
-  'longpollid': '000000011f4b872cc86aa92b450d04781519b5163b4a153f5f1f6ca1c88bdcd8106',
-  'target': '0000000368d70000000000000000000000000000000000000000000000000000',
-  'mintime': 1634655852,
+  'longpollid': '0000000427a793d87387a1b733ba46fe2bc07983d607651dd21f3c771810a9ff835',
+  'target': '00000004f5540000000000000000000000000000000000000000000000000000',
+  'mintime': 1634741701,
   'mutable': [ 'time', 'transactions', 'prevblock' ],
   'noncerange': '00000000ffffffff',
   'sigoplimit': 80000,
   'sizelimit': 8000000,
   'weightlimit': 8000000,
-  'curtime': 1634656140,
-  'bits': '1d0368d7',
-  'height': 938902,
+  'curtime': 1634742080,
+  'bits': '1d04f554',
+  'height': 940250,
   'default_witness_commitment': '6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9'
 };
 
@@ -159,18 +159,10 @@ describe('Test manager functionality', () => {
 
   test('Test initial manager calculations', () => {
     const manager = new Manager(optionsCopy);
-    expect(manager.jobCounter.cur()).toBe('0');
-    expect(manager.jobCounter.next()).toBe('1');
     expect(manager.extraNonceCounter.size).toBe(4);
     expect(manager.extraNonceCounter.next().length).toBe(8);
     expect(manager.extraNoncePlaceholder).toStrictEqual(Buffer.from('f000000ff111111f', 'hex'));
     expect(manager.extraNonce2Size).toBe(4);
-  });
-
-  test('Test jobCounter looping when counter overflows', () => {
-    const manager = new Manager(optionsCopy);
-    manager.jobCounter.counter = 65534;
-    expect(manager.jobCounter.next()).toBe('1');
   });
 
   test('Test job updates given auxpow initialization', () => {
@@ -403,7 +395,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [12]', () => {
-    MockDate.set(1634655621157);
+    MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -418,7 +410,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [13]', () => {
-    MockDate.set(1634655621157);
+    MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -433,7 +425,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [14]', () => {
-    MockDate.set(1634655621157);
+    MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -448,7 +440,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [15]', () => {
-    MockDate.set(1634655621157);
+    MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -463,7 +455,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [16]', () => {
-    MockDate.set(1634655621157);
+    MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -478,7 +470,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [17]', () => {
-    MockDate.set(1634655621157);
+    MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -493,7 +485,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [18]', () => {
-    MockDate.set(1634655621157);
+    MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -508,7 +500,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [19]', () => {
-    MockDate.set(1634655621157);
+    MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -523,7 +515,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [20]', () => {
-    MockDate.set(1634655621157);
+    MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -539,7 +531,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [21]', () => {
-    MockDate.set(1634655621157);
+    MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
@@ -554,14 +546,14 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [22]', () => {
-    MockDate.set(1634656140610);
+    MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
-      extraNonce1: '9e07',
-      nonce: '9e07555556d9f949',
-      headerHash: 'eeddaf02cbca0b8076fe23ea296573800ba657d459b202e20ae7beea8a6aa728',
-      mixHash: '306dac64fea38ac41eb9d53b109c84e0c4614aae9248fe562a3bc1886833c56e'
+      extraNonce1: 'b750',
+      nonce: 'b7502aaaac75284c',
+      headerHash: 'a940277ad64417e5d645d884522f66d733cfc91ab0a87b32d6400ed28c6b8f2e',
+      mixHash: 'ab1957f31544c9a133eebccdd30dfefc3deda8ab3015aa12aac8b164346152ab'
     };
     const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(typeof response.hash).toBe('string');

@@ -114,7 +114,6 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
       buffer = Buffer.concat([
         _this.generation[0],
         extraNonce1,
-        Buffer.from(['0000', 'hex']),
         _this.generation[1]
       ]);
       break;
@@ -214,70 +213,62 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
 
     // Kawpow Parameters
     case 'kawpow':
-      if (!_this.jobParams) {
 
-        const nTime = utils.packUInt32BE(_this.rpcData.curtime).toString('hex');
-        const adjPow = Algorithms['kawpow'].diff / _this.difficulty;
-        const extraNonce1Buffer = Buffer.from(client.extraNonce1, 'hex');
-        const epochLength = Math.floor(this.rpcData.height / Algorithms['kawpow'].epochLength);
+      const nTime = utils.packUInt32BE(_this.rpcData.curtime).toString('hex');
+      const adjPow = Algorithms['kawpow'].diff / _this.difficulty;
+      const extraNonce1Buffer = Buffer.from(client.extraNonce1, 'hex');
+      const epochLength = Math.floor(this.rpcData.height / Algorithms['kawpow'].epochLength);
 
-        // Calculate Difficulty Padding
-        let zeroPad = '';
-        if ((64 - adjPow.toString(16).length) !== 0) {
-          zeroPad = '0';
-          zeroPad = zeroPad.repeat((64 - (adjPow.toString(16).length)));
-        }
-
-        let sha3Hash = new Sha3.SHA3Hash(256);
-        const target = (zeroPad + adjPow.toString(16)).substr(0, 64);
-        let seedHashBuffer = Buffer.alloc(32);
-
-        // Generate Block Header Hash
-        const coinbaseBuffer = _this.serializeCoinbase(extraNonce1Buffer);
-        const coinbaseHash = _this.coinbaseHasher(coinbaseBuffer);
-        const merkleRoot = _this.merkle.withFirst(coinbaseHash);
-        const header = _this.serializeHeader(merkleRoot, nTime, 0, _this.rpcData.version);
-        const headerBuffer = utils.reverseBuffer(utils.sha256d(header));
-
-        // Generate Seed Hash Buffer
-        for (let i = 0; i < epochLength; i++) {
-          sha3Hash = new Sha3.SHA3Hash(256);
-          sha3Hash.update(seedHashBuffer);
-          seedHashBuffer = sha3Hash.digest();
-        }
-
-        // Generate Job Parameters
-        _this.jobParams = [
-          _this.jobId,
-          headerBuffer.toString('hex'),
-          seedHashBuffer.toString('hex'),
-          target,
-          cleanJobs,
-          _this.rpcData.height,
-          _this.rpcData.bits
-        ];
+      // Calculate Difficulty Padding
+      let zeroPad = '';
+      if ((64 - adjPow.toString(16).length) !== 0) {
+        zeroPad = '0';
+        zeroPad = zeroPad.repeat((64 - (adjPow.toString(16).length)));
       }
-      break;
+
+      let sha3Hash = new Sha3.SHA3Hash(256);
+      const target = (zeroPad + adjPow.toString(16)).substr(0, 64);
+      let seedHashBuffer = Buffer.alloc(32);
+
+      // Generate Block Header Hash
+      const coinbaseBuffer = _this.serializeCoinbase(extraNonce1Buffer);
+      const coinbaseHash = _this.coinbaseHasher(coinbaseBuffer);
+      const merkleRoot = _this.merkle.withFirst(coinbaseHash);
+      const header = _this.serializeHeader(merkleRoot, nTime, 0, _this.rpcData.version);
+      const headerBuffer = utils.reverseBuffer(utils.sha256d(header));
+
+      // Generate Seed Hash Buffer
+      for (let i = 0; i < epochLength; i++) {
+        sha3Hash = new Sha3.SHA3Hash(256);
+        sha3Hash.update(seedHashBuffer);
+        seedHashBuffer = sha3Hash.digest();
+      }
+
+      // Generate Job Parameters
+      return [
+        _this.jobId,
+        headerBuffer.toString('hex'),
+        seedHashBuffer.toString('hex'),
+        target,
+        cleanJobs,
+        _this.rpcData.height,
+        _this.rpcData.bits
+      ];
 
     // Default Parameters
     default:
-      if (!_this.jobParams) {
-        _this.jobParams = [
-          _this.jobId,
-          _this.previousblockhash,
-          _this.generation[0].toString('hex'),
-          _this.generation[1].toString('hex'),
-          _this.getMerkleHashes(_this.merkle.steps),
-          utils.packInt32BE(_this.rpcData.version).toString('hex'),
-          _this.rpcData.bits,
-          utils.packUInt32BE(_this.rpcData.curtime).toString('hex'),
-          cleanJobs
-        ];
-      }
-      break;
+      return [
+        _this.jobId,
+        _this.previousblockhash,
+        _this.generation[0].toString('hex'),
+        _this.generation[1].toString('hex'),
+        _this.getMerkleHashes(_this.merkle.steps),
+        utils.packInt32BE(_this.rpcData.version).toString('hex'),
+        _this.rpcData.bits,
+        utils.packUInt32BE(_this.rpcData.curtime).toString('hex'),
+        cleanJobs
+      ];
     }
-
-    return _this.jobParams;
   };
 };
 

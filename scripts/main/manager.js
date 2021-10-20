@@ -14,30 +14,6 @@ const Template = require('./template');
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Generate Unique ExtraNonce for each Subscriber
-/* istanbul ignore next */
-const ExtraNonceCounter = function(size) {
-  this.size = size;
-  this.next = function() {
-    return(crypto.randomBytes(this.size).toString('hex'));
-  };
-};
-
-// Generate Unique Job for each Template
-const JobCounter = function() {
-  this.counter = 0;
-  this.next = function() {
-    this.counter += 1;
-    if (this.counter % 0xffff === 0) {
-      this.counter = 1;
-    }
-    return this.cur();
-  };
-  this.cur = function() {
-    return this.counter.toString(16);
-  };
-};
-
 // Main Manager Function
 const Manager = function(options) {
 
@@ -50,9 +26,9 @@ const Manager = function(options) {
 
   this.currentJob;
   this.validJobs = {};
-  this.jobCounter = new JobCounter();
-  this.extraNoncePlaceholder = algorithm === 'kawpow' ? Buffer.from('f000000f', 'hex') : Buffer.from('f000000ff111111f', 'hex');
-  this.extraNonceCounter = new ExtraNonceCounter(extraNonceSize);
+  this.jobCounter = utils.jobCounter();
+  this.extraNoncePlaceholder = algorithm === 'kawpow' ? Buffer.from('f000', 'hex') : Buffer.from('f000000ff111111f', 'hex');
+  this.extraNonceCounter = utils.extraNonceCounter(extraNonceSize);
   this.extraNonce2Size = _this.extraNoncePlaceholder.length - _this.extraNonceCounter.size;
 
   // Build Merkle Tree from Auxiliary Chain
@@ -320,7 +296,7 @@ const Manager = function(options) {
       // Generate Coinbase Buffer
       coinbaseBuffer = job.serializeCoinbase(extraNonce1Buffer, extraNonce2Buffer);
       coinbaseHash = job.coinbaseHasher(coinbaseBuffer);
-      merkleRoot = job.merkle.withFirst(coinbaseHash).toString('hex');
+      merkleRoot = job.merkle.withFirst(coinbaseHash);
 
       // Start Generating Block Hash
       headerDigest = Algorithms[algorithm].hash(_this.options.primary.coin);

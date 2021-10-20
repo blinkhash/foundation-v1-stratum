@@ -340,23 +340,6 @@ describe('Test template functionality', () => {
     expect(currentParams).toStrictEqual(jobParams);
   });
 
-  test('Test current job parameters [5]', () => {
-    optionsCopy.primary.coin.algorithms.mining = 'kawpow';
-    const template = new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy);
-    const jobParams = [
-      template.jobId,
-      '89208d72161845a008ea2da0ea0107545c15bdfbd1b39c035cfd0c4757177cc6',
-      '0000000000000000000000000000000000000000000000000000000000000000',
-      '00000fffee63b0a80e8000000000000000000000000000000000000000000000',
-      true,
-      template.rpcData.height,
-      template.rpcData.bits
-    ];
-    template.jobParams = jobParams;
-    const currentParams = template.getJobParams({ extraNonce1: '71000000' }, true);
-    expect(currentParams).toStrictEqual(jobParams);
-  });
-
   test('Test if configuration is not supported', () => {
     rpcDataCopy.coinbase_payload = 'example';
     optionsCopy.auxiliary = { enabled: true };
