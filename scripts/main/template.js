@@ -206,7 +206,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
     return false;
   };
 
-  // Get Current Job Parameters
+  // Generate Job Parameters for Clients
   /* istanbul ignore next */
   this.getJobParams = function(client, cleanJobs) {
     switch (_this.options.primary.coin.algorithms.mining) {
@@ -214,10 +214,14 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
     // Kawpow Parameters
     case 'kawpow':
 
-      const nTime = utils.packUInt32BE(_this.rpcData.curtime).toString('hex');
+      // Check if Client has ExtraNonce Set
+      if (!client.extraNonce1) {
+        client.extraNonce1 = utils.extraNonceCounter(2).next();
+      }
+
       const adjPow = Algorithms['kawpow'].diff / _this.difficulty;
-      const extraNonce1Buffer = Buffer.from(client.extraNonce1, 'hex');
       const epochLength = Math.floor(this.rpcData.height / Algorithms['kawpow'].epochLength);
+      const extraNonce1Buffer = Buffer.from(client.extraNonce1, 'hex');
 
       // Calculate Difficulty Padding
       let zeroPad = '';
@@ -226,18 +230,21 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
         zeroPad = zeroPad.repeat((64 - (adjPow.toString(16).length)));
       }
 
-      let sha3Hash = new Sha3.SHA3Hash(256);
-      const target = (zeroPad + adjPow.toString(16)).substr(0, 64);
-      let seedHashBuffer = Buffer.alloc(32);
-
-      // Generate Block Header Hash
+      // Generate Coinbase Buffer
       const coinbaseBuffer = _this.serializeCoinbase(extraNonce1Buffer);
       const coinbaseHash = _this.coinbaseHasher(coinbaseBuffer);
       const merkleRoot = _this.merkle.withFirst(coinbaseHash);
-      const header = _this.serializeHeader(merkleRoot, nTime, 0, _this.rpcData.version);
+
+      // Generate Block Header Hash
+      const version = _this.rpcData.version;
+      const nTime = utils.packUInt32BE(_this.rpcData.curtime).toString('hex');
+      const target = (zeroPad + adjPow.toString(16)).substr(0, 64);
+      const header = _this.serializeHeader(merkleRoot, nTime, 0, version);
       const headerBuffer = utils.reverseBuffer(utils.sha256d(header));
 
       // Generate Seed Hash Buffer
+      let sha3Hash = new Sha3.SHA3Hash(256);
+      let seedHashBuffer = Buffer.alloc(32);
       for (let i = 0; i < epochLength; i++) {
         sha3Hash = new Sha3.SHA3Hash(256);
         sha3Hash.update(seedHashBuffer);
