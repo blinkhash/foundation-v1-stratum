@@ -191,4 +191,14 @@ describe('Test algorithm functionality', () => {
     const output = Buffer.alloc(32);
     expect(Algorithms.kawpow.hash({}).apply(null, [header, nonce, 1973071, mixhash, output])).toBe(false);
   });
+
+  // Deterministic w/ Argument
+  test('Test implemented ghostrider algorithm', () => {
+    const start = Buffer.from('000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f');
+    const main = Buffer.from('affb18b37144a5829c610c249b8f2b165aabcc27eeb39c4f3b4d07c0bb431bcc', 'hex');
+    const output = Buffer.from('e03d2f02c18d61df4af9b180f48f7c9e3ee2b00a73a0b5dff72afb65fcf9d49a', 'hex');
+    expect(Algorithms.ghostrider.hash({}).apply(null, [start, main]).length).toBe(32);
+    expect(Algorithms.ghostrider.hash({}).apply(null, [start, main])).toStrictEqual(output);
+  });
+
 });

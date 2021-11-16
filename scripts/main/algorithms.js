@@ -191,7 +191,6 @@ const Algorithms = {
 
   // Equihash Algorithm
   'equihash': {
-    multiplier: 1,
     diff: parseInt('0x0007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'),
     hash: function(options) {
       const parameters = options.parameters || {};
@@ -206,12 +205,21 @@ const Algorithms = {
 
   // Kawpow Algorithm
   'kawpow': {
-    multiplier: 1,
     diff: parseInt('0x00000000ff000000000000000000000000000000000000000000000000000000'),
     epochLength: 7500,
     hash: function() {
       return function() {
         return kawpow.verify.apply(this, arguments);
+      };
+    }
+  },
+
+  // Ghostrider Algorithm
+  'ghostrider': {
+    diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
+    hash: function() {
+      return function() {
+        return multiHashing.ghostrider.apply(this, arguments);
       };
     }
   }
