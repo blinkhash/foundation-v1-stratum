@@ -5,7 +5,6 @@
  */
 
 const events = require('events');
-const crypto = require('crypto');
 const bignum = require('bignum');
 const utils = require('./utils');
 const Algorithms = require('./algorithms');

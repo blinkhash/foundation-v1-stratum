@@ -209,6 +209,14 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
   // Generate Job Parameters for Clients
   /* istanbul ignore next */
   this.getJobParams = function(client, cleanJobs) {
+
+    // Establish Parameter Variables
+    let adjPow, epochLength, extraNonce1Buffer, zeroPad;
+    let coinbaseBuffer, coinbaseHash, merkleRoot;
+    let version, nTime, target, header, headerBuffer;
+    let sha3Hash, seedHashBuffer;
+
+    // Process Job Parameters
     switch (_this.options.primary.coin.algorithms.mining) {
 
     // Kawpow Parameters
@@ -219,32 +227,32 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
         client.extraNonce1 = utils.extraNonceCounter(2).next();
       }
 
-      const adjPow = Algorithms['kawpow'].diff / _this.difficulty;
-      const epochLength = Math.floor(this.rpcData.height / Algorithms['kawpow'].epochLength);
-      const extraNonce1Buffer = Buffer.from(client.extraNonce1, 'hex');
+      adjPow = Algorithms['kawpow'].diff / _this.difficulty;
+      epochLength = Math.floor(this.rpcData.height / Algorithms['kawpow'].epochLength);
+      extraNonce1Buffer = Buffer.from(client.extraNonce1, 'hex');
 
       // Calculate Difficulty Padding
-      let zeroPad = '';
+      zeroPad = '';
       if ((64 - adjPow.toString(16).length) !== 0) {
         zeroPad = '0';
         zeroPad = zeroPad.repeat((64 - (adjPow.toString(16).length)));
       }
 
       // Generate Coinbase Buffer
-      const coinbaseBuffer = _this.serializeCoinbase(extraNonce1Buffer);
-      const coinbaseHash = _this.coinbaseHasher(coinbaseBuffer);
-      const merkleRoot = _this.merkle.withFirst(coinbaseHash);
+      coinbaseBuffer = _this.serializeCoinbase(extraNonce1Buffer);
+      coinbaseHash = _this.coinbaseHasher(coinbaseBuffer);
+      merkleRoot = _this.merkle.withFirst(coinbaseHash);
 
       // Generate Block Header Hash
-      const version = _this.rpcData.version;
-      const nTime = utils.packUInt32BE(_this.rpcData.curtime).toString('hex');
-      const target = (zeroPad + adjPow.toString(16)).substr(0, 64);
-      const header = _this.serializeHeader(merkleRoot, nTime, 0, version);
-      const headerBuffer = utils.reverseBuffer(utils.sha256d(header));
+      version = _this.rpcData.version;
+      nTime = utils.packUInt32BE(_this.rpcData.curtime).toString('hex');
+      target = (zeroPad + adjPow.toString(16)).substr(0, 64);
+      header = _this.serializeHeader(merkleRoot, nTime, 0, version);
+      headerBuffer = utils.reverseBuffer(utils.sha256d(header));
 
       // Generate Seed Hash Buffer
-      let sha3Hash = new Sha3.SHA3Hash(256);
-      let seedHashBuffer = Buffer.alloc(32);
+      sha3Hash = new Sha3.SHA3Hash(256);
+      seedHashBuffer = Buffer.alloc(32);
       for (let i = 0; i < epochLength; i++) {
         sha3Hash = new Sha3.SHA3Hash(256);
         sha3Hash.update(seedHashBuffer);
