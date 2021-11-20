@@ -305,11 +305,28 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: true,
     };
+    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', null, null, submission);
+    expect(response.error[0]).toBe(20);
+    expect(response.error[1]).toBe('worker address isn\'t set properly');
+  });
+
+  test('Test share submission process [7]', () => {
+    const manager = new Manager(optionsCopy);
+    manager.processTemplate(rpcDataCopy, false);
+    const submission = {
+      extraNonce1: '00000001'.toString('hex'),
+      extraNonce2: '00000000'.toString('hex'),
+      nTime: '6036c54f'.toString('hex'),
+      nonce: 'fe1a0000'.toString('hex'),
+      versionBit: '00000000',
+      versionMask: '1fffe000',
+      asicboost: true,
+    };
     const response = manager.processShare(1, 0.0000001, 0.0000001, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(typeof response.hash).toBe('string');
   });
 
-  test('Test share submission process [7]', () => {
+  test('Test share submission process [8]', () => {
     const manager = new Manager(optionsCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
@@ -327,7 +344,7 @@ describe('Test manager functionality', () => {
     expect(response.error[1]).toBe('duplicate share');
   });
 
-  test('Test share submission process [8]', () => {
+  test('Test share submission process [9]', () => {
     const manager = new Manager(optionsCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
@@ -344,23 +361,6 @@ describe('Test manager functionality', () => {
     expect(response.error[1]).toBe('invalid version bit');
   });
 
-  test('Test share submission process [9]', () => {
-    const manager = new Manager(optionsCopy);
-    manager.processTemplate(rpcDataCopy, false);
-    const submission = {
-      extraNonce1: '00000001'.toString('hex'),
-      extraNonce2: '00000000'.toString('hex'),
-      nTime: '6036c54f'.toString('hex'),
-      nonce: 'fe1a0000'.toString('hex'),
-      versionBit: '00000000',
-      versionMask: '1fffe000',
-      asicboost: true,
-    };
-    const response = manager.processShare(1, 1, 1, 'ip_addr', 'port', 'addr1', 'addr2', submission);
-    expect(response.error[0]).toBe(23);
-    expect(response.error[1].slice(0, 23)).toBe('low difficulty share of');
-  });
-
   test('Test share submission process [10]', () => {
     const manager = new Manager(optionsCopy);
     manager.processTemplate(rpcDataCopy, false);
@@ -371,7 +371,7 @@ describe('Test manager functionality', () => {
       nonce: 'fe1a0000'.toString('hex'),
       versionBit: '00000000',
       versionMask: '1fffe000',
-      asicboost: false,
+      asicboost: true,
     };
     const response = manager.processShare(1, 1, 1, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(23);
@@ -390,11 +390,28 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: false,
     };
+    const response = manager.processShare(1, 1, 1, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    expect(response.error[0]).toBe(23);
+    expect(response.error[1].slice(0, 23)).toBe('low difficulty share of');
+  });
+
+  test('Test share submission process [12]', () => {
+    const manager = new Manager(optionsCopy);
+    manager.processTemplate(rpcDataCopy, false);
+    const submission = {
+      extraNonce1: '00000001'.toString('hex'),
+      extraNonce2: '00000000'.toString('hex'),
+      nTime: '6036c54f'.toString('hex'),
+      nonce: 'fe1a0000'.toString('hex'),
+      versionBit: '00000000',
+      versionMask: '1fffe000',
+      asicboost: false,
+    };
     const response = manager.processShare(1, 0.0000001, 1, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(typeof response.hash).toBe('string');
   });
 
-  test('Test share submission process [12]', () => {
+  test('Test share submission process [13]', () => {
     MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
@@ -409,7 +426,7 @@ describe('Test manager functionality', () => {
     expect(response.error[1]).toBe('job not found');
   });
 
-  test('Test share submission process [13]', () => {
+  test('Test share submission process [14]', () => {
     MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
@@ -424,7 +441,7 @@ describe('Test manager functionality', () => {
     expect(response.error[1]).toBe('invalid header submission [1]');
   });
 
-  test('Test share submission process [14]', () => {
+  test('Test share submission process [15]', () => {
     MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
@@ -437,21 +454,6 @@ describe('Test manager functionality', () => {
     const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('invalid mixHash submission');
-  });
-
-  test('Test share submission process [15]', () => {
-    MockDate.set(1634742080841);
-    const manager = new Manager(optionsKawpowCopy);
-    manager.processTemplate(rpcDataKawpowCopy, false);
-    const submission = {
-      extraNonce1: 0,
-      nonce: 'xxxx',
-      headerHash: '00',
-      mixHash: '00',
-    };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
-    expect(response.error[0]).toBe(20);
-    expect(response.error[1]).toBe('invalid nonce submission');
   });
 
   test('Test share submission process [16]', () => {
@@ -474,6 +476,21 @@ describe('Test manager functionality', () => {
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
+      extraNonce1: 0,
+      nonce: 'xxxx',
+      headerHash: '00',
+      mixHash: '00',
+    };
+    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    expect(response.error[0]).toBe(20);
+    expect(response.error[1]).toBe('invalid nonce submission');
+  });
+
+  test('Test share submission process [18]', () => {
+    MockDate.set(1634742080841);
+    const manager = new Manager(optionsKawpowCopy);
+    manager.processTemplate(rpcDataKawpowCopy, false);
+    const submission = {
       extraNonce1: '1952',
       nonce: '19522aaaad98a7ec',
       headerHash: '4c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
@@ -484,7 +501,7 @@ describe('Test manager functionality', () => {
     expect(response.error[1]).toBe('incorrect size of mixHash');
   });
 
-  test('Test share submission process [18]', () => {
+  test('Test share submission process [19]', () => {
     MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
@@ -499,7 +516,7 @@ describe('Test manager functionality', () => {
     expect(response.error[1]).toBe('incorrect size of nonce');
   });
 
-  test('Test share submission process [19]', () => {
+  test('Test share submission process [20]', () => {
     MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
@@ -514,7 +531,22 @@ describe('Test manager functionality', () => {
     expect(response.error[1]).toBe('nonce out of worker range');
   });
 
-  test('Test share submission process [20]', () => {
+  test('Test share submission process [21]', () => {
+    MockDate.set(1634742080841);
+    const manager = new Manager(optionsKawpowCopy);
+    manager.processTemplate(rpcDataKawpowCopy, false);
+    const submission = {
+      extraNonce1: 'b750',
+      nonce: 'b7502aaaac75284c',
+      headerHash: 'a940277ad64417e5d645d884522f66d733cfc91ab0a87b32d6400ed28c6b8f2e',
+      mixHash: 'ab1957f31544c9a133eebccdd30dfefc3deda8ab3015aa12aac8b164346152ab'
+    };
+    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', null, null, submission);
+    expect(response.error[0]).toBe(20);
+    expect(response.error[1]).toBe('worker address isn\'t set properly');
+  });
+
+  test('Test share submission process [22]', () => {
     MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
@@ -530,7 +562,7 @@ describe('Test manager functionality', () => {
     expect(response.error[1]).toBe('duplicate share');
   });
 
-  test('Test share submission process [21]', () => {
+  test('Test share submission process [23]', () => {
     MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
@@ -545,7 +577,7 @@ describe('Test manager functionality', () => {
     expect(response.error[1]).toBe('invalid header submission [2]');
   });
 
-  test('Test share submission process [22]', () => {
+  test('Test share submission process [24]', () => {
     MockDate.set(1634742080841);
     const manager = new Manager(optionsKawpowCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);

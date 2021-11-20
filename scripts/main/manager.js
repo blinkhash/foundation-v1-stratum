@@ -151,6 +151,9 @@ const Manager = function(options) {
       if (submission.nonce.indexOf(submission.extraNonce1.substring(0, 4)) !== 0) {
         return shareError([24, 'nonce out of worker range']);
       }
+      if (!addrPrimary && !addrAuxiliary) {
+        return shareError([20, 'worker address isn\'t set properly'])
+      }
       if (!job.registerSubmit([submission.extraNonce1, submission.nonce, submission.headerHash, submission.mixHash])) {
         return shareError([22, 'duplicate share']);
       }
@@ -271,6 +274,9 @@ const Manager = function(options) {
       }
       if (submission.nonce.length !== 8) {
         return shareError([20, 'incorrect size of nonce']);
+      }
+      if (!addrPrimary && !addrAuxiliary) {
+        return shareError([20, 'worker address isn\'t set properly'])
       }
       if (!job.registerSubmit([submission.extraNonce1, submission.extraNonce2, submission.nTime, submission.nonce])) {
         return shareError([22, 'duplicate share']);
