@@ -187,6 +187,7 @@ const Transactions = function() {
           payeeScript,
         ]));
       }
+      break;
 
     default:
       break;
