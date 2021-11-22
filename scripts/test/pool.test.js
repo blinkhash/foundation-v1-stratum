@@ -194,7 +194,7 @@ const options = {
       'symbol': 'BTC',
       'getinfo': false,
       'segwit': true,
-      'rewards': '',
+      'rewards': {},
       'algorithms': {
         'mining': 'sha256d',
         'block': 'sha256d',

@@ -106,6 +106,38 @@ const Transactions = function() {
       }
     }
 
+    // Handle Smartnodes
+    if (rpcData.smartnode) {
+      if (rpcData.smartnode.payee) {
+        const payeeReward = rpcData.smartnode.amount;
+        const payeeScript = utils.addressToScript(rpcData.smartnode.payee, network);
+        reward -= payeeReward;
+        rewardToPool -= payeeReward;
+        txOutputBuffers.push(Buffer.concat([
+          utils.packUInt64LE(payeeReward),
+          utils.varIntBuffer(payeeScript.length),
+          payeeScript,
+        ]));
+      } else if (rpcData.smartnode.length > 0) {
+        rpcData.smartnode.forEach(payee => {
+          const payeeReward = payee.amount;
+          let payeeScript;
+          if (payee.script) {
+            payeeScript = Buffer.from(payee.script, 'hex');
+          } else {
+            payeeScript = utils.addressToScript(payee.payee, network);
+          }
+          reward -= payeeReward;
+          rewardToPool -= payeeReward;
+          txOutputBuffers.push(Buffer.concat([
+            utils.packUInt64LE(payeeReward),
+            utils.varIntBuffer(payeeScript.length),
+            payeeScript,
+          ]));
+        });
+      }
+    }
+
     // Handle Superblocks
     if (rpcData.superblock && rpcData.superblock.length > 0) {
       rpcData.superblock.forEach(payee => {
@@ -140,7 +172,22 @@ const Transactions = function() {
     }
 
     // Handle Secondary Transactions
-    switch (options.primary.coin.rewards) {
+    switch (options.primary.coin.rewards.type) {
+
+    // Founder Transactions
+    case 'founders1':
+      if (rpcData.founder_payments_started && rpcData.founder) {
+        const payeeReward = rpcData.founder.amount;
+        const payeeScript = utils.addressToScript(rpcData.founder.payee, network);
+        reward -= payeeReward;
+        rewardToPool -= payeeReward;
+        txOutputBuffers.push(Buffer.concat([
+          utils.packUInt64LE(payeeReward),
+          utils.varIntBuffer(payeeScript.length),
+          payeeScript,
+        ]));
+      }
+
     default:
       break;
     }

@@ -83,7 +83,7 @@ const options = {
       'asicboost': true,
       'getinfo': false,
       'segwit': true,
-      'rewards': '',
+      'rewards': {},
       'algorithms': {
         'mining': 'sha256d',
         'block': 'sha256d',

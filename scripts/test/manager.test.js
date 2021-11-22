@@ -86,7 +86,7 @@ const options = {
   'primary': {
     'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
     'coin': {
-      'rewards': '',
+      'rewards': {},
       'algorithms': {
         'mining': 'scrypt',
         'block': 'sha256d',
@@ -121,6 +121,7 @@ const optionsKawpow = {
     'address': 'mz4CVyMz8qCFXtpk8HUvKWviMgPRWZaiCB',
     'coin': {
       'version': 1,
+      'rewards': {},
       'algorithms': {
         'mining': 'kawpow',
         'block': 'sha256d',
