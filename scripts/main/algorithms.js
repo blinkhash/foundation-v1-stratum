@@ -16,6 +16,7 @@ const Algorithms = {
 
   // Sha256d Algorithm
   'sha256d': {
+    multiplier: 1,
     diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
     hash: function() {
       return function() {
@@ -39,6 +40,7 @@ const Algorithms = {
 
   // C11 Algorithm
   'c11': {
+    multiplier: 1,
     diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
     hash: function() {
       return function() {
@@ -49,6 +51,7 @@ const Algorithms = {
 
   // X11 Algorithm
   'x11': {
+    multiplier: 1,
     diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
     hash: function() {
       return function() {
@@ -59,6 +62,7 @@ const Algorithms = {
 
   // X13 Algorithm
   'x13': {
+    multiplier: 1,
     diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
     hash: function() {
       return function() {
@@ -69,6 +73,7 @@ const Algorithms = {
 
   // X15 Algorithm
   'x15': {
+    multiplier: 1,
     diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
     hash: function() {
       return function() {
@@ -101,6 +106,7 @@ const Algorithms = {
 
   // Nist5 Algorithm
   'nist5': {
+    multiplier: 1,
     diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
     hash: function() {
       return function() {
@@ -111,6 +117,7 @@ const Algorithms = {
 
   // Quark Algorithm
   'quark': {
+    multiplier: 1,
     diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
     hash: function() {
       return function() {
@@ -149,6 +156,7 @@ const Algorithms = {
 
   // Skein Algorithm
   'skein': {
+    multiplier: 1,
     diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
     hash: function() {
       return function() {
@@ -181,6 +189,7 @@ const Algorithms = {
 
   // Qubit Algorithm
   'qubit': {
+    multiplier: 1,
     diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
     hash: function() {
       return function() {
@@ -191,6 +200,7 @@ const Algorithms = {
 
   // Equihash Algorithm
   'equihash': {
+    multiplier: 1,
     diff: parseInt('0x0007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'),
     hash: function(options) {
       const parameters = options.parameters || {};
@@ -205,6 +215,7 @@ const Algorithms = {
 
   // Kawpow Algorithm
   'kawpow': {
+    multiplier: 1,
     diff: parseInt('0x00000000ff000000000000000000000000000000000000000000000000000000'),
     epochLength: 7500,
     hash: function() {
@@ -229,18 +240,13 @@ const Algorithms = {
   'verthash': {
     multiplier: Math.pow(2, 8),
     diff: parseInt('0x00000000ff000000000000000000000000000000000000000000000000000000'),
-    hash: function() {
+    hash: /* istanbul ignore next */ function() {
+      // Can't test due to "verthash.dat" file
       return function() {
         return multiHashing.verthash.apply(this, arguments);
       };
     }
   }
 };
-
-Object.keys(Algorithms).forEach(algo => {
-  if (!Algorithms[algo].multiplier) {
-    Algorithms[algo].multiplier = 1;
-  }
-});
 
 module.exports = Algorithms;

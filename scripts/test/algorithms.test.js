@@ -200,5 +200,4 @@ describe('Test algorithm functionality', () => {
     expect(Algorithms.ghostrider.hash({}).apply(null, [start, main]).length).toBe(32);
     expect(Algorithms.ghostrider.hash({}).apply(null, [start, main])).toStrictEqual(output);
   });
-
 });

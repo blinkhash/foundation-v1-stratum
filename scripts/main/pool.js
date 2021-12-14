@@ -815,7 +815,7 @@ const Pool = function(options, authorizeFn, responseFn) {
       infoLines.push(`Block Polling Every:\t${ _this.options.settings.blockRefreshInterval } ms`);
     }
     limitMessages(() => {
-      emitSpecialLog(infoLines.join('\n\t\t\t\t\t\t'));
+      emitSpecialLog(infoLines.join('\n\t\t\t\t'));
     });
     _this.responseFn(true);
   };
