@@ -223,6 +223,17 @@ const Algorithms = {
         return multiHashing.ghostrider.apply(this, arguments);
       };
     }
+  },
+
+  // Verthash Algorithm
+  'verthash': {
+    multiplier: Math.pow(2, 8),
+    diff: parseInt('0x00000000ff000000000000000000000000000000000000000000000000000000'),
+    hash: function() {
+      return function() {
+        return multiHashing.verthash.apply(this, arguments);
+      };
+    }
   }
 };
 
