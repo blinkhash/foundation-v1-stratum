@@ -443,13 +443,25 @@ describe('Test stratum functionality', () => {
     stratum.stopServer();
   });
 
-  test('Test stratum client difficulty queueing', (done) => {
+  test('Test stratum client difficulty queueing [1]', (done) => {
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
     client.enqueueNextDifficulty(8);
     expect(client.pendingDifficulty).toBe(8);
+    stratum.on('stopped', () => done());
+    stratum.stopServer();
+  });
+
+  test('Test stratum client difficulty queueing [2]', (done) => {
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.staticDifficulty = true;
+    client.enqueueNextDifficulty(8);
+    expect(client.pendingDifficulty).toBe(null);
     stratum.on('stopped', () => done());
     stratum.stopServer();
   });

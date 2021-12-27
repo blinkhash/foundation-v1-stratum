@@ -24,10 +24,13 @@ const Client = function(options) {
   this.authorized = false;
   this.difficulty = 0;
   this.lastActivity = Date.now();
-  this.pendingDifficulty = null;
   this.remoteAddress = _this.options.socket.remoteAddress;
   this.shares = { valid: 0, invalid: 0 };
   this.socket = _this.options.socket;
+
+  // Difficulty Options
+  this.pendingDifficulty = null;
+  this.staticDifficulty = false;
 
   // Validate Worker Name
   this.validateName = function(name) {
@@ -252,6 +255,7 @@ const Client = function(options) {
     // Check for Difficulty Flag
     if (workerFlags.difficulty) {
       _this.enqueueNextDifficulty(workerFlags.difficulty);
+      _this.staticDifficulty = true;
     }
 
     // Check to Authorize Worker
@@ -359,9 +363,10 @@ const Client = function(options) {
 
   // Push Updated Difficulty to Difficulty Queue
   this.enqueueNextDifficulty = function(requestedNewDifficulty) {
-    _this.pendingDifficulty = requestedNewDifficulty;
-    _this.emit('difficultyQueued', requestedNewDifficulty);
-    return true;
+    if (!_this.staticDifficulty) {
+      _this.pendingDifficulty = requestedNewDifficulty;
+      _this.emit('difficultyQueued', requestedNewDifficulty);
+    }
   };
 
   // Broadcast Difficulty to Stratum Client
