@@ -360,7 +360,7 @@ const Client = function(options) {
   // Push Updated Difficulty to Difficulty Queue
   this.enqueueNextDifficulty = function(requestedNewDifficulty) {
     _this.pendingDifficulty = requestedNewDifficulty;
-    _this.emit('difficultyQueued', _this.difficulty);
+    _this.emit('difficultyQueued', requestedNewDifficulty);
     return true;
   };
 
