@@ -675,8 +675,14 @@ const Pool = function(options, authorizeFn, responseFn) {
         _this.difficulty[client.socket.localPort].manageClient(client);
       }
 
+      // Emit Event when Difficulty is Queued
+      client.on('difficultyQueued', (diff) => {
+        emitLog('Difficulty update queued for worker: ' + client.addrPrimary + ' (' + diff + ')');
+      });
+
+      // Emit Event when Difficulty is Updated
       client.on('difficultyChanged', (diff) => {
-        _this.emit('difficultyUpdate', client.addrPrimary, diff);
+        emitLog('Difficulty updated successfully for worker: ' + client.addrPrimary + ' (' + diff + ')');
       });
 
       // Establish Client Subscription Functionality

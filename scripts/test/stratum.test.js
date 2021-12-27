@@ -195,6 +195,24 @@ describe('Test stratum functionality', () => {
     expect(client.validateName('example!@#$%^&')).toStrictEqual(['example', null]);
   });
 
+  test('Text validation of worker flags [1]', () => {
+    const socket = { socket: mockSocket() };
+    const client = new Client(socket);
+    expect(client.validatePassword('d=100')).toStrictEqual({ difficulty: 100 });
+  });
+
+  test('Text validation of worker flags [2]', () => {
+    const socket = { socket: mockSocket() };
+    const client = new Client(socket);
+    expect(client.validatePassword('d=10.s0')).toStrictEqual({});
+  });
+
+  test('Text validation of worker flags [3]', () => {
+    const socket = { socket: mockSocket() };
+    const client = new Client(socket);
+    expect(client.validatePassword('')).toStrictEqual({});
+  });
+
   test('Test stratum banning capabilities [1]', (done) => {
     const stratum = new Network(optionsCopy, () => {});
     const client = mockClient();
@@ -621,6 +639,26 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [8]', (done) => {
     const response = [];
+    const stratum = new Network(optionsCopy, (addr, port, primary, auxiliary, password, callback) => {
+      callback({ error: null, authorized: true, disconnect: true });
+    });
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.authorized = true;
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":true,"error":null}\n');
+        stratum.stopServer();
+      }
+    });
+    client.handleMessage({ id: null, method: 'mining.authorize', params: ['primary,auxiliary', 'd=100'] });
+  });
+
+  test('Test stratum message handling [9]', (done) => {
+    const response = [];
     optionsCopy.primary.coin.asicboost = false;
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
@@ -639,7 +677,7 @@ describe('Test stratum functionality', () => {
     expect(client.versionMask).toBe('00000000');
   });
 
-  test('Test stratum message handling [9]', (done) => {
+  test('Test stratum message handling [10]', (done) => {
     const response = [];
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
@@ -658,19 +696,8 @@ describe('Test stratum functionality', () => {
     expect(client.versionMask).toBe('1fffe000');
   });
 
-  test('Test stratum message handling [10]', () => {
-    optionsCopy.primary.coin.asicboost = false;
-    const stratum = new Network(optionsCopy, () => {});
-    const socket = mockSocket();
-    stratum.handleNewClient(socket);
-    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-    client.handleMessage({ id: null, method: 'mining.multi_version', params: [1] });
-    expect(client.asicboost).toBe(false);
-    expect(client.versionMask).toBe('00000000');
-    stratum.stopServer();
-  });
-
   test('Test stratum message handling [11]', () => {
+    optionsCopy.primary.coin.asicboost = false;
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
@@ -686,13 +713,24 @@ describe('Test stratum functionality', () => {
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.handleMessage({ id: null, method: 'mining.multi_version', params: [1] });
+    expect(client.asicboost).toBe(false);
+    expect(client.versionMask).toBe('00000000');
+    stratum.stopServer();
+  });
+
+  test('Test stratum message handling [13]', () => {
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
     client.handleMessage({ id: null, method: 'mining.multi_version', params: [4] });
     expect(client.asicboost).toBe(true);
     expect(client.versionMask).toBe('1fffe000');
     stratum.stopServer();
   });
 
-  test('Test stratum message handling [13]', (done) => {
+  test('Test stratum message handling [14]', (done) => {
     const response = [];
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
@@ -710,7 +748,7 @@ describe('Test stratum functionality', () => {
     expect(client.shares.invalid).toBe(1);
   });
 
-  test('Test stratum message handling [14]', (done) => {
+  test('Test stratum message handling [15]', (done) => {
     const response = [];
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
@@ -729,7 +767,7 @@ describe('Test stratum functionality', () => {
     expect(client.shares.invalid).toBe(1);
   });
 
-  test('Test stratum message handling [15]', (done) => {
+  test('Test stratum message handling [16]', (done) => {
     const response = [];
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
@@ -752,7 +790,7 @@ describe('Test stratum functionality', () => {
     expect(client.shares.valid).toBe(1);
   });
 
-  test('Test stratum message handling [16]', (done) => {
+  test('Test stratum message handling [17]', (done) => {
     const response = [];
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
@@ -769,7 +807,7 @@ describe('Test stratum functionality', () => {
     client.handleMessage({ id: null, method: 'mining.get_transactions' });
   });
 
-  test('Test stratum message handling [17]', (done) => {
+  test('Test stratum message handling [18]', (done) => {
     const response = [];
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
@@ -786,7 +824,7 @@ describe('Test stratum functionality', () => {
     client.handleMessage({ id: null, method: 'mining.extranonce.subscribe' });
   });
 
-  test('Test stratum message handling [18]', (done) => {
+  test('Test stratum message handling [19]', (done) => {
     const stratum = new Network(optionsCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);

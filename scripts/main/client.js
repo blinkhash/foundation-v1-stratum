@@ -42,6 +42,21 @@ const Client = function(options) {
     }
   };
 
+  // Validate Worker Password
+  this.validatePassword = function(password) {
+    if (password.length >= 1) {
+      password = password.toString().replace(/[^a-zA-Z0-9.,=]+/g, '');
+    }
+    const values = password.split(',');
+    const flags = {};
+    values.forEach((value) => {
+      if (/^d=[+-]?(\d*\.)?\d+$/.test(value)) {
+        flags.difficulty = parseFloat(value.split('=')[1]);
+      }
+    });
+    return flags;
+  };
+
   // Check for Banning Users
   this.considerBan = function(shareValid) {
     if (shareValid === true) {
@@ -143,7 +158,7 @@ const Client = function(options) {
       _this.handleSubscribe(message);
       break;
     case 'mining.authorize':
-      _this.handleAuthorize(message, true);
+      _this.handleAuthorize(message);
       break;
     case 'mining.configure':
       _this.handleConfigure(message);
@@ -224,27 +239,34 @@ const Client = function(options) {
 
   // Manage Stratum Authorization
   this.handleAuthorize = function(message) {
+
+    // Handle Worker Authentication
     const workerData = _this.validateName(message.params[0]);
+    const workerFlags = _this.validatePassword(message.params[1]);
+
+    // Set Initial Variables
     _this.addrPrimary = workerData[0];
     _this.addrAuxiliary = workerData[1];
     _this.workerPassword = message.params[1];
-    _this.options.authorizeFn(
-      _this.remoteAddress,
-      _this.options.socket.localPort,
-      _this.addrPrimary,
-      _this.addrAuxiliary,
-      _this.workerPassword,
-      (result) => {
-        _this.authorized = (!result.error && result.authorized);
-        _this.sendJson({
-          id: message.id,
-          result: _this.authorized,
-          error: result.error
-        });
-        if (result.disconnect === true) {
-          _this.options.socket.destroy();
-        }
+
+    // Check for Difficulty Flag
+    if (workerFlags.difficulty) {
+      _this.enqueueNextDifficulty(workerFlags.difficulty);
+    }
+
+    // Check to Authorize Worker
+    const port = _this.options.socket.localPort;
+    _this.options.authorizeFn(_this.remoteAddress, port, _this.addrPrimary, _this.addrAuxiliary, _this.workerPassword, (result) => {
+      _this.authorized = (!result.error && result.authorized);
+      _this.sendJson({
+        id: message.id,
+        result: _this.authorized,
+        error: result.error
       });
+      if (result.disconnect === true) {
+        _this.options.socket.destroy();
+      }
+    });
   };
 
   // Manage Stratum Configuration
@@ -338,6 +360,7 @@ const Client = function(options) {
   // Push Updated Difficulty to Difficulty Queue
   this.enqueueNextDifficulty = function(requestedNewDifficulty) {
     _this.pendingDifficulty = requestedNewDifficulty;
+    _this.emit('difficultyQueued', _this.difficulty);
     return true;
   };
 

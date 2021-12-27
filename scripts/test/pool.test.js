@@ -2414,12 +2414,9 @@ describe('Test pool functionality', () => {
         expect(response[0][0]).toBe('warning');
         expect(response[0][1]).toBe('Network diff of 0 is lower than port 3001 w/ diff 32');
         expect(response[1][0]).toBe('debug');
-        expect(response[1][1]).toBe('Difficulty updated successfully for worker: worker1');
+        expect(response[1][1]).toBe('Difficulty updated successfully for worker: worker1 (100000)');
         pool.stratum.stopServer();
       }
-    });
-    pool.on('difficultyUpdate', (worker) => {
-      pool.emit('log', 'debug', 'Difficulty updated successfully for worker: ' + worker);
     });
     pool.on('connectionSucceeded', () => {
       client.emit('difficultyChanged', 100000);
