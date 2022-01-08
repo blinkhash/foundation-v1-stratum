@@ -5,6 +5,9 @@
  */
 
 const net = require('net');
+const tls = require('tls');
+const fs = require('fs');
+const path = require('path');
 const events = require('events');
 const utils = require('./utils');
 const Client = require('./client');
@@ -51,15 +54,28 @@ const Network = function(options, authorizeFn) {
     const stratumPorts = _this.options.ports.filter(port => port.enabled);
     stratumPorts.forEach((port) => {
       const currentPort = port.port;
-      const server = net.createServer({ allowHalfOpen: false }, (socket) => {
-        _this.handleNewClient(socket);
-      });
+      const enabled = port.ssl && port.ssl.enabled;
+
+      // Define Stratum Options
+      const options = {
+        ...(enabled && { key: fs.readFileSync(path.join('./certificates', port.ssl.key)) }),
+        ...(enabled && { cert: fs.readFileSync(path.join('./certificates', port.ssl.cert)) }),
+        allowHalfOpen: false,
+      }
+
+      // Setup Stratum Server
+      const callback = (socket) => _this.handleNewClient(socket);
+      const server = (enabled) ? tls.createServer(options, callback) : net.createServer(options, callback);
+
+      // Setup Server to Listen on Port
       server.listen(parseInt(currentPort), () => {
         serversStarted += 1;
         if (serversStarted == stratumPorts.length) {
           _this.emit('started');
         }
       });
+
+      // Add Server to Record of Current Ports
       _this.stratumServers[currentPort] = server;
     });
   };
