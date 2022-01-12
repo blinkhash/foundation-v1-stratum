@@ -174,8 +174,8 @@ const Transactions = function() {
     // Handle Secondary Transactions
     switch (options.primary.coin.rewards.type) {
 
-    // Founder Transactions
-    case 'founders1':
+    // RTM-Based Transactions
+    case 'raptoreum':
       if (rpcData.founder_payments_started && rpcData.founder) {
         const payeeReward = rpcData.founder.amount;
         const payeeScript = utils.addressToScript(rpcData.founder.payee, network);
@@ -187,6 +187,19 @@ const Transactions = function() {
           payeeScript,
         ]));
       }
+      break;
+
+    // HVQ-Based Transactions
+    case 'hivecoin':
+      const payeeReward = rpcData.CommunityAutonomousValue;
+      const payeeScript = utils.addressToScript(rpcData.CommunityAutonomousAddress, network);
+      reward -= payeeReward;
+      rewardToPool -= payeeReward;
+      txOutputBuffers.push(Buffer.concat([
+        utils.packUInt64LE(payeeReward),
+        utils.varIntBuffer(payeeScript.length),
+        payeeScript,
+      ]));
       break;
 
     default:
