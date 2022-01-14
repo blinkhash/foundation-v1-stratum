@@ -125,6 +125,7 @@ const Manager = function(options) {
     switch (_this.options.primary.coin.algorithms.mining) {
 
     // Kawpow Share Submission
+    /* istanbul ignore next */
     case 'kawpow':
 
       // Edge Cases to Check if Share is Invalid
@@ -188,7 +189,6 @@ const Manager = function(options) {
       headerBigNum = bignum.fromBuffer(hashOutputBuffer, {endian: 'big', size: 32});
 
       // Check if Submission is Valid Solution
-      /* istanbul ignore next */
       if (!isValid) {
         return shareError([20, 'submission is not valid']);
       }
@@ -200,7 +200,6 @@ const Manager = function(options) {
       blockHash = hashOutputBuffer.toString('hex');
 
       // Check if Share is Valid Block Candidate
-      /* istanbul ignore next */
       if (job.target.ge(headerBigNum)) {
         blockValid = true;
       } else {
@@ -214,7 +213,6 @@ const Manager = function(options) {
       }
 
       // Build Share Object Data
-      /* istanbul ignore next */
       shareData = {
         job: jobId,
         ip: ipAddress,
@@ -255,6 +253,7 @@ const Manager = function(options) {
       return { error: null, hash: blockHash, hex: blockHex, result: true };
 
     // Default Share Submission
+    /* istanbul ignore next */
     default:
 
       // Edge Cases to Check if Share is Invalid
@@ -316,7 +315,6 @@ const Manager = function(options) {
       blockHash = job.blockHasher(headerBuffer, submission.nTime).toString('hex');
 
       // Check if Share is Valid Block Candidate
-      /* istanbul ignore next */
       if (job.target.ge(headerBigNum)) {
         blockValid = true;
       } else {
@@ -330,7 +328,6 @@ const Manager = function(options) {
       }
 
       // Build Share Object Data
-      /* istanbul ignore next */
       shareData = {
         job: jobId,
         ip: ipAddress,

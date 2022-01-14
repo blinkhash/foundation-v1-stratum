@@ -577,18 +577,4 @@ describe('Test manager functionality', () => {
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('invalid header submission [2]');
   });
-
-  test('Test share submission process [24]', () => {
-    MockDate.set(1634742080841);
-    const manager = new Manager(optionsKawpowCopy);
-    manager.processTemplate(rpcDataKawpowCopy, false);
-    const submission = {
-      extraNonce1: 'b750',
-      nonce: 'b7502aaaac75284c',
-      headerHash: 'a940277ad64417e5d645d884522f66d733cfc91ab0a87b32d6400ed28c6b8f2e',
-      mixHash: 'ab1957f31544c9a133eebccdd30dfefc3deda8ab3015aa12aac8b164346152ab'
-    };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
-    expect(typeof response.hash).toBe('string');
-  });
 });

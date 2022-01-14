@@ -227,7 +227,7 @@ const Transactions = function() {
     // Handle Witness Commitment
     if (rpcData.default_witness_commitment !== undefined) {
       const witness_commitment = Buffer.from(rpcData.default_witness_commitment, 'hex');
-      txOutputBuffers.unshift(Buffer.concat([
+      txOutputBuffers.push(Buffer.concat([
         utils.packUInt64LE(0),
         utils.varIntBuffer(witness_commitment.length),
         witness_commitment
