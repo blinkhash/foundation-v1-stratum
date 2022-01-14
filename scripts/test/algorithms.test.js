@@ -65,6 +65,15 @@ describe('Test algorithm functionality', () => {
   });
 
   // Deterministic
+  test('Test implemented x16rt algorithm', () => {
+    const start = Buffer.from('000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f');
+    const main = Buffer.from('75856e3aa9163eb0a6b57a196f64d5e82785b26e21d99b9ac287c9b6d5a24e8d', 'hex');
+    const output = Buffer.from('c95715e1d013fe9f7d163441fe1c5b5899fcb94566aefb7a30bf350dd1f3d747', 'hex');
+    expect(Algorithms.x16rt.hash({}).apply(null, [start, main]).length).toBe(32);
+    expect(Algorithms.x16rt.hash({}).apply(null, [start, main])).toStrictEqual(output);
+  });
+
+  // Deterministic
   test('Test implemented x16rv2 algorithm', () => {
     const start = Buffer.from('000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f');
     const output = Buffer.from('f3bd8f00ace441b322c14a179396c0835087536a2d86b7fec062ab88beb0e9c5', 'hex');
@@ -199,5 +208,21 @@ describe('Test algorithm functionality', () => {
     const output = Buffer.from('5438a6e89f606117ca8024cda972a0fc134a718fba8908ce961e8963d75a4bdc', 'hex');
     expect(Algorithms.ghostrider.hash({}).apply(null, [start, main]).length).toBe(32);
     expect(Algorithms.ghostrider.hash({}).apply(null, [start, main])).toStrictEqual(output);
+  });
+
+  // Deterministic
+  test('Test implemented minotaur algorithm', () => {
+    const start = Buffer.from('000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f');
+    const output = Buffer.from('8c747068ee59fd0144830613064ed2cbf06a5d4ffd5689b3d92b61fc6f0cb882', 'hex');
+    expect(Algorithms.minotaur.hash({}).apply(null, [start]).length).toBe(32);
+    expect(Algorithms.minotaur.hash({}).apply(null, [start])).toStrictEqual(output);
+  });
+
+  // Deterministic
+  test('Test implemented minotaurx algorithm', () => {
+    const start = Buffer.from('000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f');
+    const output = Buffer.from('caf1a315977532632eaba2b9ac7ef357d7da1d0bf945013539e2ef92ebac89e4', 'hex');
+    expect(Algorithms.minotaurx.hash({}).apply(null, [start]).length).toBe(32);
+    expect(Algorithms.minotaurx.hash({}).apply(null, [start])).toStrictEqual(output);
   });
 });

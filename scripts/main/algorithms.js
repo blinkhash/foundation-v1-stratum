@@ -93,6 +93,17 @@ const Algorithms = {
     }
   },
 
+  // X16R Algorithm
+  'x16rt': {
+    multiplier: Math.pow(2, 8),
+    diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
+    hash: function() {
+      return function() {
+        return multiHashing.x16rt.apply(this, arguments);
+      };
+    }
+  },
+
   // X16Rv2 Algorithm
   'x16rv2': {
     multiplier: Math.pow(2, 8),
@@ -198,7 +209,7 @@ const Algorithms = {
     }
   },
 
-  // Equihash Algorithm
+  // Equihash Algorithm (WIP)
   'equihash': {
     multiplier: 1,
     diff: parseInt('0x0007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'),
@@ -244,6 +255,28 @@ const Algorithms = {
       // Can't test due to "verthash.dat" file
       return function() {
         return multiHashing.verthash.apply(this, arguments);
+      };
+    }
+  },
+
+  // Minotaur Algorithm
+  'minotaur': {
+    multiplier: 1,
+    diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
+    hash: function() {
+      return function() {
+        return multiHashing.minotaur.apply(this, arguments);
+      };
+    }
+  },
+
+  // MinotaurX Algorithm
+  'minotaurx': {
+    multiplier: 1,
+    diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
+    hash: function() {
+      return function() {
+        return multiHashing.minotaurx.apply(this, arguments);
       };
     }
   }
