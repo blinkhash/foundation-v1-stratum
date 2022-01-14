@@ -251,7 +251,7 @@ describe('Test transactions functionality', () => {
     rpcDataCopy.CommunityAutonomousValue = 194005101;
     const transaction = transactions.default(rpcDataCopy, extraNonce, null, optionsCopy);
     expect(transaction[0].slice(0, -5)).toStrictEqual(Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0f5104', 'hex'));
-    expect(transaction[1]).toStrictEqual(Buffer.from('00000000030000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf993a9751e01000000160014e8df018c7e326cc253faac7e46cdc51e68542c426d48900b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c4200000000', 'hex'));
+    expect(transaction[1]).toStrictEqual(Buffer.from('00000000030000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900f2052a01000000160014e8df018c7e326cc253faac7e46cdc51e68542c426d48900b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c4200000000', 'hex'));
   });
 
   test('Test bitcoin transaction builder [18]', () => {

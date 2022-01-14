@@ -193,9 +193,7 @@ const Transactions = function() {
     case 'hivecoin':
       const payeeReward = rpcData.CommunityAutonomousValue;
       const payeeScript = utils.addressToScript(rpcData.CommunityAutonomousAddress, network);
-      reward -= payeeReward;
-      rewardToPool -= payeeReward;
-      txOutputBuffers.push(Buffer.concat([
+      txOutputBuffers.unshift(Buffer.concat([
         utils.packUInt64LE(payeeReward),
         utils.varIntBuffer(payeeScript.length),
         payeeScript,
