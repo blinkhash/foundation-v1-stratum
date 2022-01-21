@@ -213,29 +213,29 @@ describe('Test stratum functionality', () => {
     expect(client.validatePassword('')).toStrictEqual({});
   });
 
-  // test('Test stratum banning capabilities [1]', (done) => {
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const client = mockClient();
-  //   client.on('kickedBannedIP', timeLeft => {
-  //     stratum.on('stopped', () => done());
-  //     expect(timeLeft >= 0).toBeTruthy();
-  //     stratum.stopServer();
-  //   });
-  //   stratum.addBannedIP(client.remoteAddress);
-  //   stratum.checkBan(client);
-  // });
+  test('Test stratum banning capabilities [1]', (done) => {
+    const stratum = new Network(optionsCopy, () => {});
+    const client = mockClient();
+    client.on('kickedBannedIP', timeLeft => {
+      stratum.on('stopped', () => done());
+      expect(timeLeft >= 0).toBeTruthy();
+      stratum.stopServer();
+    });
+    stratum.addBannedIP(client.remoteAddress);
+    stratum.checkBan(client);
+  });
 
-  // test('Test stratum banning capabilities [2]', (done) => {
-  //   optionsCopy.banning.time = -1;
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const client = mockClient();
-  //   client.on('forgaveBannedIP', () => {
-  //     stratum.on('stopped', () => done());
-  //     stratum.stopServer();
-  //   });
-  //   stratum.addBannedIP(client.remoteAddress);
-  //   stratum.checkBan(client);
-  // });
+  test('Test stratum banning capabilities [2]', (done) => {
+    optionsCopy.banning.time = -1;
+    const stratum = new Network(optionsCopy, () => {});
+    const client = mockClient();
+    client.on('forgaveBannedIP', () => {
+      stratum.on('stopped', () => done());
+      stratum.stopServer();
+    });
+    stratum.addBannedIP(client.remoteAddress);
+    stratum.checkBan(client);
+  });
 
   // test('Test stratum banning capabilities [3]', (done) => {
   //   const stratum = new Network(optionsCopy, () => {});
