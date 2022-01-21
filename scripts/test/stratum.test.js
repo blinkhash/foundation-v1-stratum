@@ -195,23 +195,23 @@ describe('Test stratum functionality', () => {
     expect(client.validateName('example!@#$%^&')).toStrictEqual(['example', null]);
   });
 
-  // test('Text validation of worker flags [1]', () => {
-  //   const socket = { socket: mockSocket() };
-  //   const client = new Client(socket);
-  //   expect(client.validatePassword('d=100')).toStrictEqual({ difficulty: 100 });
-  // });
+  test('Text validation of worker flags [1]', () => {
+    const socket = { socket: mockSocket() };
+    const client = new Client(socket);
+    expect(client.validatePassword('d=100')).toStrictEqual({ difficulty: 100 });
+  });
 
-  // test('Text validation of worker flags [2]', () => {
-  //   const socket = { socket: mockSocket() };
-  //   const client = new Client(socket);
-  //   expect(client.validatePassword('d=10.s0')).toStrictEqual({});
-  // });
+  test('Text validation of worker flags [2]', () => {
+    const socket = { socket: mockSocket() };
+    const client = new Client(socket);
+    expect(client.validatePassword('d=10.s0')).toStrictEqual({});
+  });
 
-  // test('Text validation of worker flags [3]', () => {
-  //   const socket = { socket: mockSocket() };
-  //   const client = new Client(socket);
-  //   expect(client.validatePassword('')).toStrictEqual({});
-  // });
+  test('Text validation of worker flags [3]', () => {
+    const socket = { socket: mockSocket() };
+    const client = new Client(socket);
+    expect(client.validatePassword('')).toStrictEqual({});
+  });
 
   // test('Test stratum banning capabilities [1]', (done) => {
   //   const stratum = new Network(optionsCopy, () => {});
