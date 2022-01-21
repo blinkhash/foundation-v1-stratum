@@ -14,18 +14,17 @@ const events = require('events');
  * Emits:
  *  - subscription(obj, cback(error, extraNonce1, extraNonce2Size))
  *  - submit(data(name, jobID, extraNonce2, ntime, nonce))
-**/
+ **/
 
 // Main Client Function
-const Client = function(options) {
-
+const Client = function (options) {
   const _this = this;
   this.options = options;
   this.authorized = false;
   this.difficulty = 0;
   this.lastActivity = Date.now();
   this.remoteAddress = _this.options.socket.remoteAddress;
-  this.shares = { valid: 0, invalid: 0 };
+  this.shares = { valid: 0, invalid: 0 }; // add stale?
   this.socket = _this.options.socket;
 
   // Difficulty Options
@@ -33,7 +32,7 @@ const Client = function(options) {
   this.staticDifficulty = false;
 
   // Validate Worker Name
-  this.validateName = function(name) {
+  this.validateName = function (name) {
     if (name.length >= 1) {
       name = name.toString().replace(/[^a-zA-Z0-9.,]+/g, '');
     }
@@ -46,13 +45,13 @@ const Client = function(options) {
   };
 
   // Validate Worker Password
-  this.validatePassword = function(password) {
+  this.validatePassword = function (password) {
     if (password.length >= 1) {
       password = password.toString().replace(/[^a-zA-Z0-9.,=]+/g, '');
     }
     const values = password.split(',');
     const flags = {};
-    values.forEach((value) => {
+    values.forEach(value => {
       if (/^d=[+-]?(\d*\.)?\d+$/.test(value)) {
         flags.difficulty = parseFloat(value.split('=')[1]);
       }
@@ -61,7 +60,7 @@ const Client = function(options) {
   };
 
   // Check for Banning Users
-  this.considerBan = function(shareValid) {
+  this.considerBan = function (shareValid) {
     if (shareValid === true) {
       _this.shares.valid += 1;
     } else {
@@ -69,11 +68,17 @@ const Client = function(options) {
     }
     const totalShares = _this.shares.valid + _this.shares.invalid;
     if (totalShares >= _this.options.banning.checkThreshold) {
-      const percentBad = (_this.shares.invalid / totalShares);
+      const percentBad = _this.shares.invalid / totalShares;
       if (percentBad < _this.options.banning.invalidPercent) {
         this.shares = { valid: 0, invalid: 0 };
       } else {
-        _this.emit('triggerBan', _this.shares.invalid + ' out of the last ' + totalShares + ' shares were invalid');
+        _this.emit(
+          'triggerBan',
+          _this.shares.invalid +
+            ' out of the last ' +
+            totalShares +
+            ' shares were not valid'
+        );
         _this.socket.destroy();
         return true;
       }
@@ -82,7 +87,7 @@ const Client = function(options) {
   };
 
   // Manage JSON Functionality
-  this.sendJson = function() {
+  this.sendJson = function () {
     let response = '';
     Object.keys(arguments).forEach(arg => {
       response += JSON.stringify(arguments[arg]) + '\n';
@@ -92,14 +97,13 @@ const Client = function(options) {
 
   // Establish Stratum Connection
   /* istanbul ignore next */
-  this.setupClient = function() {
-
+  this.setupClient = function () {
     // Setup Main Socket Connection
     let dataBuffer = '';
     const socket = _this.options.socket;
     socket.setEncoding('utf8');
     if (_this.options.tcpProxyProtocol === true) {
-      socket.once('data', (d) => {
+      socket.once('data', d => {
         if (d.indexOf('PROXY') === 0) {
           _this.remoteAddress = d.split(' ')[2];
         } else {
@@ -111,7 +115,7 @@ const Client = function(options) {
       _this.emit('checkBan');
     }
 
-    socket.on('data', (d) => {
+    socket.on('data', d => {
       dataBuffer += d;
       if (Buffer.byteLength(dataBuffer, 'utf8') > 10240) {
         dataBuffer = '';
@@ -122,13 +126,16 @@ const Client = function(options) {
       if (dataBuffer.indexOf('\n') !== -1) {
         const messages = dataBuffer.split('\n');
         const incomplete = dataBuffer.slice(-1) === '\n' ? '' : messages.pop();
-        messages.forEach((message) => {
+        messages.forEach(message => {
           if (message === '') return;
           let messageJson;
           try {
             messageJson = JSON.parse(message);
-          } catch(e) {
-            if (_this.options.tcpProxyProtocol !== true || d.indexOf('PROXY') !== 0) {
+          } catch (e) {
+            if (
+              _this.options.tcpProxyProtocol !== true ||
+              d.indexOf('PROXY') !== 0
+            ) {
               _this.emit('malformedMessage', message);
               socket.destroy();
             }
@@ -146,103 +153,103 @@ const Client = function(options) {
       _this.emit('socketDisconnect');
     });
 
-    socket.on('error', (e) => {
-      if (e.code !== 'ECONNRESET')
-        _this.emit('socketError', e);
+    socket.on('error', e => {
+      if (e.code !== 'ECONNRESET') _this.emit('socketError', e);
     });
   };
 
   // Handle Stratum Messages
-  this.handleMessage = function(message) {
+  this.handleMessage = function (message) {
     switch (message.method) {
-
-    // Supported Stratum Messages
-    case 'mining.subscribe':
-      _this.handleSubscribe(message);
-      break;
-    case 'mining.authorize':
-      _this.handleAuthorize(message);
-      break;
-    case 'mining.configure':
-      _this.handleConfigure(message);
-      break;
-    case 'mining.multi_version':
-      _this.handleMultiVersion(message);
-      break;
-    case 'mining.submit':
-      _this.lastActivity = Date.now();
-      _this.handleSubmit(message);
-      break;
+      // Supported Stratum Messages
+      case 'mining.subscribe':
+        _this.handleSubscribe(message);
+        break;
+      case 'mining.authorize':
+        _this.handleAuthorize(message);
+        break;
+      case 'mining.configure':
+        _this.handleConfigure(message);
+        break;
+      case 'mining.multi_version':
+        _this.handleMultiVersion(message);
+        break;
+      case 'mining.submit':
+        _this.lastActivity = Date.now();
+        _this.handleSubmit(message);
+        break;
 
       // Unsupported Stratum Messages
-    case 'mining.get_transactions':
-      _this.sendJson({
-        id: message.id,
-        result: [],
-        error: [20, 'Not supported.', null]
-      });
-      break;
-    case 'mining.extranonce.subscribe':
-      _this.sendJson({
-        id: message.id,
-        result: false,
-        error: [20, 'Not supported.', null]
-      });
-      break;
-    default:
-      _this.emit('unknownStratumMethod', message);
-      break;
+      case 'mining.get_transactions':
+        _this.sendJson({
+          id: message.id,
+          result: [],
+          error: [20, 'Not supported.', null],
+        });
+        break;
+      case 'mining.extranonce.subscribe':
+        _this.sendJson({
+          id: message.id,
+          result: false,
+          error: [20, 'Not supported.', null],
+        });
+        break;
+      default:
+        _this.emit('unknownStratumMethod', message);
+        break;
     }
   };
 
   // Manage Stratum Subscription
-  this.handleSubscribe = function(message) {
+  this.handleSubscribe = function (message) {
     switch (_this.options.algorithm) {
-
-    // Kawpow Subscription
-    case 'kawpow':
-      _this.emit('subscription', {}, (error, extraNonce1) => {
-        if (error) {
-          _this.sendJson({ id: message.id, result: null, error: error });
-          return;
-        }
-        _this.extraNonce1 = extraNonce1;
-        _this.sendJson({
-          id: message.id,
-          result: [null, extraNonce1],
-          error: null
+      // Kawpow Subscription
+      case 'kawpow':
+        _this.emit('subscription', {}, (error, extraNonce1) => {
+          if (error) {
+            _this.sendJson({ id: message.id, result: null, error: error });
+            return;
+          }
+          _this.extraNonce1 = extraNonce1;
+          _this.sendJson({
+            id: message.id,
+            result: [null, extraNonce1],
+            error: null,
+          });
         });
-      });
-      break;
+        break;
 
-    // Default Subscription
-    default:
-      _this.emit('subscription', {}, (error, extraNonce1, extraNonce2Size) => {
-        if (error) {
-          _this.sendJson({ id: message.id, result: null, error: error });
-          return;
-        }
-        _this.extraNonce1 = extraNonce1;
-        _this.sendJson({
-          id: message.id,
-          result: [
-            [
-              ['mining.set_difficulty', _this.options.subscriptionId],
-              ['mining.notify', _this.options.subscriptionId]
-            ],
-            extraNonce1,
-            extraNonce2Size
-          ],
-          error: null
-        });
-      });
-      break;
+      // Default Subscription
+      default:
+        _this.emit(
+          'subscription',
+          {},
+          (error, extraNonce1, extraNonce2Size) => {
+            if (error) {
+              _this.sendJson({ id: message.id, result: null, error: error });
+              return;
+            }
+            _this.extraNonce1 = extraNonce1;
+            _this.sendJson({
+              id: message.id,
+              result: [
+                [
+                  ['mining.set_difficulty', _this.options.subscriptionId],
+                  ['mining.notify', _this.options.subscriptionId],
+                ],
+                extraNonce1,
+                extraNonce2Size,
+              ],
+              error: null,
+            });
+          }
+        );
+        break;
     }
   };
 
   // Manage Stratum Authorization
-  this.handleAuthorize = function(message) {
-
+  this.handleAuthorize = function (message) {
     // Handle Worker Authentication
     const workerData = _this.validateName(message.params[0]);
     const workerFlags = _this.validatePassword(message.params[1]);
@@ -260,28 +267,35 @@ const Client = function(options) {
 
     // Check to Authorize Worker
     const port = _this.options.socket.localPort;
-    _this.options.authorizeFn(_this.remoteAddress, port, _this.addrPrimary, _this.addrAuxiliary, _this.workerPassword, (result) => {
-      _this.authorized = (!result.error && result.authorized);
-      _this.sendJson({
-        id: message.id,
-        result: _this.authorized,
-        error: result.error
-      });
-      if (result.disconnect === true) {
-        _this.options.socket.destroy();
+    _this.options.authorizeFn(
+      _this.remoteAddress,
+      port,
+      _this.addrPrimary,
+      _this.addrAuxiliary,
+      _this.workerPassword,
+      result => {
+        _this.authorized = !result.error && result.authorized;
+        _this.sendJson({
+          id: message.id,
+          result: _this.authorized,
+          error: result.error,
+        });
+        if (result.disconnect === true) {
+          _this.options.socket.destroy();
+        }
       }
-    });
+    );
   };
 
   // Manage Stratum Configuration
-  this.handleConfigure = function(message) {
+  this.handleConfigure = function (message) {
     if (!_this.options.asicboost) {
       _this.sendJson({
         id: message.id,
         result: {
-          'version-rolling': false
+          'version-rolling': false,
         },
-        error: null
+        error: null,
       });
       _this.asicboost = false;
       _this.versionMask = '00000000';
@@ -290,9 +304,9 @@ const Client = function(options) {
         id: message.id,
         result: {
           'version-rolling': true,
-          'version-rolling.mask': '1fffe000'
+          'version-rolling.mask': '1fffe000',
         },
-        error: null
+        error: null,
       });
       _this.asicboost = true;
       _this.versionMask = '1fffe000';
@@ -301,7 +315,7 @@ const Client = function(options) {
   };
 
   // Manage Stratum Multi-Versions
-  this.handleMultiVersion = function(message) {
+  this.handleMultiVersion = function (message) {
     if (!_this.options.asicboost) {
       _this.asicboost = false;
       _this.versionMask = '00000000';
@@ -320,7 +334,7 @@ const Client = function(options) {
 
   // Manage Stratum Submission
   /* istanbul ignore next */
-  this.handleSubmit = function(message) {
+  this.handleSubmit = function (message) {
     if (!_this.addrPrimary) {
       const workerData = _this.validateName(message.params[0]);
       _this.addrPrimary = workerData[0];
@@ -330,7 +344,7 @@ const Client = function(options) {
       _this.sendJson({
         id: message.id,
         result: null,
-        error: [24, 'unauthorized worker', null]
+        error: [24, 'unauthorized worker', null],
       });
       _this.considerBan(false);
       return;
@@ -339,7 +353,7 @@ const Client = function(options) {
       _this.sendJson({
         id: message.id,
         result: null,
-        error: [25, 'not subscribed', null]
+        error: [25, 'not subscribed', null],
       });
       _this.considerBan(false);
       return;
@@ -350,19 +364,21 @@ const Client = function(options) {
         _this.sendJson({
           id: message.id,
           result: result,
-          error: error
+          error: error,
         });
       }
     });
   };
 
   // Get Label of Stratum Client
-  this.getLabel = function() {
-    return (_this.addrPrimary || '(unauthorized)') + ' [' + _this.remoteAddress + ']';
+  this.getLabel = function () {
+    return (
+      (_this.addrPrimary || '(unauthorized)') + ' [' + _this.remoteAddress + ']'
+    );
   };
 
   // Push Updated Difficulty to Difficulty Queue
-  this.enqueueNextDifficulty = function(requestedNewDifficulty) {
+  this.enqueueNextDifficulty = function (requestedNewDifficulty) {
     if (!_this.staticDifficulty) {
       _this.pendingDifficulty = requestedNewDifficulty;
       _this.emit('difficultyQueued', requestedNewDifficulty);
@@ -371,7 +387,7 @@ const Client = function(options) {
 
   // Broadcast Difficulty to Stratum Client
   /* istanbul ignore next */
-  this.sendDifficulty = function(difficulty) {
+  this.sendDifficulty = function (difficulty) {
     if (difficulty === _this.difficulty) {
       return false;
     }
@@ -380,33 +396,31 @@ const Client = function(options) {
 
     // Process Algorithm Difficulty
     switch (_this.options.algorithm) {
-
-    // Kawpow Difficulty
-    case 'kawpow': {
-
-      // Calculate Difficulty Padding
-      let zeroPad = '';
-      const adjPow = Algorithms['kawpow'].diff / _this.difficulty;
-      if ((64 - adjPow.toString(16).length) !== 0) {
-        zeroPad = '0';
-        zeroPad = zeroPad.repeat((64 - (adjPow.toString(16).length)));
+      // Kawpow Difficulty
+      case 'kawpow': {
+        // Calculate Difficulty Padding
+        let zeroPad = '';
+        const adjPow = Algorithms['kawpow'].diff / _this.difficulty;
+        if (64 - adjPow.toString(16).length !== 0) {
+          zeroPad = '0';
+          zeroPad = zeroPad.repeat(64 - adjPow.toString(16).length);
+        }
+        _this.sendJson({
+          id: null,
+          method: 'mining.set_target',
+          params: [(zeroPad + adjPow.toString(16)).substr(0, 64)],
+        });
+        break;
       }
-      _this.sendJson({
-        id: null,
-        method: 'mining.set_target',
-        params: [(zeroPad + adjPow.toString(16)).substr(0, 64)],
-      });
-      break;
-    }
 
-    // Default Difficulty
-    default:
-      _this.sendJson({
-        id: null,
-        method: 'mining.set_difficulty',
-        params: [difficulty],
-      });
-      break;
+      // Default Difficulty
+      default:
+        _this.sendJson({
+          id: null,
+          method: 'mining.set_difficulty',
+          params: [difficulty],
+        });
+        break;
     }
 
     return true;
@@ -414,12 +428,16 @@ const Client = function(options) {
 
   // Broadcast Mining Job to Stratum Client
   /* istanbul ignore next */
-  this.sendMiningJob = function(jobParams) {
-
+  this.sendMiningJob = function (jobParams) {
     // Check Processed Shares
     const lastActivityAgo = Date.now() - _this.lastActivity;
     if (lastActivityAgo > _this.options.connectionTimeout * 1000) {
-      _this.emit('socketTimeout', 'last submitted a share was ' + (lastActivityAgo / 1000 | 0) + ' seconds ago');
+      _this.emit(
+        'socketTimeout',
+        'last submitted a share was ' +
+          ((lastActivityAgo / 1000) | 0) +
+          ' seconds ago'
+      );
       _this.socket.destroy();
       return;
     }
@@ -435,34 +453,32 @@ const Client = function(options) {
 
     // Process Job Broadcasting
     switch (_this.options.algorithm) {
-
-    // Kawpow Broadcasting
-    case 'kawpow': {
-
-      // Calculate Difficulty Padding
-      let zeroPad = '';
-      const adjPow = Algorithms['kawpow'].diff / _this.difficulty;
-      if ((64 - adjPow.toString(16).length) !== 0) {
-        zeroPad = '0';
-        zeroPad = zeroPad.repeat((64 - (adjPow.toString(16).length)));
+      // Kawpow Broadcasting
+      case 'kawpow': {
+        // Calculate Difficulty Padding
+        let zeroPad = '';
+        const adjPow = Algorithms['kawpow'].diff / _this.difficulty;
+        if (64 - adjPow.toString(16).length !== 0) {
+          zeroPad = '0';
+          zeroPad = zeroPad.repeat(64 - adjPow.toString(16).length);
+        }
+        jobParams[3] = (zeroPad + adjPow.toString(16)).substr(0, 64);
+        _this.sendJson({
+          id: null,
+          method: 'mining.notify',
+          params: jobParams,
+        });
+        break;
       }
-      jobParams[3] = (zeroPad + adjPow.toString(16)).substr(0, 64);
-      _this.sendJson({
-        id: null,
-        method: 'mining.notify',
-        params: jobParams
-      });
-      break;
-    }
 
-    // Default Broadcasting
-    default:
-      _this.sendJson({
-        id: null,
-        method: 'mining.notify',
-        params: jobParams
-      });
-      break;
+      // Default Broadcasting
+      default:
+        _this.sendJson({
+          id: null,
+          method: 'mining.notify',
+          params: jobParams,
+        });
+        break;
     }
   };
 };
