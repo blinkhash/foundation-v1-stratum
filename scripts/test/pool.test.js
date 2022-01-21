@@ -1822,7 +1822,7 @@ describe('Test pool functionality', () => {
     const pool = new Pool(optionsCopy, null, () => {});
     pool.on('share', (shareData, shareType, blockValid) => {
       if (shareData.blockType === 'auxiliary') {
-        expect(shareType).toBe({ valid: true, stale: false, invalid: false });
+        expect(shareType).toStrictEqual({ valid: true, stale: false, invalid: false });
         expect(blockValid).toBe(false);
         expect(shareData.job).toBe(1);
         expect(shareData.hash).toBe('example auxiliary blockhash');
