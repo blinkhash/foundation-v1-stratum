@@ -297,11 +297,11 @@ describe('Test stratum functionality', () => {
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-    // client.on('triggerBan', (timeout) => {
+    client.on('triggerBan', (timeout) => {
     //   stratum.on('stopped', () => done());
     //   expect(timeout).toBe('5 out of the last 5 shares were invalid');
-    //   stratum.stopServer();
-    // });
+      stratum.stopServer();
+    });
     for (let step = 0; step < 5; step += 1) {
       if (step === 4) {
         expect(client.considerBan(false)).toBe(true);
