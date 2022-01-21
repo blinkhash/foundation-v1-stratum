@@ -54,7 +54,7 @@ const options = {
     'purgeInterval': 300
   },
   'ports': [{
-    'port': 3001,
+    'port': 3022,
     'enabled': true,
     'difficulty': {
       'initial': 32,
