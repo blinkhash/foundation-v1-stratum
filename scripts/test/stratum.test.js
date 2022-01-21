@@ -249,19 +249,19 @@ describe('Test stratum functionality', () => {
     stratum.stopServer();
   });
 
-  // test('Test stratum banning capabilities [4]', (done) => {
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   for (let step = 0; step < 3; step += 1) {
-  //     expect(client.considerBan(true)).toBe(false);
-  //   }
-  //   expect(client.shares.valid).toBe(3);
-  //   expect(client.shares.invalid).toBe(0);
-  //   stratum.on('stopped', () => done());
-  //   stratum.stopServer();
-  // });
+  test('Test stratum banning capabilities [4]', (done) => {
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    for (let step = 0; step < 3; step += 1) {
+      expect(client.considerBan(true)).toBe(false);
+    }
+    expect(client.shares.valid).toBe(3);
+    expect(client.shares.invalid).toBe(0);
+    stratum.on('stopped', () => done());
+    stratum.stopServer();
+  });
 
   // test('Test stratum banning capabilities [5]', (done) => {
   //   const stratum = new Network(optionsCopy, () => {});
