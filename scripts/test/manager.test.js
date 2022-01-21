@@ -8,148 +8,151 @@ const Manager = require('../main/manager');
 const MockDate = require('mockdate');
 
 const rpcData = {
-  'capabilities': [
-    'proposal'
+  capabilities: ['proposal'],
+  version: 536870912,
+  rules: [],
+  vbavailable: {},
+  vbrequired: 0,
+  previousblockhash:
+    '9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2',
+  transactions: [
+    {
+      data: '0100000001cba672d0bfdbcc441d171ef0723a191bf050932c6f8adc8a05b0cac2d1eb022f010000006c493046022100a23472410d8fd7eabf5c739bdbee5b6151ff31e10d5cb2b52abeebd5e9c06977022100c2cdde5c632eaaa1029dff2640158aaf9aab73fa021ed4a48b52b33ba416351801210212ee0e9c79a72d88db7af3fed18ae2b7ca48eaed995d9293ae0f94967a70cdf6ffffffff02905f0100000000001976a91482db4e03886ee1225fefaac3ee4f6738eb50df9188ac00f8a093000000001976a914c94f5142dd7e35f5645735788d0fe1343baf146288ac00000000',
+      hash: '7c90a5087ac4d5b9361d47655812c89b4ad0dee6ecd5e08814d00ce7385aa317',
+      depends: [],
+      fee: 10000,
+      sigops: 2,
+    },
   ],
-  'version': 536870912,
-  'rules': [],
-  'vbavailable': {},
-  'vbrequired': 0,
-  'previousblockhash': '9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2',
-  'transactions': [{
-    'data': '0100000001cba672d0bfdbcc441d171ef0723a191bf050932c6f8adc8a05b0cac2d1eb022f010000006c493046022100a23472410d8fd7eabf5c739bdbee5b6151ff31e10d5cb2b52abeebd5e9c06977022100c2cdde5c632eaaa1029dff2640158aaf9aab73fa021ed4a48b52b33ba416351801210212ee0e9c79a72d88db7af3fed18ae2b7ca48eaed995d9293ae0f94967a70cdf6ffffffff02905f0100000000001976a91482db4e03886ee1225fefaac3ee4f6738eb50df9188ac00f8a093000000001976a914c94f5142dd7e35f5645735788d0fe1343baf146288ac00000000',
-    'hash': '7c90a5087ac4d5b9361d47655812c89b4ad0dee6ecd5e08814d00ce7385aa317',
-    'depends': [],
-    'fee': 10000,
-    'sigops': 2
-  }],
-  'coinbaseaux': {
-    'flags': ''
+  coinbaseaux: {
+    flags: '',
   },
-  'coinbasevalue': 5000000000,
-  'longpollid': '9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e22',
-  'target': '00000ffff0000000000000000000000000000000000000000000000000000000',
-  'mintime': 1614044921,
-  'mutable': [
-    'time',
-    'transactions',
-    'prevblock'
-  ],
-  'noncerange': '00000000ffffffff',
-  'sigoplimit': 20000,
-  'sizelimit': 1000000,
-  'curtime': 1614201893,
-  'bits': '1e0ffff0',
-  'height': 1,
-  'default_witness_commitment': '6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9'
+  coinbasevalue: 5000000000,
+  longpollid:
+    '9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e22',
+  target: '00000ffff0000000000000000000000000000000000000000000000000000000',
+  mintime: 1614044921,
+  mutable: ['time', 'transactions', 'prevblock'],
+  noncerange: '00000000ffffffff',
+  sigoplimit: 20000,
+  sizelimit: 1000000,
+  curtime: 1614201893,
+  bits: '1e0ffff0',
+  height: 1,
+  default_witness_commitment:
+    '6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9',
 };
 
 const rpcDataKawpow = {
-  'capabilities': [ 'proposal' ],
-  'version': 805306368,
-  'rules': [
+  capabilities: ['proposal'],
+  version: 805306368,
+  rules: [
     'assets',
     'messaging_restricted',
     'transfer_script',
     'enforce_value',
-    'coinbase'
+    'coinbase',
   ],
-  'vbavailable': {},
-  'vbrequired': 0,
-  'previousblockhash': '0000000427a793d87387a1b733ba46fe2bc07983d607651dd21f3c771810a9ff',
-  'transactions': [],
-  'coinbaseaux': { 'flags': '' },
-  'coinbasevalue': 500000000000,
-  'longpollid': '0000000427a793d87387a1b733ba46fe2bc07983d607651dd21f3c771810a9ff835',
-  'target': '00000004f5540000000000000000000000000000000000000000000000000000',
-  'mintime': 1634741701,
-  'mutable': [ 'time', 'transactions', 'prevblock' ],
-  'noncerange': '00000000ffffffff',
-  'sigoplimit': 80000,
-  'sizelimit': 8000000,
-  'weightlimit': 8000000,
-  'curtime': 1634742080,
-  'bits': '1d04f554',
-  'height': 940250,
-  'default_witness_commitment': '6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9'
+  vbavailable: {},
+  vbrequired: 0,
+  previousblockhash:
+    '0000000427a793d87387a1b733ba46fe2bc07983d607651dd21f3c771810a9ff',
+  transactions: [],
+  coinbaseaux: { flags: '' },
+  coinbasevalue: 500000000000,
+  longpollid:
+    '0000000427a793d87387a1b733ba46fe2bc07983d607651dd21f3c771810a9ff835',
+  target: '00000004f5540000000000000000000000000000000000000000000000000000',
+  mintime: 1634741701,
+  mutable: ['time', 'transactions', 'prevblock'],
+  noncerange: '00000000ffffffff',
+  sigoplimit: 80000,
+  sizelimit: 8000000,
+  weightlimit: 8000000,
+  curtime: 1634742080,
+  bits: '1d04f554',
+  height: 940250,
+  default_witness_commitment:
+    '6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9',
 };
 
 const auxData = {
-  'chainid': 1,
-  'hash': '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2',
+  chainid: 1,
+  hash: '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2',
 };
 
 const options = {
-  'settings': {
-    'testnet': false,
+  settings: {
+    testnet: false,
   },
-  'primary': {
-    'address': 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
-    'coin': {
-      'rewards': {},
-      'algorithms': {
-        'mining': 'scrypt',
-        'block': 'sha256d',
-        'coinbase': 'sha256d',
+  primary: {
+    address: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
+    coin: {
+      rewards: {},
+      algorithms: {
+        mining: 'scrypt',
+        block: 'sha256d',
+        coinbase: 'sha256d',
       },
-      'mainnet': {
-        'bech32': 'bc',
-        'bip32': {
-          'public': 0x0488b21e,
-          'private': 0x0488ade4,
+      mainnet: {
+        bech32: 'bc',
+        bip32: {
+          public: 0x0488b21e,
+          private: 0x0488ade4,
         },
-        'pubKeyHash': 0x00,
-        'scriptHash': 0x05,
-        'wif': 0x80,
-        'coin': 'btc',
+        pubKeyHash: 0x00,
+        scriptHash: 0x05,
+        wif: 0x80,
+        coin: 'btc',
       },
     },
-    'recipients': [],
+    recipients: [],
   },
-  'auxiliary': {
-    'coin': {
-      'header': 'fabe6d6d'
-    }
-  }
+  auxiliary: {
+    coin: {
+      header: 'fabe6d6d',
+    },
+  },
 };
 
 const optionsKawpow = {
-  'settings': {
-    'testnet': false,
+  settings: {
+    testnet: false,
   },
-  'primary': {
-    'address': 'mz4CVyMz8qCFXtpk8HUvKWviMgPRWZaiCB',
-    'coin': {
-      'version': 1,
-      'rewards': {},
-      'algorithms': {
-        'mining': 'kawpow',
-        'block': 'sha256d',
-        'coinbase': 'sha256d',
+  primary: {
+    address: 'mz4CVyMz8qCFXtpk8HUvKWviMgPRWZaiCB',
+    coin: {
+      version: 1,
+      rewards: {},
+      algorithms: {
+        mining: 'kawpow',
+        block: 'sha256d',
+        coinbase: 'sha256d',
       },
-      'mainnet': {
-        'bech32': '',
-        'bip32': {
-          'public': 0x043587cf,
-          'private': 0x04358394,
+      mainnet: {
+        bech32: '',
+        bip32: {
+          public: 0x043587cf,
+          private: 0x04358394,
         },
-        'pubKeyHash': 0x6f,
-        'scriptHash': 0xc4,
-        'wif': 0xef,
-        'coin': 'trvn',
+        pubKeyHash: 0x6f,
+        scriptHash: 0xc4,
+        wif: 0xef,
+        coin: 'trvn',
       },
     },
-    'recipients': [{
-      'address': 'mz4CVyMz8qCFXtpk8HUvKWviMgPRWZaiCB',
-      'percentage': 0.05,
-    }],
+    recipients: [
+      {
+        address: 'mz4CVyMz8qCFXtpk8HUvKWviMgPRWZaiCB',
+        percentage: 0.05,
+      },
+    ],
   },
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
 describe('Test manager functionality', () => {
-
   let optionsCopy, optionsKawpowCopy, rpcDataCopy, rpcDataKawpowCopy;
   beforeEach(() => {
     optionsCopy = JSON.parse(JSON.stringify(options));
@@ -162,7 +165,9 @@ describe('Test manager functionality', () => {
     const manager = new Manager(optionsCopy);
     expect(manager.extraNonceCounter.size).toBe(4);
     expect(manager.extraNonceCounter.next().length).toBe(8);
-    expect(manager.extraNoncePlaceholder).toStrictEqual(Buffer.from('f000000ff111111f', 'hex'));
+    expect(manager.extraNoncePlaceholder).toStrictEqual(
+      Buffer.from('f000000ff111111f', 'hex')
+    );
     expect(manager.extraNonce2Size).toBe(4);
   });
 
@@ -178,7 +183,9 @@ describe('Test manager functionality', () => {
     manager.updateCurrentJob(rpcData);
     expect(typeof manager.currentJob).toBe('object');
     expect(manager.currentJob.rpcData.height).toBe(1);
-    expect(manager.currentJob.rpcData.previousblockhash).toBe('9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2');
+    expect(manager.currentJob.rpcData.previousblockhash).toBe(
+      '9719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2'
+    );
     expect(typeof manager.validJobs[1]).toBe('object');
   });
 
@@ -193,7 +200,8 @@ describe('Test manager functionality', () => {
   test('Test template updates given new blockTemplate [2]', () => {
     const manager = new Manager(optionsCopy);
     const response1 = manager.processTemplate(rpcDataCopy, false);
-    rpcDataCopy.previousblockhash = '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2';
+    rpcDataCopy.previousblockhash =
+      '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2';
     const response2 = manager.processTemplate(rpcDataCopy, false);
     expect(response1).toBe(true);
     expect(response2).toBe(true);
@@ -202,7 +210,8 @@ describe('Test manager functionality', () => {
   test('Test template updates given new blockTemplate [3]', () => {
     const manager = new Manager(optionsCopy);
     const response1 = manager.processTemplate(rpcDataCopy, false);
-    rpcDataCopy.previousblockhash = '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2';
+    rpcDataCopy.previousblockhash =
+      '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2';
     rpcDataCopy.height = 0;
     const response2 = manager.processTemplate(rpcDataCopy, false);
     expect(response1).toBe(true);
@@ -221,7 +230,16 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: true,
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('incorrect size of extranonce2');
   });
@@ -238,9 +256,18 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: true,
     };
-    const response = manager.processShare(0, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      0,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(21);
-    expect(response.error[1]).toBe('job not found');
+    expect(response.error[1]).toBe('stale share');
   });
 
   test('Test share submission process [3]', () => {
@@ -255,7 +282,16 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: true,
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('incorrect size of ntime');
   });
@@ -272,7 +308,16 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: true,
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('ntime out of range');
   });
@@ -289,7 +334,16 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: true,
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('incorrect size of nonce');
   });
@@ -306,9 +360,18 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: true,
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', null, null, submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      null,
+      null,
+      submission
+    );
     expect(response.error[0]).toBe(20);
-    expect(response.error[1]).toBe('worker address isn\'t set properly');
+    expect(response.error[1]).toBe("worker address isn't set properly");
   });
 
   test('Test share submission process [7]', () => {
@@ -323,7 +386,16 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: true,
     };
-    const response = manager.processShare(1, 0.0000001, 0.0000001, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0.0000001,
+      0.0000001,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(typeof response.hash).toBe('string');
   });
 
@@ -339,8 +411,26 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: true,
     };
-    manager.processShare(1, 0.0000001, 0.0000001, 'ip_addr', 'port', 'addr1', 'addr2', submission);
-    const response = manager.processShare(1, 0.0000001, 0.0000001, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    manager.processShare(
+      1,
+      0.0000001,
+      0.0000001,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
+    const response = manager.processShare(
+      1,
+      0.0000001,
+      0.0000001,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(22);
     expect(response.error[1]).toBe('duplicate share');
   });
@@ -357,7 +447,16 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: true,
     };
-    const response = manager.processShare(1, 0.0000001, 0.0000001, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0.0000001,
+      0.0000001,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('invalid version bit');
   });
@@ -374,7 +473,16 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: true,
     };
-    const response = manager.processShare(1, 1, 1, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      1,
+      1,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(23);
     expect(response.error[1].slice(0, 23)).toBe('low difficulty share of');
   });
@@ -391,7 +499,16 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: false,
     };
-    const response = manager.processShare(1, 1, 1, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      1,
+      1,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(23);
     expect(response.error[1].slice(0, 23)).toBe('low difficulty share of');
   });
@@ -408,7 +525,16 @@ describe('Test manager functionality', () => {
       versionMask: '1fffe000',
       asicboost: false,
     };
-    const response = manager.processShare(1, 0.0000001, 1, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0.0000001,
+      1,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(typeof response.hash).toBe('string');
   });
 
@@ -422,9 +548,18 @@ describe('Test manager functionality', () => {
       headerHash: '00',
       mixHash: '00',
     };
-    const response = manager.processShare(0, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      0,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(21);
-    expect(response.error[1]).toBe('job not found');
+    expect(response.error[1]).toBe('stale share');
   });
 
   test('Test share submission process [14]', () => {
@@ -437,7 +572,16 @@ describe('Test manager functionality', () => {
       headerHash: 'xxxx',
       mixHash: '00',
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('invalid header submission [1]');
   });
@@ -452,7 +596,16 @@ describe('Test manager functionality', () => {
       headerHash: '00',
       mixHash: 'xxxx',
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('invalid mixHash submission');
   });
@@ -467,7 +620,16 @@ describe('Test manager functionality', () => {
       headerHash: '00',
       mixHash: '00',
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('invalid nonce submission');
   });
@@ -482,7 +644,16 @@ describe('Test manager functionality', () => {
       headerHash: '00',
       mixHash: '00',
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('invalid nonce submission');
   });
@@ -494,10 +665,21 @@ describe('Test manager functionality', () => {
     const submission = {
       extraNonce1: '1952',
       nonce: '19522aaaad98a7ec',
-      headerHash: '4c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
-      mixHash: '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45caa'
+      headerHash:
+        '4c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
+      mixHash:
+        '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45caa',
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('incorrect size of mixHash');
   });
@@ -509,10 +691,21 @@ describe('Test manager functionality', () => {
     const submission = {
       extraNonce1: '1952',
       nonce: '19522aaaad98a7ecaa',
-      headerHash: '4c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
-      mixHash: '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45c'
+      headerHash:
+        '4c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
+      mixHash:
+        '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45c',
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('incorrect size of nonce');
   });
@@ -524,10 +717,21 @@ describe('Test manager functionality', () => {
     const submission = {
       extraNonce1: '00',
       nonce: '19522aaaad98a7ec',
-      headerHash: '4c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
-      mixHash: '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45c'
+      headerHash:
+        '4c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
+      mixHash:
+        '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45c',
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(24);
     expect(response.error[1]).toBe('nonce out of worker range');
   });
@@ -539,12 +743,23 @@ describe('Test manager functionality', () => {
     const submission = {
       extraNonce1: 'b750',
       nonce: 'b7502aaaac75284c',
-      headerHash: 'a940277ad64417e5d645d884522f66d733cfc91ab0a87b32d6400ed28c6b8f2e',
-      mixHash: 'ab1957f31544c9a133eebccdd30dfefc3deda8ab3015aa12aac8b164346152ab'
+      headerHash:
+        'a940277ad64417e5d645d884522f66d733cfc91ab0a87b32d6400ed28c6b8f2e',
+      mixHash:
+        'ab1957f31544c9a133eebccdd30dfefc3deda8ab3015aa12aac8b164346152ab',
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', null, null, submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      null,
+      null,
+      submission
+    );
     expect(response.error[0]).toBe(20);
-    expect(response.error[1]).toBe('worker address isn\'t set properly');
+    expect(response.error[1]).toBe("worker address isn't set properly");
   });
 
   test('Test share submission process [22]', () => {
@@ -554,11 +769,31 @@ describe('Test manager functionality', () => {
     const submission = {
       extraNonce1: '1952',
       nonce: '19522aaaad98a7ec',
-      headerHash: '4c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
-      mixHash: '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45c'
+      headerHash:
+        '4c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
+      mixHash:
+        '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45c',
     };
-    manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(22);
     expect(response.error[1]).toBe('duplicate share');
   });
@@ -570,10 +805,21 @@ describe('Test manager functionality', () => {
     const submission = {
       extraNonce1: '1952',
       nonce: '19522aaaad98a7ec',
-      headerHash: '3c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
-      mixHash: '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45c'
+      headerHash:
+        '3c3ec261b8b84f36ffadad0f07b007748866d422c1c8006ccce526ad67088fe7',
+      mixHash:
+        '9d82ca253ae7011b8f9f2e12cba5a4373134197b89b5c9ecf6913f3c7d0bc45c',
     };
-    const response = manager.processShare(1, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
+    const response = manager.processShare(
+      1,
+      0,
+      0,
+      'ip_addr',
+      'port',
+      'addr1',
+      'addr2',
+      submission
+    );
     expect(response.error[0]).toBe(20);
     expect(response.error[1]).toBe('invalid header submission [2]');
   });
