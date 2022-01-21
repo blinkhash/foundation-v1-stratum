@@ -503,338 +503,338 @@ describe('Test stratum functionality', () => {
     expect(client.sendDifficulty(8)).toBe(true);
   });
 
-  // test('Test stratum message handling [1]', (done) => {
-  //   const response = [];
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.authorized = true;
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":[[["mining.set_difficulty","deadbeefcafebabe0100000000000000"],["mining.notify","deadbeefcafebabe0100000000000000"]],"extraNonce1","extraNonce2Size"],"error":null}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.on('subscription', (params, resultCallback) => {
-  //     resultCallback(null, 'extraNonce1', 'extraNonce2Size');
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.subscribe' });
-  // });
+  test('Test stratum message handling [1]', (done) => {
+    const response = [];
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.authorized = true;
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":[[["mining.set_difficulty","deadbeefcafebabe0100000000000000"],["mining.notify","deadbeefcafebabe0100000000000000"]],"extraNonce1","extraNonce2Size"],"error":null}\n');
+        stratum.stopServer();
+      }
+    });
+    client.on('subscription', (params, resultCallback) => {
+      resultCallback(null, 'extraNonce1', 'extraNonce2Size');
+    });
+    client.handleMessage({ id: null, method: 'mining.subscribe' });
+  });
 
-  // test('Test stratum message handling [2]', (done) => {
-  //   const response = [];
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.authorized = true;
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":null,"error":true}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.on('subscription', (params, resultCallback) => {
-  //     resultCallback(true, null, null);
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.subscribe' });
-  // });
+  test('Test stratum message handling [2]', (done) => {
+    const response = [];
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.authorized = true;
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":null,"error":true}\n');
+        stratum.stopServer();
+      }
+    });
+    client.on('subscription', (params, resultCallback) => {
+      resultCallback(true, null, null);
+    });
+    client.handleMessage({ id: null, method: 'mining.subscribe' });
+  });
 
-  // test('Test stratum message handling [3]', (done) => {
-  //   const response = [];
-  //   optionsCopy.primary.coin.algorithms.mining = 'kawpow';
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.authorized = true;
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":[null,"extraNonce1"],"error":null}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.on('subscription', (params, resultCallback) => {
-  //     resultCallback(null, 'extraNonce1', 'extraNonce2Size');
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.subscribe' });
-  // });
+  test('Test stratum message handling [3]', (done) => {
+    const response = [];
+    optionsCopy.primary.coin.algorithms.mining = 'kawpow';
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.authorized = true;
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":[null,"extraNonce1"],"error":null}\n');
+        stratum.stopServer();
+      }
+    });
+    client.on('subscription', (params, resultCallback) => {
+      resultCallback(null, 'extraNonce1', 'extraNonce2Size');
+    });
+    client.handleMessage({ id: null, method: 'mining.subscribe' });
+  });
 
-  // test('Test stratum message handling [4]', (done) => {
-  //   const response = [];
-  //   optionsCopy.primary.coin.algorithms.mining = 'kawpow';
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.authorized = true;
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":null,"error":true}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.on('subscription', (params, resultCallback) => {
-  //     resultCallback(true, null, null);
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.subscribe' });
-  // });
+  test('Test stratum message handling [4]', (done) => {
+    const response = [];
+    optionsCopy.primary.coin.algorithms.mining = 'kawpow';
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.authorized = true;
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":null,"error":true}\n');
+        stratum.stopServer();
+      }
+    });
+    client.on('subscription', (params, resultCallback) => {
+      resultCallback(true, null, null);
+    });
+    client.handleMessage({ id: null, method: 'mining.subscribe' });
+  });
 
-  // test('Test stratum message handling [5]', (done) => {
-  //   const response = [];
-  //   const stratum = new Network(optionsCopy, (addr, port, primary, auxiliary, password, callback) => {
-  //     callback({ error: null, authorized: true, disconnect: true });
-  //   });
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.authorized = true;
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":true,"error":null}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.authorize', params: ['username', 'password'] });
-  // });
+  test('Test stratum message handling [5]', (done) => {
+    const response = [];
+    const stratum = new Network(optionsCopy, (addr, port, primary, auxiliary, password, callback) => {
+      callback({ error: null, authorized: true, disconnect: true });
+    });
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.authorized = true;
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":true,"error":null}\n');
+        stratum.stopServer();
+      }
+    });
+    client.handleMessage({ id: null, method: 'mining.authorize', params: ['username', 'password'] });
+  });
 
-  // test('Test stratum message handling [6]', (done) => {
-  //   const response = [];
-  //   const stratum = new Network(optionsCopy, (addr, port, primary, auxiliary, password, callback) => {
-  //     callback({ error: null, authorized: true, disconnect: false });
-  //   });
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.authorized = true;
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":true,"error":null}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.authorize', params: ['username', 'password'] });
-  // });
+  test('Test stratum message handling [6]', (done) => {
+    const response = [];
+    const stratum = new Network(optionsCopy, (addr, port, primary, auxiliary, password, callback) => {
+      callback({ error: null, authorized: true, disconnect: false });
+    });
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.authorized = true;
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":true,"error":null}\n');
+        stratum.stopServer();
+      }
+    });
+    client.handleMessage({ id: null, method: 'mining.authorize', params: ['username', 'password'] });
+  });
 
-  // test('Test stratum message handling [7]', (done) => {
-  //   const response = [];
-  //   const stratum = new Network(optionsCopy, (addr, port, primary, auxiliary, password, callback) => {
-  //     callback({ error: null, authorized: true, disconnect: true });
-  //   });
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.authorized = true;
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":true,"error":null}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.authorize', params: ['primary,auxiliary', 'password'] });
-  // });
+  test('Test stratum message handling [7]', (done) => {
+    const response = [];
+    const stratum = new Network(optionsCopy, (addr, port, primary, auxiliary, password, callback) => {
+      callback({ error: null, authorized: true, disconnect: true });
+    });
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.authorized = true;
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":true,"error":null}\n');
+        stratum.stopServer();
+      }
+    });
+    client.handleMessage({ id: null, method: 'mining.authorize', params: ['primary,auxiliary', 'password'] });
+  });
 
-  // test('Test stratum message handling [8]', (done) => {
-  //   const response = [];
-  //   const stratum = new Network(optionsCopy, (addr, port, primary, auxiliary, password, callback) => {
-  //     callback({ error: null, authorized: true, disconnect: true });
-  //   });
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.authorized = true;
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":true,"error":null}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.authorize', params: ['primary,auxiliary', 'd=100'] });
-  // });
+  test('Test stratum message handling [8]', (done) => {
+    const response = [];
+    const stratum = new Network(optionsCopy, (addr, port, primary, auxiliary, password, callback) => {
+      callback({ error: null, authorized: true, disconnect: true });
+    });
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.authorized = true;
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":true,"error":null}\n');
+        stratum.stopServer();
+      }
+    });
+    client.handleMessage({ id: null, method: 'mining.authorize', params: ['primary,auxiliary', 'd=100'] });
+  });
 
-  // test('Test stratum message handling [9]', (done) => {
-  //   const response = [];
-  //   optionsCopy.primary.coin.asicboost = false;
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":{"version-rolling":false},"error":null}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.configure' });
-  //   expect(client.asicboost).toBe(false);
-  //   expect(client.versionMask).toBe('00000000');
-  // });
+  test('Test stratum message handling [9]', (done) => {
+    const response = [];
+    optionsCopy.primary.coin.asicboost = false;
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":{"version-rolling":false},"error":null}\n');
+        stratum.stopServer();
+      }
+    });
+    client.handleMessage({ id: null, method: 'mining.configure' });
+    expect(client.asicboost).toBe(false);
+    expect(client.versionMask).toBe('00000000');
+  });
 
-  // test('Test stratum message handling [10]', (done) => {
-  //   const response = [];
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":{"version-rolling":true,"version-rolling.mask":"1fffe000"},"error":null}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.configure' });
-  //   expect(client.asicboost).toBe(true);
-  //   expect(client.versionMask).toBe('1fffe000');
-  // });
+  test('Test stratum message handling [10]', (done) => {
+    const response = [];
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":{"version-rolling":true,"version-rolling.mask":"1fffe000"},"error":null}\n');
+        stratum.stopServer();
+      }
+    });
+    client.handleMessage({ id: null, method: 'mining.configure' });
+    expect(client.asicboost).toBe(true);
+    expect(client.versionMask).toBe('1fffe000');
+  });
 
-  // test('Test stratum message handling [11]', () => {
-  //   optionsCopy.primary.coin.asicboost = false;
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.handleMessage({ id: null, method: 'mining.multi_version', params: [1] });
-  //   expect(client.asicboost).toBe(false);
-  //   expect(client.versionMask).toBe('00000000');
-  //   stratum.stopServer();
-  // });
+  test('Test stratum message handling [11]', () => {
+    optionsCopy.primary.coin.asicboost = false;
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.handleMessage({ id: null, method: 'mining.multi_version', params: [1] });
+    expect(client.asicboost).toBe(false);
+    expect(client.versionMask).toBe('00000000');
+    stratum.stopServer();
+  });
 
-  // test('Test stratum message handling [12]', () => {
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.handleMessage({ id: null, method: 'mining.multi_version', params: [1] });
-  //   expect(client.asicboost).toBe(false);
-  //   expect(client.versionMask).toBe('00000000');
-  //   stratum.stopServer();
-  // });
+  test('Test stratum message handling [12]', () => {
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.handleMessage({ id: null, method: 'mining.multi_version', params: [1] });
+    expect(client.asicboost).toBe(false);
+    expect(client.versionMask).toBe('00000000');
+    stratum.stopServer();
+  });
 
-  // test('Test stratum message handling [13]', () => {
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.handleMessage({ id: null, method: 'mining.multi_version', params: [4] });
-  //   expect(client.asicboost).toBe(true);
-  //   expect(client.versionMask).toBe('1fffe000');
-  //   stratum.stopServer();
-  // });
+  test('Test stratum message handling [13]', () => {
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.handleMessage({ id: null, method: 'mining.multi_version', params: [4] });
+    expect(client.asicboost).toBe(true);
+    expect(client.versionMask).toBe('1fffe000');
+    stratum.stopServer();
+  });
 
-  // test('Test stratum message handling [14]', (done) => {
-  //   const response = [];
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":null,"error":[24,"unauthorized worker",null]}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.submit', params: ['worker', 'password'] });
-  //   expect(client.shares.invalid).toBe(1);
-  // });
+  test('Test stratum message handling [14]', (done) => {
+    const response = [];
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":null,"error":[24,"unauthorized worker",null]}\n');
+        stratum.stopServer();
+      }
+    });
+    client.handleMessage({ id: null, method: 'mining.submit', params: ['worker', 'password'] });
+    expect(client.shares.invalid).toBe(1);
+  });
 
-  // test('Test stratum message handling [15]', (done) => {
-  //   const response = [];
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.authorized = true;
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":null,"error":[25,"not subscribed",null]}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.submit', params: ['worker', 'password'] });
-  //   expect(client.shares.invalid).toBe(1);
-  // });
+  test('Test stratum message handling [15]', (done) => {
+    const response = [];
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.authorized = true;
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":null,"error":[25,"not subscribed",null]}\n');
+        stratum.stopServer();
+      }
+    });
+    client.handleMessage({ id: null, method: 'mining.submit', params: ['worker', 'password'] });
+    expect(client.shares.invalid).toBe(1);
+  });
 
-  // test('Test stratum message handling [16]', (done) => {
-  //   const response = [];
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.authorized = true;
-  //   client.extraNonce1 = true;
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":true,"error":null}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.on('submit', (params, resultCallback) => {
-  //     resultCallback(null, true);
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.submit', params: ['worker', 'password'] });
-  //   expect(client.shares.valid).toBe(1);
-  // });
+  test('Test stratum message handling [16]', (done) => {
+    const response = [];
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.authorized = true;
+    client.extraNonce1 = true;
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":true,"error":null}\n');
+        stratum.stopServer();
+      }
+    });
+    client.on('submit', (params, resultCallback) => {
+      resultCallback(null, true);
+    });
+    client.handleMessage({ id: null, method: 'mining.submit', params: ['worker', 'password'] });
+    expect(client.shares.valid).toBe(1);
+  });
 
-  // test('Test stratum message handling [17]', (done) => {
-  //   const response = [];
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":[],"error":[20,"Not supported.",null]}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.get_transactions' });
-  // });
+  test('Test stratum message handling [17]', (done) => {
+    const response = [];
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":[],"error":[20,"Not supported.",null]}\n');
+        stratum.stopServer();
+      }
+    });
+    client.handleMessage({ id: null, method: 'mining.get_transactions' });
+  });
 
-  // test('Test stratum message handling [18]', (done) => {
-  //   const response = [];
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.socket.on('log', text => {
-  //     response.push(text);
-  //     if (response.length === 1) {
-  //       stratum.on('stopped', () => done());
-  //       expect(response[0]).toBe('{"id":null,"result":false,"error":[20,"Not supported.",null]}\n');
-  //       stratum.stopServer();
-  //     }
-  //   });
-  //   client.handleMessage({ id: null, method: 'mining.extranonce.subscribe' });
-  // });
+  test('Test stratum message handling [18]', (done) => {
+    const response = [];
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.socket.on('log', text => {
+      response.push(text);
+      if (response.length === 1) {
+        stratum.on('stopped', () => done());
+        expect(response[0]).toBe('{"id":null,"result":false,"error":[20,"Not supported.",null]}\n');
+        stratum.stopServer();
+      }
+    });
+    client.handleMessage({ id: null, method: 'mining.extranonce.subscribe' });
+  });
 
   test('Test stratum message handling [19]', (done) => {
     const stratum = new Network(optionsCopy, () => {});
