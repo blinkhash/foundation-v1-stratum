@@ -177,23 +177,23 @@ describe('Test stratum functionality', () => {
     stratum.stopServer();
   });
 
-  // test('Text validation of worker name [1]', () => {
-  //   const socket = { socket: mockSocket() };
-  //   const client = new Client(socket);
-  //   expect(client.validateName('test')).toStrictEqual(['test', null]);
-  // });
+  test('Text validation of worker name [1]', () => {
+    const socket = { socket: mockSocket() };
+    const client = new Client(socket);
+    expect(client.validateName('test')).toStrictEqual(['test', null]);
+  });
 
-  // test('Text validation of worker name [2]', () => {
-  //   const socket = { socket: mockSocket() };
-  //   const client = new Client(socket);
-  //   expect(client.validateName('')).toStrictEqual(['', null]);
-  // });
+  test('Text validation of worker name [2]', () => {
+    const socket = { socket: mockSocket() };
+    const client = new Client(socket);
+    expect(client.validateName('')).toStrictEqual(['', null]);
+  });
 
-  // test('Text validation of worker name [3]', () => {
-  //   const socket = { socket: mockSocket() };
-  //   const client = new Client(socket);
-  //   expect(client.validateName('example!@#$%^&')).toStrictEqual(['example', null]);
-  // });
+  test('Text validation of worker name [3]', () => {
+    const socket = { socket: mockSocket() };
+    const client = new Client(socket);
+    expect(client.validateName('example!@#$%^&')).toStrictEqual(['example', null]);
+  });
 
   // test('Text validation of worker flags [1]', () => {
   //   const socket = { socket: mockSocket() };
