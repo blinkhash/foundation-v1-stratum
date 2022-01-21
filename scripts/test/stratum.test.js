@@ -299,8 +299,7 @@ describe('Test stratum functionality', () => {
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
     client.on('triggerBan', (timeout) => {
       stratum.on('stopped', () => done());
-      console.log(timeout);
-    //   expect(timeout).toBe('5 out of the last 5 shares were invalid');
+      expect(timeout).toBe('5 out of the last 5 shares were not valid');
       stratum.stopServer();
     });
     for (let step = 0; step < 5; step += 1) {
