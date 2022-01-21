@@ -292,24 +292,24 @@ describe('Test stratum functionality', () => {
   //   stratum.stopServer();
   // });
 
-  // test('Test stratum banning capabilities [7]', (done) => {
-  //   const stratum = new Network(optionsCopy, () => {});
-  //   const socket = mockSocket();
-  //   stratum.handleNewClient(socket);
-  //   const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
-  //   client.on('triggerBan', (timeout) => {
-  //     stratum.on('stopped', () => done());
-  //     expect(timeout).toBe('5 out of the last 5 shares were invalid');
-  //     stratum.stopServer();
-  //   });
-  //   for (let step = 0; step < 5; step += 1) {
-  //     if (step === 4) {
-  //       expect(client.considerBan(false)).toBe(true);
-  //     } else {
-  //       expect(client.considerBan(false)).toBe(false);
-  //     }
-  //   }
-  // });
+  test('Test stratum banning capabilities [7]', (done) => {
+    const stratum = new Network(optionsCopy, () => {});
+    const socket = mockSocket();
+    stratum.handleNewClient(socket);
+    const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
+    client.on('triggerBan', (timeout) => {
+      stratum.on('stopped', () => done());
+      expect(timeout).toBe('5 out of the last 5 shares were invalid');
+      stratum.stopServer();
+    });
+    for (let step = 0; step < 5; step += 1) {
+      if (step === 4) {
+        expect(client.considerBan(false)).toBe(true);
+      } else {
+        expect(client.considerBan(false)).toBe(false);
+      }
+    }
+  });
 
   test('Test stratum handling of new clients [1]', (done) => {
     const stratum = new Network(optionsCopy, () => {});
