@@ -24,7 +24,7 @@ const Client = function (options) {
   this.difficulty = 0;
   this.lastActivity = Date.now();
   this.remoteAddress = _this.options.socket.remoteAddress;
-  this.shares = { valid: 0, invalid: 0 }; // add stale?
+  this.shares = { valid: 0, invalid: 0 };
   this.socket = _this.options.socket;
 
   // Difficulty Options
