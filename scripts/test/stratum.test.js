@@ -243,8 +243,8 @@ describe('Test stratum functionality', () => {
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
     expect(client.considerBan(true)).toBe(false);
-    //expect(client.shares.valid).toBe(1);
-    //expect(client.shares.invalid).toBe(0);
+    expect(client.shares.valid).toBe(1);
+    expect(client.shares.invalid).toBe(0);
     stratum.on('stopped', () => done());
     stratum.stopServer();
   });
