@@ -110,7 +110,7 @@ const Manager = function (options) {
     addrAuxiliary,
     submission
   ) {
-    // Share is Invalid // mike or Stale so deal with it
+    // Share is Stale or Invalid
     const shareError = function (error) {
       _this.emit(
         'share',
@@ -125,7 +125,7 @@ const Manager = function (options) {
         null,
         null
       );
-      return { error: error, result: null }; // mike stale share vrátí { error: 'job not found', result: null } ... tady by mohla funkce vrátit i stale: true
+      return { error: error, result: null }; 
     };
 
     // Establish Share Variables
@@ -146,7 +146,7 @@ const Manager = function (options) {
         submitTime = (Date.now() / 1000) | 0;
         job = _this.validJobs[jobId];
         if (typeof job === 'undefined' || job.jobId != jobId) {
-          return shareError([21, 'stale share']); // mike tohle je stale share
+          return shareError([21, 'stale share']);
         }
         if (!utils.isHexString(submission.headerHash)) {
           return shareError([20, 'invalid header submission [1]']);
@@ -307,7 +307,7 @@ const Manager = function (options) {
         if (submission.extraNonce2.length / 2 !== _this.extraNonce2Size)
           return shareError([20, 'incorrect size of extranonce2']);
         if (typeof job === 'undefined' || job.jobId != jobId) {
-          return shareError([21, 'stale share']); // mike tohle je stale share
+          return shareError([21, 'stale share']);
         }
         if (submission.nTime.length !== 8) {
           return shareError([20, 'incorrect size of ntime']);

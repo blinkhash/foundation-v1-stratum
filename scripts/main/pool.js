@@ -893,7 +893,6 @@ const Pool = function (options, authorizeFn, responseFn) {
               mixHash: message.params[4].substr(2),
             };
             result = _this.manager.processShare(
-              // mike Stale share: result = `[error: 'job not found', result: null]`;
               message.params[1],
               client.previousDifficulty,
               client.difficulty,
@@ -917,8 +916,6 @@ const Pool = function (options, authorizeFn, responseFn) {
               asicboost: client.asicboost,
             };
             result = _this.manager.processShare(
-              // mike Stale share: result = { error: 'job not found', result: null };
-              // if no error: { error: null, hash: blockHash, hex: blockHex, result: true };
               message.params[1],
               client.previousDifficulty,
               client.difficulty,
@@ -927,11 +924,11 @@ const Pool = function (options, authorizeFn, responseFn) {
               client.addrPrimary,
               client.addrAuxiliary,
               submission
-            ); // mike result = [error: 'duplicate share', result: null]
+            );
             break;
         }
 
-        callback(result.error, result.result ? true : null); //mike: stale share vrátí ['job not found', null]
+        callback(result.error, result.result ? true : null);
       });
 
       // Establish Miscellaneous Client Functionality
