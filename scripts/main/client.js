@@ -73,7 +73,7 @@ const Client = function(options) {
       if (percentBad < _this.options.banning.invalidPercent) {
         this.shares = { valid: 0, invalid: 0 };
       } else {
-        _this.emit('triggerBan', _this.shares.invalid + ' out of the last ' + totalShares + ' shares were invalid');
+        _this.emit('triggerBan', _this.shares.invalid + ' out of the last ' + totalShares + ' shares were not valid');
         _this.socket.destroy();
         return true;
       }

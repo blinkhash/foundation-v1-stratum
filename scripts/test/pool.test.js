@@ -1433,9 +1433,9 @@ describe('Test pool functionality', () => {
     rpcDataCopy.auxData = auxData;
     const auxDataCopy = JSON.parse(JSON.stringify(auxData));
     const pool = new Pool(optionsCopy, null, () => {});
-    pool.on('share', (shareData, shareValid, blockValid) => {
+    pool.on('share', (shareData, shareType, blockValid) => {
       if (shareData.blockType === 'auxiliary') {
-        expect(shareValid).toBe(true);
+        expect(shareType).toBe('valid');
         expect(blockValid).toBe(false);
         expect(shareData.job).toBe(1);
         expect(shareData.hash).toBe('example auxiliary blockhash');
