@@ -408,9 +408,10 @@ const Pool = function(options, authorizeFn, responseFn) {
 
     // Handle Share Submissions
     _this.manager.on('share', (shareData, auxShareData, blockValid) => {
-      let shareType = 'valid';
 
-      if (shareData.error && shareData.error === 'stale share') {
+      // Calculate Status of Submitted Share
+      let shareType = 'valid';
+      if (shareData.error && shareData.error === 'job not found') {
         shareType = 'stale';
       } else if (shareData.error) {
         shareType = 'invalid';

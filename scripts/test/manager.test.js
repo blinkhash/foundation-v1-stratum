@@ -240,7 +240,7 @@ describe('Test manager functionality', () => {
     };
     const response = manager.processShare(0, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(21);
-    expect(response.error[1]).toBe('stale share');
+    expect(response.error[1]).toBe('job not found');
   });
 
   test('Test share submission process [3]', () => {
@@ -424,7 +424,7 @@ describe('Test manager functionality', () => {
     };
     const response = manager.processShare(0, 0, 0, 'ip_addr', 'port', 'addr1', 'addr2', submission);
     expect(response.error[0]).toBe(21);
-    expect(response.error[1]).toBe('stale share');
+    expect(response.error[1]).toBe('job not found');
   });
 
   test('Test share submission process [14]', () => {

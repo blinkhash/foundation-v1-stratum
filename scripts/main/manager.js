@@ -132,7 +132,7 @@ const Manager = function(options) {
       submitTime = Date.now() / 1000 | 0;
       job = _this.validJobs[jobId];
       if (typeof job === 'undefined' || job.jobId != jobId) {
-        return shareError([21, 'stale share']);
+        return shareError([21, 'job not found']);
       }
       if (!utils.isHexString(submission.headerHash)) {
         return shareError([20, 'invalid header submission [1]']);
@@ -262,7 +262,7 @@ const Manager = function(options) {
       if (submission.extraNonce2.length / 2 !== _this.extraNonce2Size)
         return shareError([20, 'incorrect size of extranonce2']);
       if (typeof job === 'undefined' || job.jobId != jobId) {
-        return shareError([21, 'stale share']);
+        return shareError([21, 'job not found']);
       }
       if (submission.nTime.length !== 8) {
         return shareError([20, 'incorrect size of ntime']);
