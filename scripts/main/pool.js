@@ -408,16 +408,22 @@ const Pool = function(options, authorizeFn, responseFn) {
 
     // Handle Share Submissions
     _this.manager.on('share', (shareData, auxShareData, blockValid) => {
-      const shareValid = !shareData.error;
+      let shareType = 'valid';
+
+      if (shareData.error && shareData.error === 'stale share') {
+        shareType = 'stale';
+      } else if (shareData.error) {
+        shareType = 'invalid';
+      }
 
       // Process Share/Primary Submission
       if (!blockValid) {
-        _this.emit('share', shareData, shareValid, blockValid, () => {});
+        _this.emit('share', shareData, shareType, blockValid, () => {});
       } else {
         _this.submitBlock(shareData.hex, () => {
           _this.checkBlockAccepted(shareData.hash, _this.primary.daemon, (accepted, tx) => {
             shareData.transaction = tx;
-            _this.emit('share', shareData, shareValid, accepted, () => {});
+            _this.emit('share', shareData, shareType, accepted, () => {});
             _this.getBlockTemplate((error, result, foundNewBlock) => {
               if (foundNewBlock) {
                 emitSpecialLog('Block notification via RPC after primary block submission');
@@ -428,7 +434,7 @@ const Pool = function(options, authorizeFn, responseFn) {
       }
 
       // Process Auxiliary Block Submission
-      if (shareValid && _this.options.auxiliary && _this.options.auxiliary.enabled) {
+      if (shareType === 'valid' && _this.options.auxiliary && _this.options.auxiliary.enabled) {
 
         // Calculate Auxiliary Difficulty
         const algorithm = _this.options.primary.coin.algorithms.mining;
@@ -444,7 +450,7 @@ const Pool = function(options, authorizeFn, responseFn) {
               auxShareData.transaction = tx;
               auxShareData.height = _this.auxiliary.rpcData.height;
               auxShareData.reward = _this.auxiliary.rpcData.coinbasevalue;
-              _this.emit('share', auxShareData, shareValid, accepted, () => {});
+              _this.emit('share', auxShareData, shareType, accepted, () => {});
               _this.getBlockTemplate((error, result, foundNewBlock) => {
                 if (foundNewBlock) {
                   emitSpecialLog('Block notification via RPC after auxiliary block submission');
