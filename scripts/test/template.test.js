@@ -239,7 +239,7 @@ describe('Test template functionality', () => {
   });
 
   test('Test block serialization [3]', () => {
-    optionsCopy.primary.coin.staking = true;
+    optionsCopy.primary.coin.hybrid = true;
     optionsCopy.primary.pubkey = '020ba3ebc2f55152df5653bb7aba6548f0615d67b072379bdd19e72bc63c052c50';
     const template = new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy);
     const headerBuffer = Buffer.from('00000020e22777bc309503ee6be3c65f370ba629b6497dbe8b804cbd8365ef83fbae1997afd031100bff85a9ac01f1718be0b3d6c20228592f0242ea1e4d91a519b530314fc53660f0ff0f1e00001afe', 'hex');

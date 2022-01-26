@@ -188,7 +188,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
         coinbase,
         _this.transactions,
         _this.getVoteData(),
-        Buffer.from(_this.options.primary.coin.staking ? [0] : [])
+        Buffer.from(_this.options.primary.coin.hybrid ? [0] : [])
       ]);
       break;
     }

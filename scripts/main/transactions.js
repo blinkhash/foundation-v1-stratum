@@ -38,12 +38,10 @@ const Transactions = function() {
     let reward = rpcData.coinbasevalue;
     let rewardToPool = reward;
     const coinbaseAux = rpcData.coinbaseaux.flags ? Buffer.from(rpcData.coinbaseaux.flags, 'hex') : Buffer.from([]);
-    const poolAddressScript = options.primary.coin.staking ? (
-      utils.pubkeyToScript(options.primary.pubkey)) : (
-      utils.addressToScript(options.primary.address, network));
+    const poolAddressScript = utils.addressToScript(options.primary.address, network);
 
     // Handle Timestamp if Necessary
-    const txTimestamp = options.primary.coin.staking === true ?
+    const txTimestamp = options.primary.coin.hybrid === true ?
       utils.packUInt32LE(rpcData.curtime) :
       Buffer.from([]);
 
@@ -172,31 +170,32 @@ const Transactions = function() {
     }
 
     // Handle Secondary Transactions
+    let founderReward, founderScript;
     switch (options.primary.coin.rewards.type) {
 
     // RTM-Based Transactions
     case 'raptoreum':
       if (rpcData.founder_payments_started && rpcData.founder) {
-        const payeeReward = rpcData.founder.amount;
-        const payeeScript = utils.addressToScript(rpcData.founder.payee, network);
-        reward -= payeeReward;
-        rewardToPool -= payeeReward;
+        founderReward = rpcData.founder.amount;
+        founderScript = utils.addressToScript(rpcData.founder.payee, network);
+        reward -= founderReward;
+        rewardToPool -= founderReward;
         txOutputBuffers.push(Buffer.concat([
-          utils.packUInt64LE(payeeReward),
-          utils.varIntBuffer(payeeScript.length),
-          payeeScript,
+          utils.packUInt64LE(founderReward),
+          utils.varIntBuffer(founderScript.length),
+          founderScript,
         ]));
       }
       break;
 
     // HVQ-Based Transactions
     case 'hivecoin':
-      const payeeReward = rpcData.CommunityAutonomousValue;
-      const payeeScript = utils.addressToScript(rpcData.CommunityAutonomousAddress, network);
+      founderReward = rpcData.CommunityAutonomousValue;
+      founderScript = utils.addressToScript(rpcData.CommunityAutonomousAddress, network);
       txOutputBuffers.unshift(Buffer.concat([
-        utils.packUInt64LE(payeeReward),
-        utils.varIntBuffer(payeeScript.length),
-        payeeScript,
+        utils.packUInt64LE(founderReward),
+        utils.varIntBuffer(founderScript.length),
+        founderScript,
       ]));
       break;
 

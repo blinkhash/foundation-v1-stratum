@@ -61,7 +61,7 @@ const Network = function(options, authorizeFn) {
         ...(enabled && { key: fs.readFileSync(path.join('./certificates', port.ssl.key)) }),
         ...(enabled && { cert: fs.readFileSync(path.join('./certificates', port.ssl.cert)) }),
         allowHalfOpen: false,
-      }
+      };
 
       // Setup Stratum Server
       const callback = (socket) => _this.handleNewClient(socket);

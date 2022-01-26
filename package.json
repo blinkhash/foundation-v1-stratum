@@ -1,6 +1,6 @@
 {
   "name": "foundation-stratum",
-  "version": "0.0.26",
+  "version": "0.0.27",
   "description": "High performance Stratum poolserver in Node.js",
   "main": "./scripts/main.js",
   "keywords": [
@@ -28,7 +28,8 @@
   "scripts": {
     "clean": "eslint . --ext .js --ignore-pattern node_modules/",
     "clean:fix": "eslint . --ext .js --fix --ignore-pattern node_modules/",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "deploy": "npm run clean:fix && npm run test"
   },
   "contributors": [],
   "repository": {
