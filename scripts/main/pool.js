@@ -18,10 +18,11 @@ const Peer = require('./peer');
 ////////////////////////////////////////////////////////////////////////////////
 
 // Main Pool Function
-const Pool = function(options, authorizeFn, responseFn) {
+const Pool = function(options, portalOptions, authorizeFn, responseFn) {
 
   const _this = this;
   this.options = options;
+  this.portalOptions = portalOptions;
   this.authorizeFn = authorizeFn;
   this.responseFn = responseFn;
 
@@ -641,7 +642,7 @@ const Pool = function(options, authorizeFn, responseFn) {
   this.setupStratum = function(callback) {
 
     // Establish Stratum Server
-    _this.stratum = new Network(_this.options, _this.authorizeFn);
+    _this.stratum = new Network(_this.options, _this.portalOptions, _this.authorizeFn);
     _this.stratum.on('started', () => {
       const stratumPorts = _this.options.ports
         .filter(port => port.enabled)
