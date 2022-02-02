@@ -23,10 +23,11 @@ const Client = require('./client');
  **/
 
 // Main Network Function
-const Network = function(options, authorizeFn) {
+const Network = function(options, portalOptions, authorizeFn) {
 
   const _this = this;
   this.options = options;
+  this.portalOptions = portalOptions;
   this.bannedIPs = {};
   this.stratumClients = {};
   this.stratumServers = {};
@@ -52,14 +53,15 @@ const Network = function(options, authorizeFn) {
     // Start Individual Stratum Servers
     let serversStarted = 0;
     const stratumPorts = _this.options.ports.filter(port => port.enabled);
+
     stratumPorts.forEach((port) => {
       const currentPort = port.port;
       const enabled = port.ssl && port.ssl.enabled;
 
       // Define Stratum Options
       const options = {
-        ...(enabled && { key: fs.readFileSync(path.join('./certificates', port.ssl.key)) }),
-        ...(enabled && { cert: fs.readFileSync(path.join('./certificates', port.ssl.cert)) }),
+        ...(enabled && { key: fs.readFileSync(path.join('./certificates', _this.portalOptions.tls.serverKey)) }),
+        ...(enabled && { cert: fs.readFileSync(path.join('./certificates', _this.portalOptions.tls.serverCert)) }),
         allowHalfOpen: false,
       };
 
