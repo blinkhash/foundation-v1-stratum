@@ -23,18 +23,18 @@ const Client = require('./client');
  **/
 
 // Main Network Function
-const Network = function(options, portalOptions, authorizeFn) {
+const Network = function(poolConfig, portalConfig, authorizeFn) {
 
   const _this = this;
-  this.options = options;
-  this.portalOptions = portalOptions;
+  this.poolConfig = poolConfig;
+  this.portalConfig = portalConfig;
   this.bannedIPs = {};
   this.stratumClients = {};
   this.stratumServers = {};
 
   let rebroadcastTimeout;
   const subscriptionCounter = utils.subscriptionCounter();
-  const bannedMS = _this.options.banning.time * 1000;
+  const bannedMS = _this.poolConfig.banning.time * 1000;
 
   // Start Stratum Capabilities
   /* istanbul ignore next */
@@ -44,15 +44,15 @@ const Network = function(options, portalOptions, authorizeFn) {
     setInterval(() => {
       Object.keys(_this.bannedIPs).forEach(ip => {
         const banTime = _this.bannedIPs[ip];
-        if (Date.now() - banTime > _this.options.banning.time) {
+        if (Date.now() - banTime > _this.poolConfig.banning.time) {
           delete _this.bannedIPs[ip];
         }
       });
-    }, 1000 * _this.options.banning.purgeInterval);
+    }, 1000 * _this.poolConfig.banning.purgeInterval);
 
     // Start Individual Stratum Servers
     let serversStarted = 0;
-    const stratumPorts = _this.options.ports.filter(port => port.enabled);
+    const stratumPorts = _this.poolConfig.ports.filter(port => port.enabled);
 
     stratumPorts.forEach((port) => {
       const currentPort = port.port;
@@ -60,8 +60,8 @@ const Network = function(options, portalOptions, authorizeFn) {
 
       // Define Stratum Options
       const options = {
-        ...(enabled && { key: fs.readFileSync(path.join('./certificates', _this.portalOptions.tls.serverKey)) }),
-        ...(enabled && { cert: fs.readFileSync(path.join('./certificates', _this.portalOptions.tls.serverCert)) }),
+        ...(enabled && { key: fs.readFileSync(path.join('./certificates', _this.portalConfig.tls.serverKey)) }),
+        ...(enabled && { cert: fs.readFileSync(path.join('./certificates', _this.portalConfig.tls.serverCert)) }),
         allowHalfOpen: false,
       };
 
@@ -84,7 +84,7 @@ const Network = function(options, portalOptions, authorizeFn) {
 
   // Stop Stratum Connection
   this.stopServer = function() {
-    const stratumPorts = _this.options.ports.filter(port => port.enabled);
+    const stratumPorts = _this.poolConfig.ports.filter(port => port.enabled);
     stratumPorts.forEach((port) => {
       const currentPort = port.port;
       const server = _this.stratumServers[currentPort];
@@ -119,11 +119,11 @@ const Network = function(options, portalOptions, authorizeFn) {
       subscriptionId: subscriptionId,
       authorizeFn: authorizeFn,
       socket: socket,
-      algorithm: _this.options.primary.coin.algorithms.mining,
-      asicboost: _this.options.primary.coin.asicboost,
-      banning: _this.options.banning,
-      connectionTimeout: _this.options.settings.connectionTimeout,
-      tcpProxyProtocol: _this.options.settings.tcpProxyProtocol
+      algorithm: _this.poolConfig.primary.coin.algorithms.mining,
+      asicboost: _this.poolConfig.primary.coin.asicboost,
+      banning: _this.poolConfig.banning,
+      connectionTimeout: _this.poolConfig.settings.connectionTimeout,
+      tcpProxyProtocol: _this.poolConfig.settings.tcpProxyProtocol
     });
     _this.stratumClients[subscriptionId] = client;
 
@@ -156,7 +156,7 @@ const Network = function(options, portalOptions, authorizeFn) {
     clearTimeout(rebroadcastTimeout);
     rebroadcastTimeout = setTimeout(() => {
       _this.emit('broadcastTimeout');
-    }, _this.options.settings.jobRebroadcastTimeout * 1000);
+    }, _this.poolConfig.settings.jobRebroadcastTimeout * 1000);
   };
 
   // Add Banned IP to List of Banned IPs

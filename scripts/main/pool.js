@@ -18,11 +18,11 @@ const Peer = require('./peer');
 ////////////////////////////////////////////////////////////////////////////////
 
 // Main Pool Function
-const Pool = function(options, portalOptions, authorizeFn, responseFn) {
+const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
 
   const _this = this;
-  this.options = options;
-  this.portalOptions = portalOptions;
+  this.poolConfig = poolConfig;
+  this.portalConfig = portalConfig;
   this.authorizeFn = authorizeFn;
   this.responseFn = responseFn;
 
@@ -55,9 +55,9 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
   };
 
   // Check if Algorithms Supported
-  _this.checkAlgorithm(_this.options.primary.coin.algorithms.mining);
-  _this.checkAlgorithm(_this.options.primary.coin.algorithms.block);
-  _this.checkAlgorithm(_this.options.primary.coin.algorithms.coinbase);
+  _this.checkAlgorithm(_this.poolConfig.primary.coin.algorithms.mining);
+  _this.checkAlgorithm(_this.poolConfig.primary.coin.algorithms.block);
+  _this.checkAlgorithm(_this.poolConfig.primary.coin.algorithms.coinbase);
 
   // Start Pool Capabilities
   /* istanbul ignore next */
@@ -83,12 +83,13 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
 
   // Configure Port Difficulty
   /* istanbul ignore next */
-  this.setDifficulty = function(port, difficultyConfig) {
+  this.setDifficulty = function(port) {
     const currentPort = port.port;
+    const currentDifficulty = port.difficulty;
     if (typeof(_this.difficulty[currentPort]) != 'undefined') {
       _this.difficulty[currentPort].removeAllListeners();
     }
-    const difficultyInstance = new Difficulty(currentPort, difficultyConfig, false);
+    const difficultyInstance = new Difficulty(currentPort, currentDifficulty, false);
     _this.difficulty[currentPort] = difficultyInstance;
     _this.difficulty[currentPort].on('newDifficulty', (client, newDiff) => {
       client.enqueueNextDifficulty(newDiff);
@@ -99,9 +100,9 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
   /* istanbul ignore next */
   this.setupDifficulty = function() {
     _this.difficulty = {};
-    _this.options.ports.forEach(port => {
+    _this.poolConfig.ports.forEach(port => {
       if (port.difficulty) {
-        _this.setDifficulty(port, port.difficulty);
+        _this.setDifficulty(port);
       }
     });
   };
@@ -123,17 +124,17 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
 
   // Initialize Pool Daemon
   this.setupDaemonInterface = function(callback) {
-    if (!Array.isArray(_this.options.primary.daemons) || _this.options.primary.daemons.length < 1) {
+    if (!Array.isArray(_this.poolConfig.primary.daemons) || _this.poolConfig.primary.daemons.length < 1) {
       emitErrorLog('No primary daemons have been configured - pool cannot start');
       return;
     }
-    _this.primary.daemon = _this.setupDaemon(_this.options.primary.daemons, () => {});
-    if (_this.options.auxiliary && _this.options.auxiliary.enabled) {
-      if (!Array.isArray(_this.options.auxiliary.daemons) || _this.options.auxiliary.daemons.length < 1) {
+    _this.primary.daemon = _this.setupDaemon(_this.poolConfig.primary.daemons, () => {});
+    if (_this.poolConfig.auxiliary && _this.poolConfig.auxiliary.enabled) {
+      if (!Array.isArray(_this.poolConfig.auxiliary.daemons) || _this.poolConfig.auxiliary.daemons.length < 1) {
         emitErrorLog('No auxiliary daemons have been configured - pool cannot start');
         return;
       }
-      _this.auxiliary.daemon = _this.setupDaemon(_this.options.auxiliary.daemons, callback);
+      _this.auxiliary.daemon = _this.setupDaemon(_this.poolConfig.auxiliary.daemons, callback);
     } else {
       callback();
     }
@@ -143,13 +144,13 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
   /* istanbul ignore next */
   this.setupPoolData = function(callback) {
     const batchRPCCommand = [
-      ['validateaddress', [_this.options.primary.address]],
+      ['validateaddress', [_this.poolConfig.primary.address]],
       ['getmininginfo', []],
       ['submitblock', []]
     ];
 
     // Check if Coin has GetInfo Defined
-    if (_this.options.primary.coin.getinfo) {
+    if (_this.poolConfig.primary.coin.getinfo) {
       batchRPCCommand.push(['getinfo', []]);
     } else {
       batchRPCCommand.push(['getblockchaininfo', []], ['getnetworkinfo', []]);
@@ -180,31 +181,31 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
       }
 
       // Check if Mainnet/Testnet is Active
-      if (_this.options.primary.coin.getinfo) {
-        _this.options.settings.testnet = (rpcResults.getinfo.testnet === true) ? true : false;
+      if (_this.poolConfig.primary.coin.getinfo) {
+        _this.poolConfig.settings.testnet = (rpcResults.getinfo.testnet === true) ? true : false;
       } else {
-        _this.options.settings.testnet = (rpcResults.getblockchaininfo.chain === 'test') ? true : false;
+        _this.poolConfig.settings.testnet = (rpcResults.getblockchaininfo.chain === 'test') ? true : false;
       }
 
       // Establish Coin Protocol Version
-      _this.options.primary.address = rpcResults.validateaddress.address;
-      _this.options.settings.protocolVersion = _this.options.primary.coin.getinfo ? rpcResults.getinfo.protocolversion : rpcResults.getnetworkinfo.protocolversion;
-      let difficulty = _this.options.primary.coin.getinfo ? rpcResults.getinfo.difficulty : rpcResults.getblockchaininfo.difficulty;
+      _this.poolConfig.primary.address = rpcResults.validateaddress.address;
+      _this.poolConfig.settings.protocolVersion = _this.poolConfig.primary.coin.getinfo ? rpcResults.getinfo.protocolversion : rpcResults.getnetworkinfo.protocolversion;
+      let difficulty = _this.poolConfig.primary.coin.getinfo ? rpcResults.getinfo.difficulty : rpcResults.getblockchaininfo.difficulty;
       if (typeof(difficulty) == 'object') {
         difficulty = difficulty['proof-of-work'];
       }
 
       // Establish Coin Initial Statistics
-      _this.options.statistics = {
-        connections: _this.options.primary.coin.getinfo ? rpcResults.getinfo.connections : rpcResults.getnetworkinfo.connections,
-        difficulty: difficulty * Algorithms[_this.options.primary.coin.algorithms.mining].multiplier,
+      _this.poolConfig.statistics = {
+        connections: _this.poolConfig.primary.coin.getinfo ? rpcResults.getinfo.connections : rpcResults.getnetworkinfo.connections,
+        difficulty: difficulty * Algorithms[_this.poolConfig.primary.coin.algorithms.mining].multiplier,
       };
 
       // Check if Pool is Able to Submit Blocks
       if (rpcResults.submitblock.message === 'Method not found') {
-        _this.options.settings.hasSubmitMethod = false;
+        _this.poolConfig.settings.hasSubmitMethod = false;
       } else if (rpcResults.submitblock.code === -1) {
-        _this.options.settings.hasSubmitMethod = true;
+        _this.poolConfig.settings.hasSubmitMethod = true;
       } else {
         emitErrorLog('Could not detect block submission RPC method');
         return;
@@ -216,12 +217,12 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
 
   // Initialize Pool Recipients
   this.setupRecipients = function() {
-    if (_this.options.primary.recipients.length === 0) {
+    if (_this.poolConfig.primary.recipients.length === 0) {
       emitWarningLog('No recipients have been added which means that no fees will be taken');
     }
-    _this.options.settings.feePercentage = 0;
-    _this.options.primary.recipients.forEach(recipient => {
-      _this.options.settings.feePercentage += recipient.percentage;
+    _this.poolConfig.settings.feePercentage = 0;
+    _this.poolConfig.primary.recipients.forEach(recipient => {
+      _this.poolConfig.settings.feePercentage += recipient.percentage;
     });
   };
 
@@ -230,7 +231,7 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
 
     // Check which Submit Method is Supported
     let rpcCommand, rpcArgs;
-    if (_this.options.settings.hasSubmitMethod) {
+    if (_this.poolConfig.settings.hasSubmitMethod) {
       rpcCommand = 'submitblock';
       rpcArgs = [blockHex];
     } else {
@@ -252,7 +253,7 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
           return;
         }
       }
-      emitSpecialLog(`Submitted primary block successfully to ${ _this.options.primary.coin.name }'s daemon instance(s)`);
+      emitSpecialLog(`Submitted primary block successfully to ${ _this.poolConfig.primary.coin.name }'s daemon instance(s)`);
       callback();
     });
   };
@@ -299,7 +300,7 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
           return;
         }
       }
-      emitSpecialLog(`Submitted auxiliary block successfully to ${ _this.options.auxiliary.coin.name }'s daemon instance(s)`);
+      emitSpecialLog(`Submitted auxiliary block successfully to ${ _this.poolConfig.auxiliary.coin.name }'s daemon instance(s)`);
       callback(_this.auxiliary.rpcData.hash);
     });
   };
@@ -333,7 +334,7 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
         'coinbase/append'
       ]
     };
-    if (_this.options.primary.coin.segwit) {
+    if (_this.poolConfig.primary.coin.segwit) {
       callConfig.rules = ['segwit'];
     }
 
@@ -344,7 +345,7 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
           result.instance.index + ' with error ' + JSON.stringify(result.error));
         callback(result.error);
       } else {
-        if (_this.options.auxiliary && _this.options.auxiliary.enabled) {
+        if (_this.poolConfig.auxiliary && _this.poolConfig.auxiliary.enabled) {
           result.response.auxData = _this.auxiliary.rpcData;
         }
         const processedNewBlock = _this.manager.processTemplate(result.response, force);
@@ -356,7 +357,7 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
   // Update Work for Auxiliary Chain
   /* istanbul ignore next */
   this.getAuxTemplate = function(callback) {
-    if (_this.options.auxiliary && _this.options.auxiliary.enabled) {
+    if (_this.poolConfig.auxiliary && _this.poolConfig.auxiliary.enabled) {
       _this.auxiliary.daemon.cmd('getauxblock', [], (result) => {
         if (result[0].error) {
           emitErrorLog('getauxblock call failed for daemon instance ' +
@@ -386,11 +387,11 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
   this.setupJobManager = function() {
 
     // Establish Pool Manager
-    _this.manager = new Manager(_this.options);
+    _this.manager = new Manager(_this.poolConfig);
     _this.manager.on('newBlock', (blockTemplate) => {
       if (_this.stratum) {
         _this.stratum.broadcastMiningJobs(blockTemplate, true);
-        if (_this.options.debug) {
+        if (_this.poolConfig.debug) {
           emitLog('Established new job for updated block template');
         }
       }
@@ -425,10 +426,10 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
       }
 
       // Process Auxiliary Block Submission
-      if (shareType === 'valid' && _this.options.auxiliary && _this.options.auxiliary.enabled) {
+      if (shareType === 'valid' && _this.poolConfig.auxiliary && _this.poolConfig.auxiliary.enabled) {
 
         // Calculate Auxiliary Difficulty
-        const algorithm = _this.options.primary.coin.algorithms.mining;
+        const algorithm = _this.poolConfig.primary.coin.algorithms.mining;
         const shareMultiplier = Algorithms[algorithm].multiplier;
         const difficulty = parseFloat((Algorithms[algorithm].diff / _this.auxiliary.rpcData.target.toNumber()).toFixed(9));
         auxShareData.blockDiffAuxiliary = difficulty * shareMultiplier;
@@ -471,13 +472,13 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
         'coinbase/append'
       ]
     };
-    if (_this.options.primary.coin.segwit) {
+    if (_this.poolConfig.primary.coin.segwit) {
       callConfig.rules = ['segwit'];
     }
 
     // Calculate Current Progress on Sync
     const generateProgress = function() {
-      const cmd = _this.options.primary.coin.getinfo ? 'getinfo' : 'getblockchaininfo';
+      const cmd = _this.poolConfig.primary.coin.getinfo ? 'getinfo' : 'getblockchaininfo';
       _this.primary.daemon.cmd(cmd, [], (results) => {
         const blockCount = Math.max.apply(null, results
           .flatMap(result => result.response)
@@ -530,8 +531,8 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
           return;
         }
         const portWarnings = [];
-        const networkDiffAdjusted = _this.options.statistics.difficulty;
-        _this.options.ports.forEach(port => {
+        const networkDiffAdjusted = _this.poolConfig.statistics.difficulty;
+        _this.poolConfig.ports.forEach(port => {
           const currentPort = port.port;
           const portDiff = port.difficulty.initial;
           if (networkDiffAdjusted < portDiff) {
@@ -551,12 +552,12 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
   // Initialize Pool Block Polling
   /* istanbul ignore next */
   this.setupBlockPolling = function() {
-    if (typeof _this.options.settings.blockRefreshInterval !== 'number' || _this.options.settings.blockRefreshInterval <= 0) {
+    if (typeof _this.poolConfig.settings.blockRefreshInterval !== 'number' || _this.poolConfig.settings.blockRefreshInterval <= 0) {
       emitLog('Block template polling has been disabled');
       return;
     }
     let pollingFlag = false;
-    const pollingInterval = _this.options.settings.blockRefreshInterval;
+    const pollingInterval = _this.poolConfig.settings.blockRefreshInterval;
     setInterval(() => {
       if (pollingFlag === false) {
         pollingFlag = true;
@@ -565,12 +566,12 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
             pollingFlag = false;
             if (primaryUpdate && !auxiliaryUpdate) {
               limitMessages(() => {
-                emitLog(`Primary chain (${ _this.options.primary.coin.name }) notification via RPC polling at height ${ primaryResult.height }`);
+                emitLog(`Primary chain (${ _this.poolConfig.primary.coin.name }) notification via RPC polling at height ${ primaryResult.height }`);
               });
             }
             if (auxiliaryUpdate) {
               limitMessages(() => {
-                emitLog(`Auxiliary chain (${ _this.options.auxiliary.coin.name }) notification via RPC polling at height ${ auxiliaryResult.height }`);
+                emitLog(`Auxiliary chain (${ _this.poolConfig.auxiliary.coin.name }) notification via RPC polling at height ${ auxiliaryResult.height }`);
               });
             }
           }, auxiliaryUpdate);
@@ -586,9 +587,9 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
     if ((typeof(currentJob) !== 'undefined') && (blockHash !== currentJob.rpcData.previousblockhash)) {
       _this.getBlockTemplate((error) => {
         if (error) {
-          emitErrorLog(`Block notify error getting block template for ${ _this.options.primary.coin.name }`);
+          emitErrorLog(`Block notify error getting block template for ${ _this.poolConfig.primary.coin.name }`);
         } else {
-          emitLog(`Block template for ${ _this.options.primary.coin.name } updated successfully`);
+          emitLog(`Block template for ${ _this.poolConfig.primary.coin.name } updated successfully`);
         }
       }, false);
     }
@@ -599,26 +600,26 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
   this.setupPeer = function() {
 
     // Establish Peer Settings
-    _this.options.settings.verack = false;
-    _this.options.settings.validConnectionConfig = true;
+    _this.poolConfig.settings.verack = false;
+    _this.poolConfig.settings.validConnectionConfig = true;
 
     // Check for P2P Configuration
-    if (!_this.options.p2p || !_this.options.p2p.enabled) {
+    if (!_this.poolConfig.p2p || !_this.poolConfig.p2p.enabled) {
       limitMessages(() => {
         emitLog('p2p has been disabled in the configuration');
       });
       return;
     }
-    if (_this.options.settings.testnet && !_this.options.primary.coin.testnet.peerMagic) {
+    if (_this.poolConfig.settings.testnet && !_this.poolConfig.primary.coin.testnet.peerMagic) {
       emitErrorLog('p2p cannot be enabled in testnet without peerMagic set in testnet configuration');
       return;
-    } else if (!_this.options.primary.coin.mainnet.peerMagic) {
+    } else if (!_this.poolConfig.primary.coin.mainnet.peerMagic) {
       emitErrorLog('p2p cannot be enabled without peerMagic set in mainnet configuration');
       return;
     }
 
     // Establish Peer Server
-    _this.peer = new Peer(_this.options);
+    _this.peer = new Peer(_this.poolConfig);
     _this.peer.on('blockFound', (hash) => {
       emitLog('Block notification via p2p', false);
       _this.processBlockNotify(hash);
@@ -642,25 +643,25 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
   this.setupStratum = function(callback) {
 
     // Establish Stratum Server
-    _this.stratum = new Network(_this.options, _this.portalOptions, _this.authorizeFn);
+    _this.stratum = new Network(_this.poolConfig, _this.portalConfig, _this.authorizeFn);
     _this.stratum.on('started', () => {
-      const stratumPorts = _this.options.ports
+      const stratumPorts = _this.poolConfig.ports
         .filter(port => port.enabled)
         .flatMap(port => port.port);
-      _this.options.statistics.stratumPorts = stratumPorts;
+      _this.poolConfig.statistics.stratumPorts = stratumPorts;
       _this.stratum.broadcastMiningJobs(_this.manager.currentJob, true);
       callback();
     });
 
     // Establish Timeout Functionality
     _this.stratum.on('broadcastTimeout', () => {
-      if (_this.options.debug) {
-        emitLog(`No new blocks for ${ _this.options.settings.jobRebroadcastTimeout } seconds - updating transactions & rebroadcasting work`);
+      if (_this.poolConfig.debug) {
+        emitLog(`No new blocks for ${ _this.poolConfig.settings.jobRebroadcastTimeout } seconds - updating transactions & rebroadcasting work`);
       }
       _this.getBlockTemplate((error, rpcData, processedBlock) => {
         if (error || processedBlock) return;
         _this.manager.updateCurrentJob(rpcData);
-        if (_this.options.debug) {
+        if (_this.poolConfig.debug) {
           emitLog('Updated existing job for current block template');
         }
       }, false);
@@ -685,7 +686,7 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
       // Establish Client Subscription Functionality
       client.on('subscription', (params, callback) => {
         const extraNonce = _this.manager.extraNonceCounter.next();
-        switch (_this.options.primary.coin.algorithms.mining) {
+        switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
         // Kawpow Subscription
         case 'kawpow':
@@ -698,7 +699,7 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
           break;
         }
 
-        const validPorts = _this.options.ports
+        const validPorts = _this.poolConfig.ports
           .filter(port => port.port === client.socket.localPort)
           .filter(port => typeof port.difficulty.initial !== undefined);
         if (validPorts.length >= 1) {
@@ -713,7 +714,7 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
       // Establish Client Submission Functionality
       client.on('submit', (message, callback) => {
         let result, submission;
-        switch (_this.options.primary.coin.algorithms.mining) {
+        switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
         // Kawpow Submission
         case 'kawpow':
@@ -803,19 +804,19 @@ const Pool = function(options, portalOptions, authorizeFn, responseFn) {
   // Output Derived Pool Information
   /* istanbul ignore next */
   this.outputPoolInfo = function() {
-    const startMessage = `Stratum pool server started for ${ _this.options.name }`;
+    const startMessage = `Stratum pool server started for ${ _this.poolConfig.name }`;
     const infoLines = [startMessage,
-      `Coins Connected:\t${ _this.options.coins }`,
-      `Network Connected:\t${ _this.options.settings.testnet ? 'Testnet' : 'Mainnet' }`,
+      `Coins Connected:\t${ _this.poolConfig.coins }`,
+      `Network Connected:\t${ _this.poolConfig.settings.testnet ? 'Testnet' : 'Mainnet' }`,
       `Current Block Height:\t${ _this.manager.currentJob.rpcData.height }`,
-      `Current Connect Peers:\t${ _this.options.statistics.connections }`,
-      `Current Block Diff:\t${ _this.manager.currentJob.difficulty * Algorithms[_this.options.primary.coin.algorithms.mining].multiplier }`,
-      `Network Difficulty:\t${ _this.options.statistics.difficulty }`,
-      `Stratum Port(s):\t${ _this.options.statistics.stratumPorts.join(', ') }`,
-      `Pool Fee Percentage:\t${ _this.options.settings.feePercentage * 100 }%`,
+      `Current Connect Peers:\t${ _this.poolConfig.statistics.connections }`,
+      `Current Block Diff:\t${ _this.manager.currentJob.difficulty * Algorithms[_this.poolConfig.primary.coin.algorithms.mining].multiplier }`,
+      `Network Difficulty:\t${ _this.poolConfig.statistics.difficulty }`,
+      `Stratum Port(s):\t${ _this.poolConfig.statistics.stratumPorts.join(', ') }`,
+      `Pool Fee Percentage:\t${ _this.poolConfig.settings.feePercentage * 100 }%`,
     ];
-    if (typeof _this.options.settings.blockRefreshInterval === 'number' && _this.options.settings.blockRefreshInterval > 0) {
-      infoLines.push(`Block Polling Every:\t${ _this.options.settings.blockRefreshInterval } ms`);
+    if (typeof _this.poolConfig.settings.blockRefreshInterval === 'number' && _this.poolConfig.settings.blockRefreshInterval > 0) {
+      infoLines.push(`Block Polling Every:\t${ _this.poolConfig.settings.blockRefreshInterval } ms`);
     }
     limitMessages(() => {
       emitSpecialLog(infoLines.join('\n\t\t\t\t'));

@@ -14,12 +14,12 @@ const Template = require('./template');
 ////////////////////////////////////////////////////////////////////////////////
 
 // Main Manager Function
-const Manager = function(options) {
+const Manager = function(poolConfig) {
 
   const _this = this;
-  this.options = options;
+  this.poolConfig = poolConfig;
 
-  const algorithm = _this.options.primary.coin.algorithms.mining;
+  const algorithm = _this.poolConfig.primary.coin.algorithms.mining;
   const shareMultiplier = Algorithms[algorithm].multiplier;
   const extraNonceSize = algorithm === 'kawpow' ? 2 : 4;
 
@@ -46,11 +46,11 @@ const Manager = function(options) {
   this.updateCurrentJob = function(rpcData) {
     const auxMerkle = _this.buildMerkleTree(rpcData.auxData);
     const tmpTemplate = new Template(
-      _this.jobCounter.next(),
+      _this.poolConfig,
       Object.assign({}, rpcData),
+      _this.jobCounter.next(),
       _this.extraNoncePlaceholder,
       auxMerkle,
-      _this.options
     );
     _this.currentJob = tmpTemplate;
     _this.emit('updatedBlock', tmpTemplate);
@@ -78,11 +78,11 @@ const Manager = function(options) {
     // Build New Block Template
     const auxMerkle = _this.buildMerkleTree(rpcData.auxData);
     const tmpTemplate = new Template(
-      _this.jobCounter.next(),
+      _this.poolConfig,
       Object.assign({}, rpcData),
+      _this.jobCounter.next(),
       _this.extraNoncePlaceholder,
       auxMerkle,
-      _this.options
     );
 
     // Update Current Template
@@ -122,7 +122,7 @@ const Manager = function(options) {
     let shareData, auxShareData;
 
     // Process Submitted Share
-    switch (_this.options.primary.coin.algorithms.mining) {
+    switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
     // Kawpow Share Submission
     /* istanbul ignore next */
@@ -173,7 +173,7 @@ const Manager = function(options) {
       // Start Generating Block Hash
       version = job.rpcData.version;
       nTime = utils.packUInt32BE(job.rpcData.curtime).toString('hex');
-      headerDigest = Algorithms[algorithm].hash(_this.options.primary.coin);
+      headerDigest = Algorithms[algorithm].hash(_this.poolConfig.primary.coin);
       headerBuffer = job.serializeHeader(merkleRoot, nTime, submission.nonce, version);
       headerHashBuffer = utils.reverseBuffer(utils.sha256d(headerBuffer));
       headerHash = headerHashBuffer.toString('hex');
@@ -303,7 +303,7 @@ const Manager = function(options) {
       merkleRoot = job.merkle.withFirst(coinbaseHash);
 
       // Start Generating Block Hash
-      headerDigest = Algorithms[algorithm].hash(_this.options.primary.coin);
+      headerDigest = Algorithms[algorithm].hash(_this.poolConfig.primary.coin);
       headerBuffer = job.serializeHeader(merkleRoot, submission.nTime, submission.nonce, version);
       headerHash = headerDigest(headerBuffer, nTimeInt);
       headerBigNum = bignum.fromBuffer(headerHash, {endian: 'little', size: 32});

@@ -20,7 +20,7 @@ const utils = require('./utils');
 **/
 
 // Main Peer Function
-const Peer = function(options) {
+const Peer = function(poolConfig) {
 
   const _this = this;
   this.networkServices = Buffer.from('0100000000000000', 'hex');
@@ -28,14 +28,14 @@ const Peer = function(options) {
   this.userAgent = utils.varStringBuffer('/node-stratum/');
   this.blockStartHeight = Buffer.from('00000000', 'hex');
   this.relayTransactions = Buffer.from([false]);
-  this.magic = Buffer.from(options.settings.testnet ? (
-    options.primary.coin.testnet.peerMagic) : (
-    options.primary.coin.mainnet.peerMagic), 'hex');
+  this.magic = Buffer.from(poolConfig.settings.testnet ? (
+    poolConfig.primary.coin.testnet.peerMagic) : (
+    poolConfig.primary.coin.mainnet.peerMagic), 'hex');
   this.magicInt = _this.magic.readUInt32LE(0);
 
   let client;
-  let verack = options.settings.verack;
-  let validConnectionConfig = options.settings.validConnectionConfig;
+  let verack = poolConfig.settings.verack;
+  let validConnectionConfig = poolConfig.settings.validConnectionConfig;
 
   const invCodes = {
     error: 0,
@@ -55,8 +55,8 @@ const Peer = function(options) {
   /* istanbul ignore next */
   this.setupPeer = function() {
     client = net.connect({
-      host: options.p2p.host,
-      port: options.p2p.port
+      host: poolConfig.p2p.host,
+      port: poolConfig.p2p.port
     }, () => {
       _this.sendVersion();
     });
@@ -201,7 +201,7 @@ const Peer = function(options) {
   // Broadcast/Send Peer Version
   this.sendVersion = function() {
     const payload = Buffer.concat([
-      utils.packUInt32LE(options.settings.protocolVersion),
+      utils.packUInt32LE(poolConfig.settings.protocolVersion),
       _this.networkServices,
       utils.packUInt64LE(Date.now() / 1000 | 0),
       _this.emptyNetAddress,

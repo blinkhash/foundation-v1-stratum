@@ -46,7 +46,7 @@ const rpcData = {
   'default_witness_commitment': '6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9'
 };
 
-const options = {
+const poolConfig = {
   'banning': {
     'time': 600,
     'invalidPercent': 0.5,
@@ -127,7 +127,7 @@ const options = {
   },
 };
 
-const portalOptions = {
+const portalConfig = {
   'tls': {
     'rootCA': 'rootCA.crt',
     'serverKey': 'server.key',
@@ -172,15 +172,15 @@ function mockClient() {
 
 describe('Test stratum functionality', () => {
 
-  const portalOptionsCopy = JSON.parse(JSON.stringify(portalOptions));
-  let optionsCopy, rpcDataCopy;
+  let poolConfigCopy, configCopy, rpcDataCopy;
   beforeEach(() => {
-    optionsCopy = JSON.parse(JSON.stringify(options));
+    poolConfigCopy = JSON.parse(JSON.stringify(poolConfig));
+    configCopy = JSON.parse(JSON.stringify(portalConfig));
     rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
   });
 
   test('Test initialization of stratum network', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     expect(typeof stratum).toBe('object');
     stratum.on('stopped', () => done());
     stratum.stopServer();
@@ -223,7 +223,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum banning capabilities [1]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const client = mockClient();
     client.on('kickedBannedIP', timeLeft => {
       stratum.on('stopped', () => done());
@@ -235,8 +235,8 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum banning capabilities [2]', (done) => {
-    optionsCopy.banning.time = -1;
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    poolConfigCopy.banning.time = -1;
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const client = mockClient();
     client.on('forgaveBannedIP', () => {
       stratum.on('stopped', () => done());
@@ -247,7 +247,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum banning capabilities [3]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -259,7 +259,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum banning capabilities [4]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -273,7 +273,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum banning capabilities [5]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -287,7 +287,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum banning capabilities [6]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -302,7 +302,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum banning capabilities [7]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -321,7 +321,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum handling of new clients [1]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     const subscriptionId = stratum.handleNewClient(socket);
     expect(subscriptionId).toBe('deadbeefcafebabe0100000000000000');
@@ -331,7 +331,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum handling of new clients [2]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -344,7 +344,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum handling of new clients [3]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -358,9 +358,9 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum job broadcasting [1]', (done) => {
-    optionsCopy.settings.connectionTimeout = -1;
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
-    const template = new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy);
+    poolConfigCopy.settings.connectionTimeout = -1;
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
+    const template = new Template(poolConfigCopy, rpcDataCopy, jobId.toString(16), extraNonce, null);
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -374,8 +374,8 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum job broadcasting [2]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
-    const template = new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy);
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
+    const template = new Template(poolConfigCopy, rpcDataCopy, jobId.toString(16), extraNonce, null);
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -394,8 +394,8 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum job broadcasting [3]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
-    const template = new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy);
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
+    const template = new Template(poolConfigCopy, rpcDataCopy, jobId.toString(16), extraNonce, null);
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -412,9 +412,9 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum job broadcasting [4]', (done) => {
     const response = [];
-    optionsCopy.primary.coin.algorithms.mining = 'kawpow';
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
-    const template = new Template(jobId.toString(16), rpcDataCopy, extraNonce, null, optionsCopy);
+    poolConfigCopy.primary.coin.algorithms.mining = 'kawpow';
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
+    const template = new Template(poolConfigCopy, rpcDataCopy, jobId.toString(16), extraNonce, null);
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -431,7 +431,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum client labelling [1]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -443,7 +443,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum client labelling [2]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -453,7 +453,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum client difficulty queueing [1]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -464,7 +464,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum client difficulty queueing [2]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -477,7 +477,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum client difficulty [1]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -495,8 +495,8 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum client difficulty [2]', (done) => {
     const response = [];
-    optionsCopy.primary.coin.algorithms.mining = 'kawpow';
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    poolConfigCopy.primary.coin.algorithms.mining = 'kawpow';
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -514,7 +514,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [1]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -535,7 +535,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [2]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -556,8 +556,8 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [3]', (done) => {
     const response = [];
-    optionsCopy.primary.coin.algorithms.mining = 'kawpow';
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    poolConfigCopy.primary.coin.algorithms.mining = 'kawpow';
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -578,8 +578,8 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [4]', (done) => {
     const response = [];
-    optionsCopy.primary.coin.algorithms.mining = 'kawpow';
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    poolConfigCopy.primary.coin.algorithms.mining = 'kawpow';
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -600,7 +600,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [5]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, (addr, port, primary, auxiliary, password, callback) => {
+    const stratum = new Network(poolConfigCopy, configCopy, (addr, port, primary, auxiliary, password, callback) => {
       callback({ error: null, authorized: true, disconnect: true });
     });
     const socket = mockSocket();
@@ -620,7 +620,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [6]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, (addr, port, primary, auxiliary, password, callback) => {
+    const stratum = new Network(poolConfigCopy, configCopy, (addr, port, primary, auxiliary, password, callback) => {
       callback({ error: null, authorized: true, disconnect: false });
     });
     const socket = mockSocket();
@@ -640,7 +640,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [7]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, (addr, port, primary, auxiliary, password, callback) => {
+    const stratum = new Network(poolConfigCopy, configCopy, (addr, port, primary, auxiliary, password, callback) => {
       callback({ error: null, authorized: true, disconnect: true });
     });
     const socket = mockSocket();
@@ -660,7 +660,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [8]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, (addr, port, primary, auxiliary, password, callback) => {
+    const stratum = new Network(poolConfigCopy, configCopy, (addr, port, primary, auxiliary, password, callback) => {
       callback({ error: null, authorized: true, disconnect: true });
     });
     const socket = mockSocket();
@@ -680,8 +680,8 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [9]', (done) => {
     const response = [];
-    optionsCopy.primary.coin.asicboost = false;
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    poolConfigCopy.primary.coin.asicboost = false;
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -700,7 +700,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [10]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -718,8 +718,8 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum message handling [11]', () => {
-    optionsCopy.primary.coin.asicboost = false;
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    poolConfigCopy.primary.coin.asicboost = false;
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -730,7 +730,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum message handling [12]', () => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -741,7 +741,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum message handling [13]', () => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -753,7 +753,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [14]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -771,7 +771,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [15]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -790,7 +790,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [16]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -813,7 +813,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [17]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -830,7 +830,7 @@ describe('Test stratum functionality', () => {
 
   test('Test stratum message handling [18]', (done) => {
     const response = [];
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];
@@ -846,7 +846,7 @@ describe('Test stratum functionality', () => {
   });
 
   test('Test stratum message handling [19]', (done) => {
-    const stratum = new Network(optionsCopy, portalOptionsCopy, () => {});
+    const stratum = new Network(poolConfigCopy, configCopy, () => {});
     const socket = mockSocket();
     stratum.handleNewClient(socket);
     const client = stratum.stratumClients['deadbeefcafebabe0100000000000000'];

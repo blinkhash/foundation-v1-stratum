@@ -16,21 +16,21 @@ const Transactions = require('./transactions');
 ////////////////////////////////////////////////////////////////////////////////
 
 // Main Template Function
-const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, options) {
+const Template = function(poolConfig, rpcData, jobId, extraNoncePlaceholder, auxMerkle) {
 
   const _this = this;
-  this.options = options;
+  this.poolConfig = poolConfig;
   this.submits = [];
   this.rpcData = rpcData;
   this.jobId = jobId;
 
-  const algorithm = _this.options.primary.coin.algorithms.mining;
+  const algorithm = _this.poolConfig.primary.coin.algorithms.mining;
   this.target = _this.rpcData.target ? bignum(_this.rpcData.target, 16) : utils.bignumFromBitsHex(_this.rpcData.bits);
   this.difficulty = parseFloat((Algorithms[algorithm].diff / _this.target.toNumber()).toFixed(9));
 
   // Check if Configuration Supported
   this.checkSupported = function() {
-    if (rpcData.coinbase_payload && _this.options.auxiliary && _this.options.auxiliary.enabled) {
+    if (rpcData.coinbase_payload && _this.poolConfig.auxiliary && _this.poolConfig.auxiliary.enabled) {
       throw new Error('Merged mining is not supported with coins that pass an extra coinbase payload.');
     }
   }();
@@ -38,8 +38,8 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
   // Determine Block Hash Function
   /* istanbul ignore next */
   this.blockHasher = function() {
-    const algorithm = _this.options.primary.coin.algorithms.block;
-    const hashDigest = Algorithms[algorithm].hash(_this.options.primary.coin);
+    const algorithm = _this.poolConfig.primary.coin.algorithms.block;
+    const hashDigest = Algorithms[algorithm].hash(_this.poolConfig.primary.coin);
     return function () {
       return utils.reverseBuffer(hashDigest.apply(this, arguments));
     };
@@ -48,8 +48,8 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
   // Determine Coinbase Hash Function
   /* istanbul ignore next */
   this.coinbaseHasher = function() {
-    const algorithm = _this.options.primary.coin.algorithms.coinbase;
-    const hashDigest = Algorithms[algorithm].hash(_this.options.primary.coin);
+    const algorithm = _this.poolConfig.primary.coin.algorithms.coinbase;
+    const hashDigest = Algorithms[algorithm].hash(_this.poolConfig.primary.coin);
     return function () {
       return hashDigest.apply(this, arguments);
     };
@@ -93,12 +93,12 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
   };
 
   // Create Generation Transaction
-  this.createGeneration = function(rpcData, extraNoncePlaceholder, auxMerkle, options) {
-    return new Transactions().default(rpcData, extraNoncePlaceholder, auxMerkle, options);
+  this.createGeneration = function(poolConfig, rpcData, extraNoncePlaceholder, auxMerkle) {
+    return new Transactions().default(poolConfig, rpcData, extraNoncePlaceholder, auxMerkle);
   };
 
   this.merkle = _this.createMerkle(_this.rpcData);
-  this.generation = _this.createGeneration(_this.rpcData, extraNoncePlaceholder, auxMerkle, _this.options);
+  this.generation = _this.createGeneration(_this.poolConfig, _this.rpcData, extraNoncePlaceholder, auxMerkle);
   this.previousblockhash = utils.reverseByteOrder(Buffer.from(_this.rpcData.previousblockhash, 'hex')).toString('hex');
   this.transactions = Buffer.concat(_this.rpcData.transactions.map((tx) => {
     return Buffer.from(tx.data, 'hex');
@@ -107,7 +107,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
   // Serialize Block Coinbase
   this.serializeCoinbase = function(extraNonce1, extraNonce2) {
     let buffer;
-    switch (_this.options.primary.coin.algorithms.mining) {
+    switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
     // Kawpow Block Header
     case 'kawpow':
@@ -136,7 +136,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
     let header = Buffer.alloc(80);
     let position = 0;
 
-    switch (_this.options.primary.coin.algorithms.mining) {
+    switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
     // Kawpow Block Header
     case 'kawpow':
@@ -166,7 +166,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
   // Serialize Entire Block
   this.serializeBlock = function(header, coinbase, nonce, mixHash) {
     let buffer;
-    switch (_this.options.primary.coin.algorithms.mining) {
+    switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
     // Kawpow Block Structure
     case 'kawpow':
@@ -188,7 +188,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
         coinbase,
         _this.transactions,
         _this.getVoteData(),
-        Buffer.from(_this.options.primary.coin.hybrid ? [0] : [])
+        Buffer.from(_this.poolConfig.primary.coin.hybrid ? [0] : [])
       ]);
       break;
     }
@@ -217,7 +217,7 @@ const Template = function(jobId, rpcData, extraNoncePlaceholder, auxMerkle, opti
     let sha3Hash, seedHashBuffer;
 
     // Process Job Parameters
-    switch (_this.options.primary.coin.algorithms.mining) {
+    switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
     // Kawpow Parameters
     case 'kawpow':
