@@ -252,6 +252,14 @@ const options = {
   }
 };
 
+const portalOptions = {
+  'tls': {
+    'rootCA': 'rootCA.crt',
+    'serverKey': 'server.key',
+    'serverCert': 'server.crt',
+  },
+};
+
 nock.disableNetConnect();
 nock.enableNetConnect('127.0.0.1');
 process.env.forkId = '0';
@@ -328,6 +336,7 @@ function mockSetupFirstJob(pool, callback) {
 
 describe('Test pool functionality', () => {
 
+  const portalOptionsCopy = JSON.parse(JSON.stringify(portalOptions));
   let optionsCopy, rpcDataCopy;
   beforeEach(() => {
     optionsCopy = JSON.parse(JSON.stringify(options));
@@ -335,12 +344,12 @@ describe('Test pool functionality', () => {
   });
 
   test('Test initialization of pool', () => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     expect(typeof pool).toBe('object');
   });
 
   test('Test initialization of port difficulty', () => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.setupDifficulty();
     expect(typeof pool.difficulty).toBe('object');
     expect(typeof pool.difficulty['3001']).toBe('object');
@@ -349,7 +358,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test initialization of daemon', () => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.setupDaemonInterface(() => {});
     expect(typeof pool.primary.daemon).toBe('object');
     expect(typeof pool.primary.daemon.indexDaemons).toBe('function');
@@ -360,7 +369,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool daemon events [1]', (done) => {
     optionsCopy.primary.daemons = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
       expect(text).toBe('No primary daemons have been configured - pool cannot start');
@@ -370,7 +379,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool daemon events [2]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     nock('http://127.0.0.1:8332')
       .post('/', body => body.method === 'getpeerinfo')
       .reply(401, {});
@@ -384,7 +393,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool daemon events [3]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     nock('http://127.0.0.1:8332')
       .post('/', body => body.method === 'getpeerinfo')
       .reply(200, JSON.stringify({
@@ -396,7 +405,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool daemon events [4]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     nock('http://127.0.0.1:8332')
       .post('/', body => body.method === 'getpeerinfo')
       .reply(200, JSON.stringify({
@@ -415,7 +424,7 @@ describe('Test pool functionality', () => {
   test('Test pool daemon events [5]', (done) => {
     optionsCopy.auxiliary.enabled = true;
     optionsCopy.auxiliary.daemons = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
       expect(text).toBe('No auxiliary daemons have been configured - pool cannot start');
@@ -426,7 +435,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool daemon events [6]', (done) => {
     optionsCopy.auxiliary.enabled = true;
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     nock('http://127.0.0.1:8332')
       .post('/', body => body.method === 'getpeerinfo')
       .reply(200, JSON.stringify({
@@ -446,7 +455,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool batch data events [1]', (done) => {
     optionsCopy.primary.coin.getinfo = true;
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
       expect(text).toBe('Could not start pool, error with init batch RPC call');
@@ -459,7 +468,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [2]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
       expect(text).toBe('Could not start pool, error with init batch RPC call');
@@ -471,7 +480,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [3]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       nock('http://127.0.0.1:8332')
         .post('/').reply(200, JSON.stringify([
@@ -493,7 +502,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [4]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
       expect(text).toBe('Could not start pool, error with init RPC call: validateaddress - true');
@@ -513,7 +522,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [5]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
       expect(text).toBe('Daemon reports address is not valid');
@@ -534,7 +543,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool batch data events [6]', (done) => {
     optionsCopy.primary.coin.getinfo = true;
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       nock('http://127.0.0.1:8332')
         .post('/').reply(200, JSON.stringify([
@@ -556,7 +565,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool batch data events [7]', (done) => {
     optionsCopy.primary.coin.getinfo = false;
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       nock('http://127.0.0.1:8332')
         .post('/').reply(200, JSON.stringify([
@@ -578,7 +587,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [8]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       nock('http://127.0.0.1:8332')
         .post('/').reply(200, JSON.stringify([
@@ -600,7 +609,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool batch data events [9]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
       expect(text).toBe('Could not detect block submission RPC method');
@@ -620,7 +629,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool recipient setup [1]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
         pool.setupRecipients();
@@ -632,7 +641,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool recipient setup [2]', (done) => {
     optionsCopy.primary.recipients = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('warning');
       expect(text).toBe('No recipients have been added which means that no fees will be taken');
@@ -646,7 +655,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test initialization of manager', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
         pool.setupJobManager();
@@ -659,7 +668,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool manager events [1]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
         pool.setupJobManager();
@@ -670,7 +679,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool manager events [2]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
         pool.setupJobManager();
@@ -681,7 +690,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool manager events [3]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
       expect(text).toBe('RPC error with primary daemon instance 0 when submitting block with submitblock true');
@@ -739,7 +748,7 @@ describe('Test pool functionality', () => {
   });
   //
   test('Test pool manager events [4]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
       expect(text).toBe('Primary daemon instance 0 rejected a supposedly valid block');
@@ -798,7 +807,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool manager events [5]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 3) {
@@ -880,7 +889,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool manager events [6]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 3) {
@@ -971,7 +980,7 @@ describe('Test pool functionality', () => {
   test('Test pool manager events [7]', (done) => {
     const response = [];
     optionsCopy.primary.coin.segwit = false;
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 3) {
@@ -1061,7 +1070,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool manager events [8]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -1145,7 +1154,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool manager events [9]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 3) {
@@ -1231,7 +1240,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool manager events [10]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 3) {
@@ -1317,7 +1326,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool blockchain events [1]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
         nock('http://127.0.0.1:8332')
@@ -1336,7 +1345,7 @@ describe('Test pool functionality', () => {
     const response = [];
     const blockchainDataCopy = JSON.parse(JSON.stringify(blockchainData));
     const peerDataCopy = JSON.parse(JSON.stringify(peerData));
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -1376,7 +1385,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool job events [1]', (done) => {
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
         pool.setupJobManager();
@@ -1400,7 +1409,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool job events [2]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -1432,7 +1441,7 @@ describe('Test pool functionality', () => {
     optionsCopy.auxiliary.enabled = true;
     rpcDataCopy.auxData = auxData;
     const auxDataCopy = JSON.parse(JSON.stringify(auxData));
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('share', (shareData, shareType, blockValid) => {
       if (shareData.blockType === 'auxiliary') {
         expect(shareType).toBe('valid');
@@ -1510,7 +1519,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool polling events [1]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -1538,7 +1547,7 @@ describe('Test pool functionality', () => {
     optionsCopy.settings.blockRefreshInterval = 600;
     rpcDataCopy.previousblockhash = '1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769';
     rpcDataCopy.height = 2;
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -1571,7 +1580,7 @@ describe('Test pool functionality', () => {
   test('Test pool peer events [1]', (done) => {
     const response = [];
     optionsCopy.p2p.enabled = false;
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -1598,7 +1607,7 @@ describe('Test pool functionality', () => {
     const response = [];
     optionsCopy.primary.coin.testnet.peerMagic = false;
     optionsCopy.primary.recipients[0].address = 'tb1qnc0z4696tusrgscws5gvc7g2hhz99m6lrssfc2';
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -1624,7 +1633,7 @@ describe('Test pool functionality', () => {
   test('Test pool peer events [3]', (done) => {
     const response = [];
     optionsCopy.primary.coin.mainnet.peerMagic = false;
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -1649,7 +1658,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [4]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -1675,7 +1684,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [5]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -1701,7 +1710,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [6]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -1727,7 +1736,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [7]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -1755,7 +1764,7 @@ describe('Test pool functionality', () => {
     const response = [];
     rpcDataCopy.previousblockhash = '1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769';
     rpcDataCopy.height = 2;
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 3) {
@@ -1791,7 +1800,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [9]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 4) {
@@ -1827,7 +1836,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool peer events [10]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, null, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, null, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 5) {
@@ -1852,7 +1861,7 @@ describe('Test pool functionality', () => {
   });
 
   test('Test pool stratum events [1]', (done) => {
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     mockSetupDaemon(pool, () => {
       mockSetupData(pool, () => {
         pool.setupJobManager();
@@ -1875,7 +1884,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool stratum events [2]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -1911,7 +1920,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool stratum events [3]', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 4) {
@@ -1953,7 +1962,7 @@ describe('Test pool functionality', () => {
     const response = [];
     rpcDataCopy.previousblockhash = '1d5af7e2ad9aeccb110401761938c07a5895d85711c9c5646661a10407c82769';
     rpcDataCopy.height = 2;
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 4) {
@@ -1994,7 +2003,7 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [5]', (done) => {
     let client;
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -2035,7 +2044,7 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [6]', (done) => {
     let client;
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -2076,7 +2085,7 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [7]', (done) => {
     let client;
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -2117,7 +2126,7 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [8]', (done) => {
     let client;
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -2158,7 +2167,7 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [9]', (done) => {
     let client;
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -2200,7 +2209,7 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [10]', (done) => {
     let client;
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -2242,7 +2251,7 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [11]', (done) => {
     let client;
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -2283,7 +2292,7 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [12]', (done) => {
     let client;
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -2324,7 +2333,7 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [13]', (done) => {
     let client;
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -2365,7 +2374,7 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [14]', (done) => {
     let client;
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -2406,7 +2415,7 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [15]', (done) => {
     let client;
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -2449,7 +2458,7 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [16]', (done) => {
     let client;
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -2495,7 +2504,7 @@ describe('Test pool functionality', () => {
     let client;
     const response = [];
     delete optionsCopy.ports[0].difficulty.initial;
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 1) {
@@ -2538,7 +2547,7 @@ describe('Test pool functionality', () => {
   test('Test pool stratum events [18]', (done) => {
     let client;
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 2) {
@@ -2588,7 +2597,7 @@ describe('Test pool functionality', () => {
 
   test('Test pool info outputting', (done) => {
     const response = [];
-    const pool = new Pool(optionsCopy, () => {}, () => {});
+    const pool = new Pool(optionsCopy, portalOptionsCopy, () => {}, () => {});
     pool.on('log', (type, text) => {
       response.push([type, text]);
       if (response.length === 3) {
