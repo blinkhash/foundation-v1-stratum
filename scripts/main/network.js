@@ -56,18 +56,17 @@ const Network = function(poolConfig, portalConfig, authorizeFn) {
 
     stratumPorts.forEach((port) => {
       const currentPort = port.port;
-      const enabled = port.ssl && port.ssl.enabled;
 
       // Define Stratum Options
       const options = {
-        ...(enabled && { key: fs.readFileSync(path.join('./certificates', _this.portalConfig.tls.serverKey)) }),
-        ...(enabled && { cert: fs.readFileSync(path.join('./certificates', _this.portalConfig.tls.serverCert)) }),
+        ...(port.tls && { key: fs.readFileSync(path.join('./certificates', _this.portalConfig.tls.key)) }),
+        ...(port.tls && { cert: fs.readFileSync(path.join('./certificates', _this.portalConfig.tls.cert)) }),
         allowHalfOpen: false,
       };
 
       // Setup Stratum Server
       const callback = (socket) => _this.handleNewClient(socket);
-      const server = (enabled) ? tls.createServer(options, callback) : net.createServer(options, callback);
+      const server = (port.tls) ? tls.createServer(options, callback) : net.createServer(options, callback);
 
       // Setup Server to Listen on Port
       server.listen(parseInt(currentPort), () => {
