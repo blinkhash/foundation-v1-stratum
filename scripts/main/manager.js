@@ -14,10 +14,11 @@ const Template = require('./template');
 ////////////////////////////////////////////////////////////////////////////////
 
 // Main Manager Function
-const Manager = function(poolConfig) {
+const Manager = function(poolConfig, portalConfig) {
 
   const _this = this;
   this.poolConfig = poolConfig;
+  this.portalConfig = portalConfig;
 
   const algorithm = _this.poolConfig.primary.coin.algorithms.mining;
   const shareMultiplier = Algorithms[algorithm].multiplier;
@@ -103,6 +104,7 @@ const Manager = function(poolConfig) {
     const shareError = function(error) {
       _this.emit('share', {
         job: jobId,
+        identifier: _this.portalConfig.identifier,
         ip: ipAddress,
         port: port,
         difficulty: difficulty,
@@ -228,6 +230,7 @@ const Manager = function(poolConfig) {
         header: headerHash,
         headerDiff: headerBigNum,
         height: job.rpcData.height,
+        identifier: _this.portalConfig.identifier,
         reward: job.rpcData.coinbasevalue,
         shareDiff: shareDiff.toFixed(8),
       };
@@ -246,6 +249,7 @@ const Manager = function(poolConfig) {
         hex: blockHex,
         header: headerHash,
         headerDiff: headerBigNum,
+        identifier: _this.portalConfig.identifier,
         shareDiff: shareDiff.toFixed(8),
       };
 
@@ -343,6 +347,7 @@ const Manager = function(poolConfig) {
         header: headerHash,
         headerDiff: headerBigNum,
         height: job.rpcData.height,
+        identifier: _this.portalConfig.identifier,
         reward: job.rpcData.coinbasevalue,
         shareDiff: shareDiff.toFixed(8),
       };
@@ -361,6 +366,7 @@ const Manager = function(poolConfig) {
         hex: blockHex,
         header: headerHash,
         headerDiff: headerBigNum,
+        identifier: _this.portalConfig.identifier,
         shareDiff: shareDiff.toFixed(8),
       };
 

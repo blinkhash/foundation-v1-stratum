@@ -722,6 +722,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           height: 1,
+          identifier:'master',
           reward: 5000000000,
           shareDiff: 1,
         };
@@ -740,6 +741,7 @@ describe('Test pool functionality', () => {
           hex: Buffer.from('000011110000111100001111', 'hex'),
           header: null,
           headerDiff: null,
+          identifier:'master',
           shareDiff: 1,
         };
         pool.manager.emit('share', shareData, auxShareData, true);
@@ -780,6 +782,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           height: 1,
+          identifier:'master',
           reward: 5000000000,
           shareDiff: 1,
         };
@@ -798,6 +801,7 @@ describe('Test pool functionality', () => {
           hex: Buffer.from('000011110000111100001111', 'hex'),
           header: null,
           headerDiff: null,
+          identifier:'master',
           shareDiff: 1,
         };
         pool.manager.emit('share', shareData, auxShareData, true);
@@ -862,6 +866,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           height: 1,
+          identifier:'master',
           reward: 5000000000,
           shareDiff: 1,
         };
@@ -880,6 +885,7 @@ describe('Test pool functionality', () => {
           hex: Buffer.from('000011110000111100001111', 'hex'),
           header: null,
           headerDiff: null,
+          identifier:'master',
           shareDiff: 1,
         };
         pool.manager.emit('share', shareData, auxShareData, true);
@@ -952,6 +958,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           height: 1,
+          identifier:'master',
           reward: 5000000000,
           shareDiff: 1,
         };
@@ -970,6 +977,7 @@ describe('Test pool functionality', () => {
           hex: Buffer.from('000011110000111100001111', 'hex'),
           header: null,
           headerDiff: null,
+          identifier:'master',
           shareDiff: 1,
         };
         pool.manager.emit('share', shareData, auxShareData, true);
@@ -1043,6 +1051,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           height: 1,
+          identifier:'master',
           reward: 5000000000,
           shareDiff: 1,
         };
@@ -1061,6 +1070,7 @@ describe('Test pool functionality', () => {
           hex: Buffer.from('000011110000111100001111', 'hex'),
           header: null,
           headerDiff: null,
+          identifier:'master',
           shareDiff: 1,
         };
         pool.manager.emit('share', shareData, auxShareData, true);
@@ -1127,6 +1137,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           height: 1,
+          identifier:'master',
           reward: 5000000000,
           shareDiff: 1,
         };
@@ -1145,6 +1156,7 @@ describe('Test pool functionality', () => {
           hex: Buffer.from('000011110000111100001111', 'hex'),
           header: null,
           headerDiff: null,
+          identifier:'master',
           shareDiff: 1,
         };
         pool.manager.emit('share', shareData, auxShareData, true);
@@ -1213,6 +1225,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           height: 1,
+          identifier:'master',
           reward: 5000000000,
           shareDiff: 1,
         };
@@ -1231,6 +1244,7 @@ describe('Test pool functionality', () => {
           hex: Buffer.from('000011110000111100001111', 'hex'),
           header: null,
           headerDiff: null,
+          identifier:'master',
           shareDiff: 1,
         };
         pool.manager.emit('share', shareData, auxShareData, true);
@@ -1299,6 +1313,7 @@ describe('Test pool functionality', () => {
           header: null,
           headerDiff: null,
           height: 1,
+          identifier:'master',
           reward: 5000000000,
           shareDiff: 1,
         };
@@ -1317,6 +1332,7 @@ describe('Test pool functionality', () => {
           hex: Buffer.from('000011110000111100001111', 'hex'),
           header: null,
           headerDiff: null,
+          identifier:'master',
           shareDiff: 1,
         };
 
@@ -1489,6 +1505,7 @@ describe('Test pool functionality', () => {
               header: Buffer.from('000011110000111100001111', 'hex'),
               headerDiff: -1,
               height: 1,
+              identifier:'master',
               reward: 5000000000,
               shareDiff: 1,
             };
@@ -1507,6 +1524,7 @@ describe('Test pool functionality', () => {
               hex: Buffer.from('000011110000111100001111', 'hex'),
               header: Buffer.from('000011110000111100001111', 'hex'),
               headerDiff: -1,
+              identifier:'master',
               shareDiff: 1,
             };
             pool.manager.emit('share', shareData, auxShareData, false);

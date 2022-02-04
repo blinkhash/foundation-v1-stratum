@@ -387,7 +387,7 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
   this.setupJobManager = function() {
 
     // Establish Pool Manager
-    _this.manager = new Manager(_this.poolConfig);
+    _this.manager = new Manager(_this.poolConfig, _this.portalConfig);
     _this.manager.on('newBlock', (blockTemplate) => {
       if (_this.stratum) {
         _this.stratum.broadcastMiningJobs(blockTemplate, true);
