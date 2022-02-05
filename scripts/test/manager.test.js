@@ -156,17 +156,17 @@ const portalConfig = {
 
 describe('Test manager functionality', () => {
 
-  let configCopy, configKawpowCopy, portalConfigCopy, rpcDataCopy, rpcDataKawpowCopy;
+  let poolConfigCopy, poolConfigKawpowCopy, configCopy, rpcDataCopy, rpcDataKawpowCopy;
   beforeEach(() => {
-    configCopy = JSON.parse(JSON.stringify(poolConfig));
-    configKawpowCopy = JSON.parse(JSON.stringify(poolConfigKawpow));
-    portalConfigCopy = JSON.parse(JSON.stringify(portalConfig));
+    poolConfigCopy = JSON.parse(JSON.stringify(poolConfig));
+    poolConfigKawpowCopy = JSON.parse(JSON.stringify(poolConfigKawpow));
+    configCopy = JSON.parse(JSON.stringify(portalConfig));
     rpcDataCopy = JSON.parse(JSON.stringify(rpcData));
     rpcDataKawpowCopy = JSON.parse(JSON.stringify(rpcDataKawpow));
   });
 
   test('Test initial manager calculations', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     expect(manager.extraNonceCounter.size).toBe(4);
     expect(manager.extraNonceCounter.next().length).toBe(8);
     expect(manager.extraNoncePlaceholder).toStrictEqual(Buffer.from('f000000ff111111f', 'hex'));
@@ -175,13 +175,13 @@ describe('Test manager functionality', () => {
 
   test('Test job updates given auxpow initialization', () => {
     rpcDataCopy.auxData = auxData;
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     const response = manager.processTemplate(rpcDataCopy, true);
     expect(response).toBe(true);
   });
 
   test('Test job updates given new blockTemplate', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     manager.updateCurrentJob(rpcData);
     expect(typeof manager.currentJob).toBe('object');
     expect(manager.currentJob.rpcData.height).toBe(1);
@@ -190,7 +190,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test template updates given new blockTemplate [1]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     const response1 = manager.processTemplate(rpcData, false);
     const response2 = manager.processTemplate(rpcData, false);
     expect(response1).toBe(true);
@@ -198,7 +198,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test template updates given new blockTemplate [2]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     const response1 = manager.processTemplate(rpcDataCopy, false);
     rpcDataCopy.previousblockhash = '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2';
     const response2 = manager.processTemplate(rpcDataCopy, false);
@@ -207,7 +207,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test template updates given new blockTemplate [3]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     const response1 = manager.processTemplate(rpcDataCopy, false);
     rpcDataCopy.previousblockhash = '8719aefb83ef6583bd4c808bbe7d49b629a60b375fc6e36bee039530bc7727e2';
     rpcDataCopy.height = 0;
@@ -217,7 +217,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [1]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
       extraNonce1: 0,
@@ -234,7 +234,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [2]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
       extraNonce1: 0,
@@ -251,7 +251,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [3]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
       extraNonce1: 0,
@@ -268,7 +268,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [4]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
       extraNonce1: 0,
@@ -285,7 +285,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [5]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
       extraNonce1: 0,
@@ -302,7 +302,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [6]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
       extraNonce1: '00000001'.toString('hex'),
@@ -319,7 +319,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [7]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
       extraNonce1: '00000001'.toString('hex'),
@@ -335,7 +335,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [8]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
       extraNonce1: '00000001'.toString('hex'),
@@ -353,7 +353,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [9]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
       extraNonce1: '00000001'.toString('hex'),
@@ -370,7 +370,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [10]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
       extraNonce1: '00000001'.toString('hex'),
@@ -387,7 +387,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [11]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
       extraNonce1: '00000001'.toString('hex'),
@@ -404,7 +404,7 @@ describe('Test manager functionality', () => {
   });
 
   test('Test share submission process [12]', () => {
-    const manager = new Manager(configCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigCopy, configCopy);
     manager.processTemplate(rpcDataCopy, false);
     const submission = {
       extraNonce1: '00000001'.toString('hex'),
@@ -421,7 +421,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [13]', () => {
     MockDate.set(1634742080841);
-    const manager = new Manager(configKawpowCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigKawpowCopy, configCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
       extraNonce1: 0,
@@ -436,7 +436,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [14]', () => {
     MockDate.set(1634742080841);
-    const manager = new Manager(configKawpowCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigKawpowCopy, configCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
       extraNonce1: 0,
@@ -451,7 +451,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [15]', () => {
     MockDate.set(1634742080841);
-    const manager = new Manager(configKawpowCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigKawpowCopy, configCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
       extraNonce1: 0,
@@ -466,7 +466,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [16]', () => {
     MockDate.set(1634742080841);
-    const manager = new Manager(configKawpowCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigKawpowCopy, configCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
       extraNonce1: 0,
@@ -481,7 +481,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [17]', () => {
     MockDate.set(1634742080841);
-    const manager = new Manager(configKawpowCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigKawpowCopy, configCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
       extraNonce1: 0,
@@ -496,7 +496,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [18]', () => {
     MockDate.set(1634742080841);
-    const manager = new Manager(configKawpowCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigKawpowCopy, configCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
       extraNonce1: '1952',
@@ -511,7 +511,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [19]', () => {
     MockDate.set(1634742080841);
-    const manager = new Manager(configKawpowCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigKawpowCopy, configCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
       extraNonce1: '1952',
@@ -526,7 +526,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [20]', () => {
     MockDate.set(1634742080841);
-    const manager = new Manager(configKawpowCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigKawpowCopy, configCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
       extraNonce1: '00',
@@ -541,7 +541,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [21]', () => {
     MockDate.set(1634742080841);
-    const manager = new Manager(configKawpowCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigKawpowCopy, configCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
       extraNonce1: 'b750',
@@ -556,7 +556,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [22]', () => {
     MockDate.set(1634742080841);
-    const manager = new Manager(configKawpowCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigKawpowCopy, configCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
       extraNonce1: '1952',
@@ -572,7 +572,7 @@ describe('Test manager functionality', () => {
 
   test('Test share submission process [23]', () => {
     MockDate.set(1634742080841);
-    const manager = new Manager(configKawpowCopy, portalConfigCopy);
+    const manager = new Manager(poolConfigKawpowCopy, configCopy);
     manager.processTemplate(rpcDataKawpowCopy, false);
     const submission = {
       extraNonce1: '1952',

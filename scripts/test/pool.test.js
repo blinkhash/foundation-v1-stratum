@@ -253,6 +253,7 @@ const poolConfig = {
 };
 
 const portalConfig = {
+  'identifier': 'master',
   'tls': {
     'rootCA': 'rootCA.crt',
     'serverKey': 'server.key',
@@ -1459,6 +1460,7 @@ describe('Test pool functionality', () => {
     const auxDataCopy = JSON.parse(JSON.stringify(auxData));
     const pool = new Pool(poolConfigCopy, configCopy, null, () => {});
     pool.on('share', (shareData, shareType, blockValid) => {
+      expect(shareData.identifier).toBe('master');
       if (shareData.blockType === 'auxiliary') {
         expect(shareType).toBe('valid');
         expect(blockValid).toBe(false);

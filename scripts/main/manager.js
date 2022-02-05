@@ -100,18 +100,21 @@ const Manager = function(poolConfig, portalConfig) {
     jobId, previousDifficulty, difficulty, ipAddress, port, addrPrimary,
     addrAuxiliary, submission) {
 
+    // Main Pool Identifier
+    const identifier = this.portalConfig.identifier || '';
+
     // Share is Invalid
     const shareError = function(error) {
       _this.emit('share', {
         job: jobId,
-        identifier: _this.portalConfig.identifier,
         ip: ipAddress,
         port: port,
         difficulty: difficulty,
+        identifier: identifier,
         worker: addrPrimary,
         error: error[1],
       }, null, null);
-      return {error: error, result: null};
+      return { error: error, result: null };
     };
 
     // Establish Share Variables
@@ -230,7 +233,7 @@ const Manager = function(poolConfig, portalConfig) {
         header: headerHash,
         headerDiff: headerBigNum,
         height: job.rpcData.height,
-        identifier: _this.portalConfig.identifier,
+        identifier: identifier,
         reward: job.rpcData.coinbasevalue,
         shareDiff: shareDiff.toFixed(8),
       };
@@ -249,7 +252,7 @@ const Manager = function(poolConfig, portalConfig) {
         hex: blockHex,
         header: headerHash,
         headerDiff: headerBigNum,
-        identifier: _this.portalConfig.identifier,
+        identifier: identifier,
         shareDiff: shareDiff.toFixed(8),
       };
 
@@ -347,7 +350,7 @@ const Manager = function(poolConfig, portalConfig) {
         header: headerHash,
         headerDiff: headerBigNum,
         height: job.rpcData.height,
-        identifier: _this.portalConfig.identifier,
+        identifier: identifier,
         reward: job.rpcData.coinbasevalue,
         shareDiff: shareDiff.toFixed(8),
       };
@@ -366,7 +369,7 @@ const Manager = function(poolConfig, portalConfig) {
         hex: blockHex,
         header: headerHash,
         headerDiff: headerBigNum,
-        identifier: _this.portalConfig.identifier,
+        identifier: identifier,
         shareDiff: shareDiff.toFixed(8),
       };
 
