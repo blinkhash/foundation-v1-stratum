@@ -225,4 +225,12 @@ describe('Test algorithm functionality', () => {
     expect(Algorithms.minotaurx.hash({}).apply(null, [start]).length).toBe(32);
     expect(Algorithms.minotaurx.hash({}).apply(null, [start])).toStrictEqual(output);
   });
+
+  // Deterministic
+  test('Test implemented allium algorithm', () => {
+    const start = Buffer.from('000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f');
+    const output = Buffer.from('6d7c34599e6666e9a36d79a1f58eb67683ee8b060ed82f5e0bd852a4fe2bb12a', 'hex');
+    expect(Algorithms.allium.hash({}).apply(null, [start]).length).toBe(32);
+    expect(Algorithms.allium.hash({}).apply(null, [start])).toStrictEqual(output);
+  });
 });
