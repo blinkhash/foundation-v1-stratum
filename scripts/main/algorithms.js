@@ -38,6 +38,17 @@ const Algorithms = {
     }
   },
 
+  // Scrypt Algorithm
+  'allium': {
+    multiplier: Math.pow(2, 16),
+    diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
+    hash: function(){
+      return function(){
+        return multiHashing.allium.apply(this, arguments);
+      };
+    }
+  },
+
   // C11 Algorithm
   'c11': {
     multiplier: 1,
