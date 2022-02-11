@@ -51,17 +51,17 @@ const RingBuffer = function(maxSize) {
 };
 
 // Main Difficulty Function
-const Difficulty = function(port, difficultyOptions, showLogs) {
+const Difficulty = function(port, difficulty, showLogs) {
 
   const _this = this;
-  _this.options = difficultyOptions;
+  _this.options = difficulty;
 
   const logging = showLogs;
   let lastTs, lastRtc, timeBuffer;
-  const variance = difficultyOptions.targetTime * difficultyOptions.variance;
-  const bufferSize = difficultyOptions.retargetTime / difficultyOptions.targetTime * 4;
-  const tMin = difficultyOptions.targetTime - variance;
-  const tMax = difficultyOptions.targetTime + variance;
+  const variance = difficulty.targetTime * difficulty.variance;
+  const bufferSize = difficulty.retargetTime / difficulty.targetTime * 4;
+  const tMin = difficulty.targetTime - variance;
+  const tMax = difficulty.targetTime + variance;
 
   // Update Difficulty on Share Submission
   this.updateDifficulty = function(client) {

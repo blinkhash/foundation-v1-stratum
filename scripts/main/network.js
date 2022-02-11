@@ -23,17 +23,18 @@ const Client = require('./client');
  **/
 
 // Main Network Function
-const Network = function(options, authorizeFn) {
+const Network = function(poolConfig, portalConfig, authorizeFn) {
 
   const _this = this;
-  this.options = options;
+  this.poolConfig = poolConfig;
+  this.portalConfig = portalConfig;
   this.bannedIPs = {};
   this.stratumClients = {};
   this.stratumServers = {};
 
   let rebroadcastTimeout;
   const subscriptionCounter = utils.subscriptionCounter();
-  const bannedMS = _this.options.banning.time * 1000;
+  const bannedMS = _this.poolConfig.banning.time * 1000;
 
   // Start Stratum Capabilities
   /* istanbul ignore next */
@@ -43,29 +44,29 @@ const Network = function(options, authorizeFn) {
     setInterval(() => {
       Object.keys(_this.bannedIPs).forEach(ip => {
         const banTime = _this.bannedIPs[ip];
-        if (Date.now() - banTime > _this.options.banning.time) {
+        if (Date.now() - banTime > _this.poolConfig.banning.time) {
           delete _this.bannedIPs[ip];
         }
       });
-    }, 1000 * _this.options.banning.purgeInterval);
+    }, 1000 * _this.poolConfig.banning.purgeInterval);
 
     // Start Individual Stratum Servers
     let serversStarted = 0;
-    const stratumPorts = _this.options.ports.filter(port => port.enabled);
+    const stratumPorts = _this.poolConfig.ports.filter(port => port.enabled);
+
     stratumPorts.forEach((port) => {
       const currentPort = port.port;
-      const enabled = port.ssl && port.ssl.enabled;
 
       // Define Stratum Options
       const options = {
-        ...(enabled && { key: fs.readFileSync(path.join('./certificates', port.ssl.key)) }),
-        ...(enabled && { cert: fs.readFileSync(path.join('./certificates', port.ssl.cert)) }),
+        ...(port.tls && { key: fs.readFileSync(path.join('./certificates', _this.portalConfig.tls.key)) }),
+        ...(port.tls && { cert: fs.readFileSync(path.join('./certificates', _this.portalConfig.tls.cert)) }),
         allowHalfOpen: false,
       };
 
       // Setup Stratum Server
       const callback = (socket) => _this.handleNewClient(socket);
-      const server = (enabled) ? tls.createServer(options, callback) : net.createServer(options, callback);
+      const server = (port.tls) ? tls.createServer(options, callback) : net.createServer(options, callback);
 
       // Setup Server to Listen on Port
       server.listen(parseInt(currentPort), () => {
@@ -82,7 +83,7 @@ const Network = function(options, authorizeFn) {
 
   // Stop Stratum Connection
   this.stopServer = function() {
-    const stratumPorts = _this.options.ports.filter(port => port.enabled);
+    const stratumPorts = _this.poolConfig.ports.filter(port => port.enabled);
     stratumPorts.forEach((port) => {
       const currentPort = port.port;
       const server = _this.stratumServers[currentPort];
@@ -117,11 +118,11 @@ const Network = function(options, authorizeFn) {
       subscriptionId: subscriptionId,
       authorizeFn: authorizeFn,
       socket: socket,
-      algorithm: _this.options.primary.coin.algorithms.mining,
-      asicboost: _this.options.primary.coin.asicboost,
-      banning: _this.options.banning,
-      connectionTimeout: _this.options.settings.connectionTimeout,
-      tcpProxyProtocol: _this.options.settings.tcpProxyProtocol
+      algorithm: _this.poolConfig.primary.coin.algorithms.mining,
+      asicboost: _this.poolConfig.primary.coin.asicboost,
+      banning: _this.poolConfig.banning,
+      connectionTimeout: _this.poolConfig.settings.connectionTimeout,
+      tcpProxyProtocol: _this.poolConfig.settings.tcpProxyProtocol
     });
     _this.stratumClients[subscriptionId] = client;
 
@@ -154,7 +155,7 @@ const Network = function(options, authorizeFn) {
     clearTimeout(rebroadcastTimeout);
     rebroadcastTimeout = setTimeout(() => {
       _this.emit('broadcastTimeout');
-    }, _this.options.settings.jobRebroadcastTimeout * 1000);
+    }, _this.poolConfig.settings.jobRebroadcastTimeout * 1000);
   };
 
   // Add Banned IP to List of Banned IPs

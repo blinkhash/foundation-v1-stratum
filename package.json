@@ -1,6 +1,6 @@
 {
   "name": "foundation-stratum",
-  "version": "0.0.27",
+  "version": "0.0.31",
   "description": "High performance Stratum poolserver in Node.js",
   "main": "./scripts/main.js",
   "keywords": [
