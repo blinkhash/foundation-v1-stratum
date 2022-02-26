@@ -390,7 +390,7 @@ describe('Test pool functionality', () => {
       done();
     });
     pool.setupDaemonInterface(() => {});
-    pool.primary.daemon.cmd('getpeerinfo', [], () => {});
+    pool.primary.daemon.cmd('getpeerinfo', [], true, () => {});
   });
 
   test('Test pool daemon events [3]', (done) => {

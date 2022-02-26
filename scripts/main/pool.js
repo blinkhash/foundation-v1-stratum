@@ -240,7 +240,7 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
     }
 
     // Establish Submission Functionality
-    _this.primary.daemon.cmd(rpcCommand, rpcArgs, (results) => {
+    _this.primary.daemon.cmd(rpcCommand, rpcArgs, false, (results) => {
       for (let i = 0; i < results.length; i += 1) {
         const result = results[i];
         if (result.error) {
@@ -287,7 +287,7 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
 
     // Submit AuxPow Block to Auxiliary Daemon
     const rpcArgs = [_this.auxiliary.rpcData.hash, auxPow.toString('hex')];
-    _this.auxiliary.daemon.cmd('getauxblock', rpcArgs, (results) => {
+    _this.auxiliary.daemon.cmd('getauxblock', rpcArgs, false, (results) => {
       for (let i = 0; i < results.length; i += 1) {
         const result = results[i];
         if (result.error) {
@@ -307,7 +307,7 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
 
   // Check Whether Block was Accepted by Daemon
   this.checkBlockAccepted = function(blockHash, daemon, callback) {
-    daemon.cmd('getblock', [blockHash], (results) => {
+    daemon.cmd('getblock', [blockHash], false, (results) => {
       const validResults = results.filter((result) => {
         return result.response && (result.response.hash === blockHash);
       });
@@ -339,7 +339,7 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
     }
 
     // Handle Block Templates/Subsidy
-    _this.primary.daemon.cmd('getblocktemplate', [callConfig], (result) => {
+    _this.primary.daemon.cmd('getblocktemplate', [callConfig], true, (result) => {
       if (result.error) {
         emitErrorLog('getblocktemplate call failed for daemon instance ' +
           result.instance.index + ' with error ' + JSON.stringify(result.error));
@@ -351,30 +351,30 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
         const processedNewBlock = _this.manager.processTemplate(result.response, force);
         callback(null, result.response, processedNewBlock);
       }
-    }, true);
+    });
   };
 
   // Update Work for Auxiliary Chain
   /* istanbul ignore next */
   this.getAuxTemplate = function(callback) {
     if (_this.poolConfig.auxiliary && _this.poolConfig.auxiliary.enabled) {
-      _this.auxiliary.daemon.cmd('getauxblock', [], (result) => {
-        if (result[0].error) {
+      _this.auxiliary.daemon.cmd('getauxblock', [], true, (result) => {
+        if (result.error) {
           emitErrorLog('getauxblock call failed for daemon instance ' +
-            result[0].instance.index + ' with error ' + JSON.stringify(result[0].error));
-          callback(result[0].error);
+            result.instance.index + ' with error ' + JSON.stringify(result.error));
+          callback(result.error);
         } else {
           let updateTemplate = false;
-          const hash = result[0].response.target || result[0].response._target || '';
+          const hash = result.response.target || result.response._target || '';
           const target = utils.uint256BufferFromHash(hash, {endian: 'little', size: 32});
           if (_this.auxiliary.rpcData) {
-            if (_this.auxiliary.rpcData.hash != result[0].response.hash) {
+            if (_this.auxiliary.rpcData.hash != result.response.hash) {
               updateTemplate = true;
             }
           }
-          _this.auxiliary.rpcData = result[0].response;
+          _this.auxiliary.rpcData = result.response;
           _this.auxiliary.rpcData.target = bignum.fromBuffer(target);
-          callback(null, result[0].response, updateTemplate);
+          callback(null, result.response, updateTemplate);
         }
       });
     } else {
@@ -479,14 +479,14 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
     // Calculate Current Progress on Sync
     const generateProgress = function() {
       const cmd = _this.poolConfig.primary.coin.getinfo ? 'getinfo' : 'getblockchaininfo';
-      _this.primary.daemon.cmd(cmd, [], (results) => {
+      _this.primary.daemon.cmd(cmd, [], false, (results) => {
         const blockCount = Math.max.apply(null, results
           .flatMap(result => result.response)
           .flatMap(response => response.blocks));
 
         // Compare with Peers to Get Percentage Synced
-        _this.primary.daemon.cmd('getpeerinfo', [], (results) => {
-          const peers = results[0].response;
+        _this.primary.daemon.cmd('getpeerinfo', [], true, (result) => {
+          const peers = result.response;
           const totalBlocks = Math.max.apply(null, peers
             .flatMap(response => response.startingheight));
           const percent = (blockCount / totalBlocks * 100).toFixed(2);
@@ -497,7 +497,7 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
 
     // Check for Blockchain to be Fully Synced
     const checkSynced = function(displayNotSynced) {
-      _this.primary.daemon.cmd('getblocktemplate', [callConfig], (results) => {
+      _this.primary.daemon.cmd('getblocktemplate', [callConfig], false, (results) => {
         const synced = results.every((r) => {
           return !r.error || r.error.code !== -10;
         });

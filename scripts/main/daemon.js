@@ -33,10 +33,9 @@ const Daemon = function(daemons, logger) {
       hostname: instance.host,
       port: instance.port,
       method: 'POST',
+      timeout: 3000,
+      headers: { 'Content-Length': jsonData.length },
       auth: instance.username + ':' + instance.password,
-      headers: {
-        'Content-Length': jsonData.length
-      }
     };
 
     // Attempt to Parse JSON from Response
@@ -63,12 +62,8 @@ const Daemon = function(daemons, logger) {
     const req = http.request(options, (res) => {
       let data = '';
       res.setEncoding('utf8');
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-      res.on('end', () => {
-        parseJson(res, data);
-      });
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => parseJson(res, data));
     });
 
     req.on('error', (e) => {
@@ -94,7 +89,7 @@ const Daemon = function(daemons, logger) {
 
   // Check if All Daemons are Online
   this.isOnline = function(callback) {
-    this.cmd('getpeerinfo', [], (results) => {
+    this.cmd('getpeerinfo', [], false, (results) => {
       const allOnline = results.every((result) => {
         return !result.error;
       });
@@ -115,56 +110,68 @@ const Daemon = function(daemons, logger) {
     });
   };
 
-  // Batch RPC Commands
-  this.batchCmd = function(cmdArray, callback) {
-    const requestJson = [];
-    cmdArray.forEach((command, idx) => {
-      requestJson.push({
+  // Handle Batch Daemon Commands
+  this.batchCmd = function(requests, callback) {
+
+    // Build JSON Request
+    const requestsJson = [];
+    requests.forEach((command, idx) => {
+      requestsJson.push({
         method: command[0],
         params: command[1],
         id: Date.now() + Math.floor(Math.random() * 10) + idx
       });
     });
-    const serializedRequest = JSON.stringify(requestJson);
+
+    // Make Request to First Daemon
+    serializedRequest = JSON.stringify(requestsJson);
     _this.performHttpRequest(this.instances[0], serializedRequest, (error, result) => {
       callback(error, result);
     });
-  };
+  }
 
   // Handle Single RPC Command
-  this.cmd = function(method, params, callback, streamResults, returnRawData) {
+  this.cmd = function(method, params, streaming, callback) {
+    let responded = false;
     const results = [];
-    async.each(this.instances, (instance, eachCallback) => {
 
-      // Build Output Request Data
-      const itemFinished = function(error, result, data) {
+    // Build JSON Request
+    const serializedRequest = JSON.stringify({
+      method: method,
+      params: params,
+      id: Date.now() + Math.floor(Math.random() * 10)
+    });
+
+    // Iterate through Daemons Individually
+    async.each(this.instances, (instance, eachCallback) => {
+      _this.performHttpRequest(instance, serializedRequest, (error, result) => {
         const returnObj = {
           error: error,
           response: (result || {}).result,
           instance: instance
         };
-        if (returnRawData) returnObj.data = data;
-        if (streamResults) callback(returnObj);
-        else results.push(returnObj);
-        eachCallback();
-      };
-
-      // Build Input Request Data
-      const requestJson = JSON.stringify({
-        method: method,
-        params: params,
-        id: Date.now() + Math.floor(Math.random() * 10)
+        results.push(returnObj);
+        if (streaming && !responded) {
+          if (!error) {
+            responded = true;
+            callback(returnObj);
+          } else {
+            eachCallback();
+          }
+        } else {
+          eachCallback();
+        }
       });
 
-      _this.performHttpRequest(instance, requestJson, (error, result, data) => {
-        itemFinished(error, result, data);
-      });
+    // Handle Callbacks
     }, () => {
-      if (!streamResults) {
+      if (streaming && !responded) {
+        callback(results[0]);
+      } else {
         callback(results);
       }
     });
-  };
+  }
 };
 
 module.exports = Daemon;
