@@ -38,9 +38,9 @@ const Algorithms = {
     }
   },
 
-  // Scrypt Algorithm
+  // Allium Algorithm
   'allium': {
-    multiplier: Math.pow(2, 16),
+    multiplier: Math.pow(2, 8),
     diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
     hash: function(){
       return function(){
