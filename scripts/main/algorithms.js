@@ -272,7 +272,7 @@ const Algorithms = {
 
   // Minotaur Algorithm
   'minotaur': {
-    multiplier: 1,
+    multiplier: Math.pow(2, 12),
     diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
     hash: function() {
       return function() {
@@ -283,7 +283,7 @@ const Algorithms = {
 
   // MinotaurX Algorithm
   'minotaurx': {
-    multiplier: 1,
+    multiplier: Math.pow(2, 12),
     diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
     hash: function() {
       return function() {

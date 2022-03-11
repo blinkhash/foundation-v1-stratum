@@ -144,11 +144,12 @@ const Daemon = function(daemons, logger) {
 
     // Iterate through Daemons Individually
     async.each(this.instances, (instance, eachCallback) => {
-      _this.performHttpRequest(instance, serializedRequest, (error, result) => {
+      _this.performHttpRequest(instance, serializedRequest, (error, result, data) => {
         const returnObj = {
           error: error,
           response: (result || {}).result,
-          instance: instance
+          instance: instance,
+          data: data,
         };
         results.push(returnObj);
         if (streaming && !responded) {

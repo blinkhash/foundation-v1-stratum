@@ -262,34 +262,42 @@ describe('Test transactions functionality', () => {
   });
 
   test('Test bitcoin transaction builder [19]', () => {
+    poolConfigCopy.primary.recipients.push({ address: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq', percentage: 0.05 });
+    poolConfigCopy.primary.recipients.push({ address: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq', percentage: 0.05 });
+    const transaction = transactions.default(poolConfigCopy, rpcData, extraNonce, null);
+    expect(transaction[0].slice(0, -5)).toStrictEqual(Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0f5104', 'hex'));
+    expect(transaction[1]).toStrictEqual(Buffer.from('0000000004008d380c01000000160014e8df018c7e326cc253faac7e46cdc51e68542c4280b2e60e00000000160014e8df018c7e326cc253faac7e46cdc51e68542c4280b2e60e00000000160014e8df018c7e326cc253faac7e46cdc51e68542c420000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900000000', 'hex'));
+  });
+
+  test('Test bitcoin transaction builder [20]', () => {
     rpcDataCopy.coinbaseaux.flags = 'test';
     const transaction = transactions.default(poolConfigCopy, rpcDataCopy, extraNonce, null);
     expect(transaction[0].slice(0, -5)).toStrictEqual(Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0f5104', 'hex'));
     expect(transaction[1]).toStrictEqual(Buffer.from('000000000200f2052a01000000160014e8df018c7e326cc253faac7e46cdc51e68542c420000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900000000', 'hex'));
   });
 
-  test('Test bitcoin transaction builder [20]', () => {
+  test('Test bitcoin transaction builder [21]', () => {
     rpcDataCopy.masternode = {};
     const transaction = transactions.default(poolConfigCopy, rpcDataCopy, extraNonce, null);
     expect(transaction[0].slice(0, -5)).toStrictEqual(Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0f5104', 'hex'));
     expect(transaction[1]).toStrictEqual(Buffer.from('000000000200f2052a01000000160014e8df018c7e326cc253faac7e46cdc51e68542c420000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900000000', 'hex'));
   });
 
-  test('Test bitcoin transaction builder [21]', () => {
+  test('Test bitcoin transaction builder [22]', () => {
     rpcDataCopy.payee = 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq';
     const transaction = transactions.default(poolConfigCopy, rpcDataCopy, extraNonce, null);
     expect(transaction[0].slice(0, -5)).toStrictEqual(Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0f5104', 'hex'));
     expect(transaction[1]).toStrictEqual(Buffer.from('000000000300286bee00000000160014e8df018c7e326cc253faac7e46cdc51e68542c4200ca9a3b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c420000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900000000', 'hex'));
   });
 
-  test('Test bitcoin transaction builder [22]', () => {
+  test('Test bitcoin transaction builder [23]', () => {
     delete rpcDataCopy.default_witness_commitment;
     const transaction = transactions.default(poolConfigCopy, rpcDataCopy, extraNonce, null);
     expect(transaction[0].slice(0, -5)).toStrictEqual(Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0f5104', 'hex'));
     expect(transaction[1]).toStrictEqual(Buffer.from('000000000100f2052a01000000160014e8df018c7e326cc253faac7e46cdc51e68542c4200000000', 'hex'));
   });
 
-  test('Test bitcoin transaction builder [23]', () => {
+  test('Test bitcoin transaction builder [24]', () => {
     poolConfigCopy.auxiliary.enabled = true;
     const transaction = transactions.default(poolConfigCopy, rpcDataCopy, extraNonce, auxMerkle);
     expect(transaction[0].slice(0, 44)).toStrictEqual(Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff3b5104', 'hex'));
@@ -298,7 +306,7 @@ describe('Test transactions functionality', () => {
     expect(transaction[1]).toStrictEqual(Buffer.from('000000000200f2052a01000000160014e8df018c7e326cc253faac7e46cdc51e68542c420000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900000000', 'hex'));
   });
 
-  test('Test bitcoin transaction builder [24]', () => {
+  test('Test bitcoin transaction builder [25]', () => {
     const transaction = transactions.default(poolConfigCopy, rpcDataCopy, extraNonce, auxMerkle);
     expect(transaction[0].slice(0, -5)).toStrictEqual(Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0f5104', 'hex'));
     expect(transaction[1]).toStrictEqual(Buffer.from('000000000200f2052a01000000160014e8df018c7e326cc253faac7e46cdc51e68542c420000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900000000', 'hex'));

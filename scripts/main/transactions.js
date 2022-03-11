@@ -62,6 +62,7 @@ const Transactions = function() {
       ]);
     }
 
+    // Build First Part of Generation Transaction
     const p1 = Buffer.concat([
       utils.packUInt32LE(txVersion),
       txTimestamp,
@@ -204,17 +205,21 @@ const Transactions = function() {
     }
 
     // Handle Recipient Transactions
+    let recipientTotal = 0;
     poolConfig.primary.recipients.forEach(recipient => {
       const recipientReward = Math.floor(recipient.percentage * reward);
       const recipientScript = utils.addressToScript(recipient.address, network);
-      reward -= recipientReward;
-      rewardToPool -= recipientReward;
+      recipientTotal += recipientReward;
       txOutputBuffers.push(Buffer.concat([
         utils.packUInt64LE(recipientReward),
         utils.varIntBuffer(recipientScript.length),
         recipientScript,
       ]));
     });
+
+    // Remove Recipient Percentages from Total
+    reward -= recipientTotal;
+    rewardToPool -= recipientTotal;
 
     // Handle Pool Transaction
     txOutputBuffers.unshift(Buffer.concat([
@@ -233,11 +238,13 @@ const Transactions = function() {
       ]));
     }
 
+    // Combine Output Transactions
     const outputTransactions = Buffer.concat([
       utils.varIntBuffer(txOutputBuffers.length),
       Buffer.concat(txOutputBuffers)
     ]);
 
+    // Build Second Part of Generation Transaction
     let p2 = Buffer.concat([
       utils.packUInt32LE(txInSequence),
       outputTransactions,

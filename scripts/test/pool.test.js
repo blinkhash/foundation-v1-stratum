@@ -416,7 +416,7 @@ describe('Test pool functionality', () => {
       }));
     pool.on('log', (type, text) => {
       expect(type).toBe('error');
-      expect(text).toBe('Failed to connect daemon(s): [{"error":true,"response":null,"instance":{"host":"127.0.0.1","port":8332,"user":"","password":"","index":0}}]');
+      expect(text).toBe('Failed to connect daemon(s): [{"error":true,"response":null,"instance":{"host":"127.0.0.1","port":8332,"user":"","password":"","index":0},\"data\":\"{\\\"id\\\":\\\"nocktest\\\",\\\"error\\\":true,\\\"result\\\":null}\"}]');
       done();
     });
     pool.setupDaemonInterface(() => {});
