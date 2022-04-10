@@ -111,9 +111,9 @@ const Manager = function(poolConfig, portalConfig) {
         port: port,
         difficulty: difficulty,
         identifier: identifier,
-        worker: addrPrimary,
+        addrPrimary: addrPrimary,
         error: error[1],
-      }, null, null);
+      }, null, false);
       return { error: error, result: null };
     };
 
