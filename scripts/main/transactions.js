@@ -189,6 +189,28 @@ const Transactions = function() {
       }
       break;
 
+    case 'firo':
+      const address = poolConfig.primary.coin.rewards.addresses[0] || poolConfig.settings.testnet ? 'TUuKypsbbnHHmZ2auC2BBWfaP1oTEnxjK2' : 'aFrAVZFr8pva5mG8XKaUH8EXcFVVNxLiuB'; 
+      founderReward = poolConfig.primary.coin.rewards.amount || 187500000;
+      founderScript = utils.addressToScript(address, network);
+      txOutputBuffers.push(Buffer.concat([
+        utils.packUInt64LE(founderReward),
+        utils.varIntBuffer(founderScript.length),
+        founderScript,
+      ]));
+      if (rpcData.znode_payments_started && rpcData.znode_payments_enforced) {
+        // Evo Znodes
+        rpcData.znode.forEach(entry => {
+          founderScript = utils.addressToScript(entry.payee, network);
+          txOutputBuffers.push(Buffer.concat([
+            utils.packUInt64LE(entry.amount),
+            utils.varIntBuffer(founderScript.length),
+            founderScript,
+          ]));        
+        });
+      }
+      break;
+  
     // HVQ-Based Transactions
     case 'hivecoin':
       founderReward = rpcData.CommunityAutonomousValue;

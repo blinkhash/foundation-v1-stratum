@@ -44,6 +44,7 @@
     "foundation-kawpow": "0.0.3",
     "foundation-multi-hashing": "0.0.8",
     "foundation-utxo-lib": "0.0.2",
+    "hasher-firopow": "github:mintpond/hasher-firopow",
     "sha3": "2.1.4"
   },
   "devDependencies": {

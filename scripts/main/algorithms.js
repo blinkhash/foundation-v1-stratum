@@ -6,6 +6,7 @@
 
 const equihash = require('foundation-equihash');
 const kawpow = require('foundation-kawpow');
+const firopow = require('hasher-firopow');
 const multiHashing = require('foundation-multi-hashing');
 const utils = require('./utils');
 
@@ -247,6 +248,18 @@ const Algorithms = {
     }
   },
 
+  // Firopow Algorithm
+  'firopow': {
+    multiplier: 1,    
+    diff: parseInt('0x00000000ffff0000000000000000000000000000000000000000000000000000'),
+    epochLength: 1300,
+    hash: function() {
+      return function() {
+        return firopow.verify.apply(this, arguments);
+      };
+    }
+  },
+  
   // Ghostrider Algorithm
   'ghostrider': {
     multiplier: Math.pow(2, 16),

@@ -688,8 +688,9 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
         const extraNonce = _this.manager.extraNonceCounter.next();
         switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
-        // Kawpow Subscription
+        // Kawpow/Firopow Subscription
         case 'kawpow':
+        case 'firopow':
           callback(null, extraNonce, extraNonce);
           break;
 
@@ -716,9 +717,10 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
         let result, submission;
         switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
-        // Kawpow Submission
+        // Kawpow/Firopow Submission
         case 'kawpow':
-          submission = {
+        case 'firopow':
+            submission = {
             extraNonce1: client.extraNonce1,
             nonce: message.params[2].substr(2),
             headerHash: message.params[3].substr(2),
