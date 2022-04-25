@@ -22,12 +22,12 @@ const Manager = function(poolConfig, portalConfig) {
 
   const algorithm = _this.poolConfig.primary.coin.algorithms.mining;
   const shareMultiplier = Algorithms[algorithm].multiplier;
-  const extraNonceSize = algorithm === 'kawpow' ? 2 : 4;
+  const extraNonceSize = algorithm === 'kawpow' || algorithm === 'firopow' ? 2 : 4;
 
   this.currentJob;
   this.validJobs = {};
   this.jobCounter = utils.jobCounter();
-  this.extraNoncePlaceholder = algorithm === 'kawpow' ? Buffer.from('f000', 'hex') : Buffer.from('f000000ff111111f', 'hex');
+  this.extraNoncePlaceholder = algorithm === 'kawpow' || algorithm === 'firopow' ? Buffer.from('f000', 'hex') : Buffer.from('f000000ff111111f', 'hex');
   this.extraNonceCounter = utils.extraNonceCounter(extraNonceSize);
   this.extraNonce2Size = _this.extraNoncePlaceholder.length - _this.extraNonceCounter.size;
 
@@ -129,9 +129,10 @@ const Manager = function(poolConfig, portalConfig) {
     // Process Submitted Share
     switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
-    // Kawpow Share Submission
+    // Kawpow/Firopow Share Submission
     /* istanbul ignore next */
     case 'kawpow':
+    case 'firopow':
 
       // Edge Cases to Check if Share is Invalid
       submitTime = Date.now() / 1000 | 0;
@@ -202,7 +203,18 @@ const Manager = function(poolConfig, portalConfig) {
       shareDiff = Algorithms[algorithm].diff / headerBigNum.toNumber() * shareMultiplier;
       blockDiffAdjusted = job.difficulty * shareMultiplier;
       blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer, nonceBuffer, mixHashBuffer).toString('hex');
-      blockHash = hashOutputBuffer.toString('hex');
+      if(_this.poolConfig.primary.coin.algorithms.mining === 'kawpow') {
+        blockHash = hashOutputBuffer.toString('hex'); 
+      } else {
+        //Firopow
+        const headerBuf = Buffer.alloc(120);
+        const MIX_HASH_BUFFER = Buffer.alloc(32);
+        headerBuffer.copy(headerBuf);
+        merkleRoot.copy(headerBuf,36)
+        nonceBuffer.copy(headerBuf, 80);
+        utils.reverseBuffer(mixHashBuffer, MIX_HASH_BUFFER).copy(headerBuf, 88);
+        blockHash = utils.reverseBuffer(utils.sha256d(headerBuf)).toString('hex');        
+      }
 
       // Check if Share is Valid Block Candidate
       if (job.target.ge(headerBigNum)) {

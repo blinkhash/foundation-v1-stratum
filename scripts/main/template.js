@@ -109,9 +109,10 @@ const Template = function(poolConfig, rpcData, jobId, extraNoncePlaceholder, aux
     let buffer;
     switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
-    // Kawpow Block Header
+    // Kawpow/Firopow Block Header
     case 'kawpow':
-      buffer = Buffer.concat([
+    case 'firopow':
+        buffer = Buffer.concat([
         _this.generation[0],
         extraNonce1,
         _this.generation[1]
@@ -138,8 +139,9 @@ const Template = function(poolConfig, rpcData, jobId, extraNoncePlaceholder, aux
 
     switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
-    // Kawpow Block Header
+    // Kawpow/Firopow Block Header
     case 'kawpow':
+    case 'firopow':
       header.write(utils.packUInt32BE(this.rpcData.height).toString('hex'), position, 4, 'hex');
       header.write(this.rpcData.bits, position += 4, 4, 'hex');
       header.write(nTime, position += 4, 4, 'hex');
@@ -168,9 +170,10 @@ const Template = function(poolConfig, rpcData, jobId, extraNoncePlaceholder, aux
     let buffer;
     switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
-    // Kawpow Block Structure
+    // Kawpow/Firopow Block Structure
     case 'kawpow':
-      buffer = Buffer.concat([
+    case 'firopow':
+        buffer = Buffer.concat([
         header,
         nonce,
         utils.reverseBuffer(mixHash),
@@ -219,16 +222,17 @@ const Template = function(poolConfig, rpcData, jobId, extraNoncePlaceholder, aux
     // Process Job Parameters
     switch (_this.poolConfig.primary.coin.algorithms.mining) {
 
-    // Kawpow Parameters
+    // Kawpow/Firopow Parameters
     case 'kawpow':
+    case 'firopow':
 
       // Check if Client has ExtraNonce Set
       if (!client.extraNonce1) {
         client.extraNonce1 = utils.extraNonceCounter(2).next();
       }
 
-      adjPow = Algorithms['kawpow'].diff / _this.difficulty;
-      epochLength = Math.floor(this.rpcData.height / Algorithms['kawpow'].epochLength);
+      adjPow = Algorithms[_this.poolConfig.primary.coin.algorithms.mining].diff / _this.difficulty;
+      epochLength = Math.floor(this.rpcData.height / Algorithms[_this.poolConfig.primary.coin.algorithms.mining].epochLength);
       extraNonce1Buffer = Buffer.from(client.extraNonce1, 'hex');
 
       // Calculate Difficulty Padding

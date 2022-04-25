@@ -199,8 +199,9 @@ const Client = function(options) {
   this.handleSubscribe = function(message) {
     switch (_this.options.algorithm) {
 
-    // Kawpow Subscription
+    // Kawpow/Firopow Subscription
     case 'kawpow':
+    case 'firopow':
       _this.emit('subscription', {}, (error, extraNonce1) => {
         if (error) {
           _this.sendJson({ id: message.id, result: null, error: error });
@@ -381,12 +382,12 @@ const Client = function(options) {
     // Process Algorithm Difficulty
     switch (_this.options.algorithm) {
 
-    // Kawpow Difficulty
-    case 'kawpow': {
-
+    // Kawpow/Firopow Difficulty
+    case 'kawpow': 
+    case 'firopow': {
       // Calculate Difficulty Padding
       let zeroPad = '';
-      const adjPow = Algorithms['kawpow'].diff / _this.difficulty;
+      const adjPow = Algorithms[_this.options.algorithm].diff / _this.difficulty;
       if ((64 - adjPow.toString(16).length) !== 0) {
         zeroPad = '0';
         zeroPad = zeroPad.repeat((64 - (adjPow.toString(16).length)));
@@ -436,12 +437,13 @@ const Client = function(options) {
     // Process Job Broadcasting
     switch (_this.options.algorithm) {
 
-    // Kawpow Broadcasting
-    case 'kawpow': {
+    // Kawpow/Firopow Broadcasting
+    case 'kawpow': 
+    case 'firopow': {
 
       // Calculate Difficulty Padding
       let zeroPad = '';
-      const adjPow = Algorithms['kawpow'].diff / _this.difficulty;
+      const adjPow = Algorithms[_this.options.algorithm].diff / _this.difficulty;
       if ((64 - adjPow.toString(16).length) !== 0) {
         zeroPad = '0';
         zeroPad = zeroPad.repeat((64 - (adjPow.toString(16).length)));
