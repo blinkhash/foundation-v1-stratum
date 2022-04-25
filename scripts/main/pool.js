@@ -720,7 +720,7 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
         // Kawpow/Firopow Submission
         case 'kawpow':
         case 'firopow':
-            submission = {
+          submission = {
             extraNonce1: client.extraNonce1,
             nonce: message.params[2].substr(2),
             headerHash: message.params[3].substr(2),

@@ -124,11 +124,11 @@ const Daemon = function(daemons, logger) {
     });
 
     // Make Request to First Daemon
-    serializedRequest = JSON.stringify(requestsJson);
+    const serializedRequest = JSON.stringify(requestsJson);
     _this.performHttpRequest(this.instances[0], serializedRequest, (error, result) => {
       callback(error, result);
     });
-  }
+  };
 
   // Handle Single RPC Command
   this.cmd = function(method, params, streaming, callback) {
@@ -172,7 +172,7 @@ const Daemon = function(daemons, logger) {
         callback(results);
       }
     });
-  }
+  };
 };
 
 module.exports = Daemon;

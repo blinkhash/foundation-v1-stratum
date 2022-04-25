@@ -22,7 +22,7 @@ const Manager = function(poolConfig, portalConfig) {
 
   const algorithm = _this.poolConfig.primary.coin.algorithms.mining;
   const shareMultiplier = Algorithms[algorithm].multiplier;
-  const extraNonceSize = ['kawpow', 'firopow'].includes(algorithm) ? 2 : 4
+  const extraNonceSize = ['kawpow', 'firopow'].includes(algorithm) ? 2 : 4;
 
   this.currentJob;
   this.validJobs = {};

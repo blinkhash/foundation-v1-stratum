@@ -112,7 +112,7 @@ const Template = function(poolConfig, rpcData, jobId, extraNoncePlaceholder, aux
     // Kawpow/Firopow Block Header
     case 'kawpow':
     case 'firopow':
-        buffer = Buffer.concat([
+      buffer = Buffer.concat([
         _this.generation[0],
         extraNonce1,
         _this.generation[1]
@@ -172,7 +172,7 @@ const Template = function(poolConfig, rpcData, jobId, extraNoncePlaceholder, aux
     // Kawpow/Firopow Block Structure
     case 'kawpow':
     case 'firopow':
-        buffer = Buffer.concat([
+      buffer = Buffer.concat([
         header,
         nonce,
         utils.reverseBuffer(mixHash),

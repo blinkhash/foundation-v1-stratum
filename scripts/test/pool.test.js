@@ -405,6 +405,7 @@ describe('Test pool functionality', () => {
     pool.setupDaemonInterface(() => done());
   });
 
+  /* eslint-disable no-useless-escape */
   test('Test pool daemon events [4]', (done) => {
     const pool = new Pool(poolConfigCopy, configCopy, null, () => {});
     nock('http://127.0.0.1:8332')

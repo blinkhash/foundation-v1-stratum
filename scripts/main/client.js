@@ -380,13 +380,14 @@ const Client = function(options) {
     _this.difficulty = difficulty;
 
     // Process Algorithm Difficulty
+    let zeroPad, adjPow;
     switch (_this.options.algorithm) {
 
     // Kawpow/Firopow Difficulty
     case 'kawpow':
     case 'firopow':
-      let zeroPad = '';
-      const adjPow = Algorithms[_this.options.algorithm].diff / _this.difficulty;
+      zeroPad = '';
+      adjPow = Algorithms[_this.options.algorithm].diff / _this.difficulty;
       if ((64 - adjPow.toString(16).length) !== 0) {
         zeroPad = '0';
         zeroPad = zeroPad.repeat((64 - (adjPow.toString(16).length)));
@@ -433,13 +434,14 @@ const Client = function(options) {
     }
 
     // Process Job Broadcasting
+    let zeroPad, adjPow;
     switch (_this.options.algorithm) {
 
     // Kawpow/Firopow Broadcasting
     case 'kawpow':
     case 'firopow':
-      let zeroPad = '';
-      const adjPow = Algorithms[_this.options.algorithm].diff / _this.difficulty;
+      zeroPad = '';
+      adjPow = Algorithms[_this.options.algorithm].diff / _this.difficulty;
       if ((64 - adjPow.toString(16).length) !== 0) {
         zeroPad = '0';
         zeroPad = zeroPad.repeat((64 - (adjPow.toString(16).length)));
