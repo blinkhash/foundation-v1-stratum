@@ -383,9 +383,8 @@ const Client = function(options) {
     switch (_this.options.algorithm) {
 
     // Kawpow/Firopow Difficulty
-    case 'kawpow': 
-    case 'firopow': {
-      // Calculate Difficulty Padding
+    case 'kawpow':
+    case 'firopow':
       let zeroPad = '';
       const adjPow = Algorithms[_this.options.algorithm].diff / _this.difficulty;
       if ((64 - adjPow.toString(16).length) !== 0) {
@@ -398,7 +397,6 @@ const Client = function(options) {
         params: [(zeroPad + adjPow.toString(16)).substr(0, 64)],
       });
       break;
-    }
 
     // Default Difficulty
     default:
@@ -438,10 +436,8 @@ const Client = function(options) {
     switch (_this.options.algorithm) {
 
     // Kawpow/Firopow Broadcasting
-    case 'kawpow': 
-    case 'firopow': {
-
-      // Calculate Difficulty Padding
+    case 'kawpow':
+    case 'firopow':
       let zeroPad = '';
       const adjPow = Algorithms[_this.options.algorithm].diff / _this.difficulty;
       if ((64 - adjPow.toString(16).length) !== 0) {
@@ -455,7 +451,6 @@ const Client = function(options) {
         params: jobParams
       });
       break;
-    }
 
     // Default Broadcasting
     default:

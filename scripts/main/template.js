@@ -107,7 +107,7 @@ const Template = function(poolConfig, rpcData, jobId, extraNoncePlaceholder, aux
   // Serialize Block Coinbase
   this.serializeCoinbase = function(extraNonce1, extraNonce2) {
     let buffer;
-    switch (_this.poolConfig.primary.coin.algorithms.mining) {
+    switch (algorithm) {
 
     // Kawpow/Firopow Block Header
     case 'kawpow':
@@ -136,8 +136,7 @@ const Template = function(poolConfig, rpcData, jobId, extraNoncePlaceholder, aux
   this.serializeHeader = function(merkleRoot, nTime, nonce, version) {
     let header = Buffer.alloc(80);
     let position = 0;
-
-    switch (_this.poolConfig.primary.coin.algorithms.mining) {
+    switch (algorithm) {
 
     // Kawpow/Firopow Block Header
     case 'kawpow':
@@ -168,7 +167,7 @@ const Template = function(poolConfig, rpcData, jobId, extraNoncePlaceholder, aux
   // Serialize Entire Block
   this.serializeBlock = function(header, coinbase, nonce, mixHash) {
     let buffer;
-    switch (_this.poolConfig.primary.coin.algorithms.mining) {
+    switch (algorithm) {
 
     // Kawpow/Firopow Block Structure
     case 'kawpow':
@@ -220,7 +219,7 @@ const Template = function(poolConfig, rpcData, jobId, extraNoncePlaceholder, aux
     let sha3Hash, seedHashBuffer;
 
     // Process Job Parameters
-    switch (_this.poolConfig.primary.coin.algorithms.mining) {
+    switch (algorithm) {
 
     // Kawpow/Firopow Parameters
     case 'kawpow':
@@ -231,8 +230,8 @@ const Template = function(poolConfig, rpcData, jobId, extraNoncePlaceholder, aux
         client.extraNonce1 = utils.extraNonceCounter(2).next();
       }
 
-      adjPow = Algorithms[_this.poolConfig.primary.coin.algorithms.mining].diff / _this.difficulty;
-      epochLength = Math.floor(this.rpcData.height / Algorithms[_this.poolConfig.primary.coin.algorithms.mining].epochLength);
+      adjPow = Algorithms[algorithm].diff / _this.difficulty;
+      epochLength = Math.floor(this.rpcData.height / Algorithms[algorithm].epochLength);
       extraNonce1Buffer = Buffer.from(client.extraNonce1, 'hex');
 
       // Calculate Difficulty Padding

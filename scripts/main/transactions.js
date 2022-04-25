@@ -157,6 +157,26 @@ const Transactions = function() {
       });
     }
 
+    // Handle ZNodes (Evo Nodes)
+    if (rpcData.znode_payments_started && rpcData.znode_payments_enforced) {
+      rpcData.znode.forEach(payee => {
+        const payeeReward = payee.amount;
+        let payeeScript;
+        if (payee.script) {
+          payeeScript = Buffer.from(payee.script, 'hex');
+        } else {
+          payeeScript = utils.addressToScript(payee.payee, network);
+        }
+        reward -= payeeReward;
+        rewardToPool -= payeeReward;
+        txOutputBuffers.push(Buffer.concat([
+          utils.packUInt64LE(payeeReward),
+          utils.varIntBuffer(payeeScript.length),
+          payeeScript,
+        ]));
+      });
+    }
+
     // Handle Other Given Payees
     if (rpcData.payee) {
       const payeeReward = rpcData.payee_amount || Math.ceil(reward / 5);
@@ -189,28 +209,21 @@ const Transactions = function() {
       }
       break;
 
-    case 'firo':
-      const address = poolConfig.primary.coin.rewards.addresses[0] || poolConfig.settings.testnet ? 'TUuKypsbbnHHmZ2auC2BBWfaP1oTEnxjK2' : 'aFrAVZFr8pva5mG8XKaUH8EXcFVVNxLiuB'; 
-      founderReward = poolConfig.primary.coin.rewards.amount || 187500000;
-      founderScript = utils.addressToScript(address, network);
-      txOutputBuffers.push(Buffer.concat([
-        utils.packUInt64LE(founderReward),
-        utils.varIntBuffer(founderScript.length),
-        founderScript,
-      ]));
-      if (rpcData.znode_payments_started && rpcData.znode_payments_enforced) {
-        // Evo Znodes
-        rpcData.znode.forEach(entry => {
-          founderScript = utils.addressToScript(entry.payee, network);
-          txOutputBuffers.push(Buffer.concat([
-            utils.packUInt64LE(entry.amount),
-            utils.varIntBuffer(founderScript.length),
-            founderScript,
-          ]));        
-        });
-      }
+    // FIRO-Based Transactions
+    case 'firopow':
+      poolConfig.primary.coin.rewards.addresses.forEach((address) => {
+        founderReward = address.amount;
+        founderScript = utils.addressToScript(address.address, network);
+        reward -= founderReward;
+        rewardToPool -= founderReward;
+        txOutputBuffers.push(Buffer.concat([
+          utils.packUInt64LE(founderReward),
+          utils.varIntBuffer(founderScript.length),
+          founderScript,
+        ]));
+      });
       break;
-  
+
     // HVQ-Based Transactions
     case 'hivecoin':
       founderReward = rpcData.CommunityAutonomousValue;

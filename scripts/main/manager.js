@@ -22,12 +22,12 @@ const Manager = function(poolConfig, portalConfig) {
 
   const algorithm = _this.poolConfig.primary.coin.algorithms.mining;
   const shareMultiplier = Algorithms[algorithm].multiplier;
-  const extraNonceSize = algorithm === 'kawpow' || algorithm === 'firopow' ? 2 : 4;
+  const extraNonceSize = ['kawpow', 'firopow'].includes(algorithm) ? 2 : 4
 
   this.currentJob;
   this.validJobs = {};
   this.jobCounter = utils.jobCounter();
-  this.extraNoncePlaceholder = algorithm === 'kawpow' || algorithm === 'firopow' ? Buffer.from('f000', 'hex') : Buffer.from('f000000ff111111f', 'hex');
+  this.extraNoncePlaceholder = ['kawpow', 'firopow'].includes(algorithm) ? Buffer.from('f000', 'hex') : Buffer.from('f000000ff111111f', 'hex');
   this.extraNonceCounter = utils.extraNonceCounter(extraNonceSize);
   this.extraNonce2Size = _this.extraNoncePlaceholder.length - _this.extraNonceCounter.size;
 
@@ -122,15 +122,15 @@ const Manager = function(poolConfig, portalConfig) {
     let extraNonce1Buffer, extraNonce2Buffer, nonceBuffer, mixHashBuffer;
     let coinbaseBuffer, coinbaseHash, merkleRoot;
     let headerDigest, headerBuffer, headerHash, headerBigNum;
-    let headerHashBuffer, hashOutputBuffer, isValid;
+    let headerHashBuffer, hashOutputBuffer, combinedBuffer, isValid;
     let shareDiff, blockDiffAdjusted, blockHex, blockHash;
     let shareData, auxShareData;
 
     // Process Submitted Share
-    switch (_this.poolConfig.primary.coin.algorithms.mining) {
+    /* istanbul ignore next */
+    switch (algorithm) {
 
     // Kawpow/Firopow Share Submission
-    /* istanbul ignore next */
     case 'kawpow':
     case 'firopow':
 
@@ -203,17 +203,17 @@ const Manager = function(poolConfig, portalConfig) {
       shareDiff = Algorithms[algorithm].diff / headerBigNum.toNumber() * shareMultiplier;
       blockDiffAdjusted = job.difficulty * shareMultiplier;
       blockHex = job.serializeBlock(headerBuffer, coinbaseBuffer, nonceBuffer, mixHashBuffer).toString('hex');
-      if(_this.poolConfig.primary.coin.algorithms.mining === 'kawpow') {
-        blockHash = hashOutputBuffer.toString('hex'); 
+
+      // Generate Output Block Hash
+      if (algorithm === 'firopow') {
+        combinedBuffer = Buffer.alloc(120);
+        headerBuffer.copy(combinedBuffer);
+        merkleRoot.copy(combinedBuffer, 36);
+        nonceBuffer.copy(combinedBuffer, 80);
+        utils.reverseBuffer(mixHashBuffer).copy(combinedBuffer, 88);
+        blockHash = utils.reverseBuffer(utils.sha256d(combinedBuffer)).toString('hex');
       } else {
-        //Firopow
-        const headerBuf = Buffer.alloc(120);
-        const MIX_HASH_BUFFER = Buffer.alloc(32);
-        headerBuffer.copy(headerBuf);
-        merkleRoot.copy(headerBuf,36)
-        nonceBuffer.copy(headerBuf, 80);
-        utils.reverseBuffer(mixHashBuffer, MIX_HASH_BUFFER).copy(headerBuf, 88);
-        blockHash = utils.reverseBuffer(utils.sha256d(headerBuf)).toString('hex');        
+        blockHash = hashOutputBuffer.toString('hex');
       }
 
       // Check if Share is Valid Block Candidate
@@ -272,7 +272,6 @@ const Manager = function(poolConfig, portalConfig) {
       return { error: null, hash: blockHash, hex: blockHex, result: true };
 
     // Default Share Submission
-    /* istanbul ignore next */
     default:
 
       // Edge Cases to Check if Share is Invalid
