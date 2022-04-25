@@ -37,7 +37,7 @@
     "url": "https://github.com/blinkhash/foundation-stratum.git"
   },
   "dependencies": {
-    "async": "1.5.2",
+    "async": "2.6.4",
     "bchaddrjs": "^0.5.2",
     "bignum": "0.13.1",
     "foundation-equihash": "0.0.3",
