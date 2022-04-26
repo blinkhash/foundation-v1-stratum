@@ -320,7 +320,7 @@ describe('Test transactions functionality', () => {
     rpcDataCopy.znode.push({ payee: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq', amount: 194005102 });
     const transaction = transactions.default(poolConfigCopy, rpcDataCopy, extraNonce, null);
     expect(transaction[0].slice(0, -5)).toStrictEqual(Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0f5104', 'hex'));
-    expect(transaction[1]).toStrictEqual(Buffer.from('00000000042561e51201000000160014e8df018c7e326cc253faac7e46cdc51e68542c426d48900b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c426e48900b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c420000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900000000', 'hex'));
+    expect(transaction[1]).toStrictEqual(Buffer.from('000000000400f2052a01000000160014e8df018c7e326cc253faac7e46cdc51e68542c426d48900b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c426e48900b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c420000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900000000', 'hex'));
   });
 
   test('Test bitcoin transaction builder [27]', () => {
@@ -331,17 +331,17 @@ describe('Test transactions functionality', () => {
     rpcDataCopy.znode.push({ script: '0014e8df018c7e326cc253faac7e46cdc51e68542c42', amount: 194005102 });
     const transaction = transactions.default(poolConfigCopy, rpcDataCopy, extraNonce, null);
     expect(transaction[0].slice(0, -5)).toStrictEqual(Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0f5104', 'hex'));
-    expect(transaction[1]).toStrictEqual(Buffer.from('00000000042561e51201000000160014e8df018c7e326cc253faac7e46cdc51e68542c426d48900b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c426e48900b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c420000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900000000', 'hex'));
+    expect(transaction[1]).toStrictEqual(Buffer.from('000000000400f2052a01000000160014e8df018c7e326cc253faac7e46cdc51e68542c426d48900b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c426e48900b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c420000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900000000', 'hex'));
   });
 
   test('Test bitcoin transaction builder [28]', () => {
     poolConfigCopy.primary.coin.rewards = {};
-    poolConfigCopy.primary.coin.rewards.type = 'firopow';
+    poolConfigCopy.primary.coin.rewards.type = 'firocoin';
     poolConfigCopy.primary.coin.rewards.addresses = [];
     poolConfigCopy.primary.coin.rewards.addresses.push({ address: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq', amount: 187500000 });
     const transaction = transactions.default(poolConfigCopy, rpcDataCopy, extraNonce, null);
     expect(transaction[0].slice(0, -5)).toStrictEqual(Buffer.from('01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0f5104', 'hex'));
-    expect(transaction[1]).toStrictEqual(Buffer.from('000000000320ecd81e01000000160014e8df018c7e326cc253faac7e46cdc51e68542c42e0052d0b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c420000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900000000', 'hex'));
+    expect(transaction[1]).toStrictEqual(Buffer.from('000000000300f2052a01000000160014e8df018c7e326cc253faac7e46cdc51e68542c42e0052d0b00000000160014e8df018c7e326cc253faac7e46cdc51e68542c420000000000000000266a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf900000000', 'hex'));
   });
 
 });

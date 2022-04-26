@@ -167,8 +167,7 @@ const Transactions = function() {
         } else {
           payeeScript = utils.addressToScript(payee.payee, network);
         }
-        reward -= payeeReward;
-        rewardToPool -= payeeReward;
+        // Block Reward Already Subtracts ZNode Rewards (FiroCoin)
         txOutputBuffers.push(Buffer.concat([
           utils.packUInt64LE(payeeReward),
           utils.varIntBuffer(payeeScript.length),
@@ -210,12 +209,11 @@ const Transactions = function() {
       break;
 
     // FIRO-Based Transactions
-    case 'firopow':
+    case 'firocoin':
       poolConfig.primary.coin.rewards.addresses.forEach((address) => {
         founderReward = address.amount;
         founderScript = utils.addressToScript(address.address, network);
-        reward -= founderReward;
-        rewardToPool -= founderReward;
+        // Block Reward Already Subtracts Founder Rewards (FiroCoin)
         txOutputBuffers.push(Buffer.concat([
           utils.packUInt64LE(founderReward),
           utils.varIntBuffer(founderScript.length),
