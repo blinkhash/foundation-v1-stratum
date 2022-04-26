@@ -109,9 +109,10 @@ const Manager = function(poolConfig, portalConfig) {
         job: jobId,
         ip: ipAddress,
         port: port,
+        addrPrimary: addrPrimary,
+        addrAuxiliary: addrAuxiliary,
         difficulty: difficulty,
         identifier: identifier,
-        addrPrimary: addrPrimary,
         error: error[1],
       }, null, false);
       return { error: error, result: null };
