@@ -70,9 +70,7 @@ const Difficulty = function(port, difficulty, showLogs) {
       lastRtc = ts - _this.options.retargetTime / 2;
       lastTs = ts;
       timeBuffer = new RingBuffer(bufferSize);
-      if (logging) {
-        console.log('Setting difficulty on client initialization');
-      }
+      if (logging) console.log('Setting difficulty on client initialization');
       return;
     }
     const sinceLast = ts - lastTs;
@@ -81,36 +79,22 @@ const Difficulty = function(port, difficulty, showLogs) {
     const avg = timeBuffer.avg();
     let ddiff = _this.options.targetTime / avg;
     if ((ts - lastRtc) < _this.options.retargetTime && timeBuffer.size() > 0) {
-      if (logging) {
-        console.log('No difficulty update required');
-      }
+      if (logging) console.log('No difficulty update required');
       return;
     }
     lastRtc = ts;
     if (avg > tMax && client.difficulty > _this.options.minimum) {
-      if (_this.options.x2mode) {
-        ddiff = 0.5;
-      }
+      if (logging) console.log('Decreasing current difficulty');
       if (ddiff * client.difficulty < _this.options.minimum) {
         ddiff = _this.options.minimum / client.difficulty;
       }
-      if (logging) {
-        console.log('Decreasing current difficulty');
-      }
     } else if (avg < tMin && client.difficulty < _this.options.maximum) {
-      if (_this.options.x2mode) {
-        ddiff = 2;
-      }
+      if (logging) console.log('Increasing current difficulty');
       if (ddiff * client.difficulty > _this.options.maximum) {
         ddiff = _this.options.maximum / client.difficulty;
       }
-      if (logging) {
-        console.log('Increasing current difficulty');
-      }
     } else {
-      if (logging) {
-        console.log('No difficulty update required');
-      }
+      if (logging) console.log('No difficulty update required');
       return;
     }
     const newDiff = utils.toFixed(client.difficulty * ddiff, 8);
