@@ -190,7 +190,11 @@ const Template = function(poolConfig, rpcData, jobId, extraNoncePlaceholder, aux
         coinbase,
         _this.transactions,
         _this.getVoteData(),
-        Buffer.from(_this.poolConfig.primary.coin.hybrid ? [0] : [])
+        Buffer.from(_this.poolConfig.primary.coin.hybrid ? [0] : []),
+        Buffer.concat(_this.rpcData.mweb !== null ? [] : [
+          Buffer.from([1]),
+          Buffer.from(_this.rpcData.mweb, 'hex')
+        ]),
       ]);
       break;
     }
