@@ -335,8 +335,8 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
       ],
       'rules': [],
     };
-    if (_this.poolConfig.primary.coin.segwit) callConfig.rules.push(['segwit']);
-    if (_this.poolConfig.primary.coin.mweb) callConfig.rules.push(['mweb']);
+    if (_this.poolConfig.primary.coin.segwit) callConfig.rules.push('segwit');
+    if (_this.poolConfig.primary.coin.mweb) callConfig.rules.push('mweb');
 
     // Handle Block Templates/Subsidy
     _this.primary.daemon.cmd('getblocktemplate', [callConfig], true, (result) => {
@@ -473,8 +473,8 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
       ],
       'rules': [],
     };
-    if (_this.poolConfig.primary.coin.segwit) callConfig.rules.push(['segwit']);
-    if (_this.poolConfig.primary.coin.mweb) callConfig.rules.push(['mweb']);
+    if (_this.poolConfig.primary.coin.segwit) callConfig.rules.push('segwit');
+    if (_this.poolConfig.primary.coin.mweb) callConfig.rules.push('mweb');
 
     // Calculate Current Progress on Sync
     const generateProgress = function() {
