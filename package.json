@@ -41,6 +41,7 @@
     "bchaddrjs": "^0.5.2",
     "bignum": "0.13.1",
     "foundation-multi-hashing": "0.1.3",
+    "zeromq": "^5.2.8",
     "foundation-utxo-lib": "0.0.4",
     "sha3": "2.1.4"
   },

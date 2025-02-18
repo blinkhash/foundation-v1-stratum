@@ -33,7 +33,7 @@ const RingBuffer = function(maxSize) {
 
   // Average Ring Buffer
   this.avg = function() {
-    const sum = data.reduce((a, b) => a + b);
+    const sum = data.reduce((a, b) => a + b, 0);
     return sum / (isFull ? maxSize : cursor);
   };
 
@@ -57,32 +57,33 @@ const Difficulty = function(port, difficulty, showLogs) {
   _this.options = difficulty;
 
   const logging = showLogs;
-  let lastTs, lastRtc, timeBuffer;
+  let timeBuffer;
   const variance = difficulty.targetTime * difficulty.variance;
   const bufferSize = difficulty.retargetTime / difficulty.targetTime * 4;
   const tMin = difficulty.targetTime - variance;
   const tMax = difficulty.targetTime + variance;
+  const idleThreshold = difficulty.retargetTime * 2;
 
   // Update Difficulty on Share Submission
   this.updateDifficulty = function(client) {
-    const ts = (Date.now() / 1000) | 0;
-    if (!lastRtc) {
-      lastRtc = ts - _this.options.retargetTime / 2;
-      lastTs = ts;
+    const ts = Math.floor(Date.now() / 1000);
+    if (!client.lastRtc) {
+      client.lastRtc = ts - _this.options.retargetTime / 2;
+      client.lastTs = ts;
       timeBuffer = new RingBuffer(bufferSize);
       if (logging) console.log('Setting difficulty on client initialization');
       return;
     }
-    const sinceLast = ts - lastTs;
+    const sinceLast = ts - client.lastTs;
     timeBuffer.append(sinceLast);
-    lastTs = ts;
+    client.lastTs = ts;
     const avg = timeBuffer.avg();
     let ddiff = _this.options.targetTime / avg;
-    if ((ts - lastRtc) < _this.options.retargetTime && timeBuffer.size() > 0) {
+    if ((ts - client.lastRtc) < _this.options.retargetTime && timeBuffer.size() > 0) {
       if (logging) console.log('No difficulty update required');
       return;
     }
-    lastRtc = ts;
+    client.lastRtc = ts;
     if (avg > tMax && client.difficulty > _this.options.minimum) {
       if (logging) console.log('Decreasing current difficulty');
       if (ddiff * client.difficulty < _this.options.minimum) {
@@ -108,7 +109,24 @@ const Difficulty = function(port, difficulty, showLogs) {
     if (stratumPort != port) {
       console.error('Handling a client which is not of this vardiff?');
     }
-    client.on('submit', () => _this.updateDifficulty(client));
+    const resetIdleTimeout = () => {
+      if (!client) return;
+      if (client.idleTimeout) clearTimeout(client.idleTimeout);
+      client.idleTimeout = setTimeout(() => {
+        if (client.addrPrimary) {
+          if (logging) console.log(`Client idle for ${idleThreshold}s, reducing difficulty for ${client.addrPrimary}.`);
+          const newDiff = Math.max(client.difficulty / 2, _this.options.minimum);
+          _this.emit('newDifficulty', client, newDiff);
+        }
+      }, idleThreshold * 1000);
+    };
+
+    resetIdleTimeout();
+
+    client.on('submit', () => {
+      _this.updateDifficulty(client);
+      resetIdleTimeout();
+    });
   };
 };
 

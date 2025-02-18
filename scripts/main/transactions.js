@@ -208,6 +208,19 @@ const Transactions = function() {
       }
       break;
 
+    // AVN-Based Transactions
+    case 'avian':
+      if (rpcData.founder_payments_started && rpcData.founder) {
+        founderReward = rpcData.founder.amount;
+        founderScript = utils.addressToScript(rpcData.founder.payee, network);
+        txOutputBuffers.push(Buffer.concat([
+          utils.packUInt64LE(founderReward),
+          utils.varIntBuffer(founderScript.length),
+          founderScript,
+        ]));
+      }
+      break;
+
     // FIRO-Based Transactions
     case 'firocoin':
       poolConfig.primary.coin.rewards.addresses.forEach((address) => {

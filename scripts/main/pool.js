@@ -14,6 +14,7 @@ const Daemon = require('./daemon');
 const Manager = require('./manager');
 const Network = require('./network');
 const Peer = require('./peer');
+const zmq = require('zeromq');
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -26,8 +27,14 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
   this.authorizeFn = authorizeFn;
   this.responseFn = responseFn;
 
-  this.primary = {};
-  this.auxiliary = {};
+  this.primary = {
+    zmq: { enabled: _this.poolConfig.primary.zmq && _this.poolConfig.primary.zmq.enabled }
+  };
+  this.auxiliary = {
+    enabled: _this.poolConfig.auxiliary && _this.poolConfig.auxiliary.enabled,
+    zmq: { enabled: _this.poolConfig.auxiliary && _this.poolConfig.auxiliary.zmq &&
+      _this.poolConfig.auxiliary.zmq.enabled }
+  };
 
   const emitLog = (text) => _this.emit('log', 'debug', text);
   const emitWarningLog = (text) => _this.emit('log', 'warning', text);
@@ -69,11 +76,12 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
         _this.setupJobManager();
         _this.setupBlockchain(() => {
           _this.setupFirstJob(() => {
-            _this.setupBlockPolling();
-            _this.setupPeer();
-            _this.setupStratum(() => {
-              _this.outputPoolInfo();
-              _this.emit('started');
+            _this.setupBlockPolling(() => {;
+              _this.setupPeer();
+              _this.setupStratum(() => {
+                _this.outputPoolInfo();
+                _this.emit('started');
+              });
             });
           });
         });
@@ -325,6 +333,93 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
     });
   };
 
+  // Check for New Primary Block Template
+  this.checkPrimaryTemplate = function(auxUpdate, callback) {
+
+    // Build Daemon Commands
+    const commands = [['getblockchaininfo', []]];
+
+    // Check Saved Blockchain Data
+    _this.primary.daemon.cmd(commands, [], true, (result) => {
+      if (result.error) {
+        emitLog(`RPC error with primary daemon instance (${ result.instance.host }) when requesting a primary template update: ${ JSON.stringify(result.error) }`);
+        callback(result.error);
+      } else if (!_this.primary.height || !_this.primary.previousblockhash) {
+        _this.primary.height = result.response.blocks;
+        _this.primary.previousblockhash = result.response.bestblockhash;
+        callback(null, true);
+      } else if ((_this.primary.height !== result.response.blocks) || (_this.primary.previousblockhash !== result.response.bestblockhash)) {
+        _this.primary.height = result.response.blocks;
+        _this.primary.previousblockhash = result.response.bestblockhash;
+        callback(null, true);
+      } else if (auxUpdate) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    });
+  };
+
+  // Setup Primary Block Pooling
+  this.handlePrimaryBlockPolling = function() {
+
+    // Build Initial Variables
+    let pollingFlag = false;
+    const pollingInterval = _this.poolConfig.settings.blockRefreshInterval;
+
+    // Handle Polling Interval
+    setInterval(() => {
+      if (pollingFlag === false) {
+        pollingFlag = true;
+        _this.checkPrimaryTemplate(false, (error, update) => {
+          if (!error && update) {
+            _this.getBlockTemplate((error, result, update) => {              
+              pollingFlag = false;
+              if (update) emitLog(`Requested template from primary chain (${ _this.poolConfig.primary.coin.name }:${ result.height }) via RPC polling`);
+            });
+          } else {
+            pollingFlag = false;
+          }
+        });
+      }
+    }, pollingInterval);
+  };
+
+  // Setup Primary Block ZMQ
+  this.handlePrimaryBlockZmq = function(callback) {
+
+    // Build Initial Variables
+    const sock = zmq.socket('sub');
+    const zmqConfig = _this.poolConfig.primary.zmq;
+
+    // Check if ZMQ Connection Can Be Made
+    utils.checkConnection(zmqConfig.host, zmqConfig.port).then(() => {
+      sock.connect(`tcp://${ zmqConfig.host }:${ zmqConfig.port }`);
+      sock.subscribe('hashblock');
+
+      // Handle Block Notifications
+      sock.on('message', () => {
+        _this.getBlockTemplate((error, result, update) => {
+          if (update) emitLog(`Requested template from primary chain (${ _this.poolConfig.primary.coin.name }:${ result.height }) via ZMQ subscription`);
+        });
+      });
+
+      // Handle Reconnects as Necessary
+      setInterval(() => {
+        sock.connect(`tcp://${ zmqConfig.host }:${ zmqConfig.port }`);
+        sock.subscribe('hashblock');
+      }, _this.poolConfig.settings.blockRefreshInterval * 10);
+
+      // Handle Callback
+      callback();
+
+    // ZMQ Connection Threw an Error
+    }, (error) => {
+      _this.emitLog('error', false, _this.text.stratumZmqText1(JSON.stringify(error)));
+      callback(error);
+    });
+  };
+
   // Load Current Block Template
   this.getBlockTemplate = function(callback, force) {
     const callConfig = {
@@ -353,6 +448,106 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
       }
     });
   };
+
+  // Setup Auxiliary Block Pooling
+  this.handleAuxiliaryBlockPolling = function() {
+
+    // Build Initial Variables
+    let pollingFlag = false;
+    const pollingInterval = _this.poolConfig.settings.blockRefreshInterval;
+
+    // Handle Polling Interval
+    setInterval(() => {
+      if (pollingFlag === false) {
+        pollingFlag = true;
+        _this.checkAuxiliaryTemplate((auxError) => {
+          if (!auxError) {
+            _this.getAuxTemplate((auxError, auxResult, auxUpdate) => {              
+              _this.checkPrimaryTemplate(auxUpdate, (error, update) => {
+                if (auxUpdate) emitLog(`Requested template from auxiliary chain (${ _this.poolConfig.auxiliary.coin.name }:${ auxResult.height }) via RPC polling`);
+                if (!error && update) {
+                  _this.getBlockTemplate(auxUpdate, false, (error, result, update) => {
+                    pollingFlag = false;
+                    if (update) emitLog(`Requested template from primary chain (${ _this.poolConfig.primary.coin.name }:${ result.height }) via RPC polling`);
+                  });
+                } else {
+                  pollingFlag = false;
+                }
+              });
+            });
+          }
+        });
+      }
+    }, pollingInterval);
+  };
+
+  // Setup Auxiliary Block ZMQ
+  this.handleAuxiliaryBlockZmq = function(callback) {
+
+    // Build Initial Variables
+    const sock = zmq.socket('sub');
+    const zmqConfig = _this.poolConfig.auxiliary.zmq;
+
+    // Check if ZMQ Connection Can Be Made
+    utils.checkConnection(zmqConfig.host, zmqConfig.port).then(() => {
+      sock.connect(`tcp://${ zmqConfig.host }:${ zmqConfig.port }`);
+      sock.subscribe('hashblock');
+
+      // Handle Block Notifications
+      sock.on('message', () => {
+        _this.getAuxTemplate((auxError, auxResult, auxUpdate) => {
+          if (auxUpdate) emitLog(`Requested template from auxiliary chain (${ _this.poolConfig.auxiliary.coin.name }:${ auxResult.height }) via ZMQ subscription`);
+          _this.getBlockTemplate(auxUpdate, false, (error, result, update) => {
+            if (update) emitLog(`Requested template from primary chain (${ _this.poolConfig.primary.coin.name }:${ result.height }) via ZMQ subscription`);
+          });
+        });
+      });
+
+      // Handle Reconnects as Necessary
+      setInterval(() => {
+        sock.connect(`tcp://${ zmqConfig.host }:${ zmqConfig.port }`);
+        sock.subscribe('hashblock');
+      }, _this.poolConfig.settings.blockRefreshInterval * 10);
+
+      // Handle Callback
+      callback();
+
+    // ZMQ Connection Threw an Error
+    }, (error) => {
+      _this.emitLog('error', false, _this.text.stratumZmqText2(JSON.stringify(error)));
+      callback(error);
+    });
+  };
+
+  // Check for New Auxiliary Block Template
+  this.checkAuxiliaryTemplate = function(callback) {
+
+    // Build Daemon Commands
+    const commands = [['getblockchaininfo', []]];
+
+    // Check Saved Blockchain Data
+    if (_this.auxiliary.enabled) {
+      _this.auxiliary.daemon.cmd(commands, true, (result) => {
+        if (result.error) {
+          emitLog(`RPC error with auxiliary daemon instance (${ result.instance.host }) when requesting an auxiliary template update: ${ JSON.stringify(result.error) }`);
+          callback(result.error);
+        } else if (!_this.auxiliary.height || !_this.auxiliary.previousblockhash) {
+          _this.auxiliary.height = result.response.blocks;
+          _this.auxiliary.previousblockhash = result.response.bestblockhash;
+          callback(null, true);
+        } else if ((_this.auxiliary.height !== result.response.blocks) || (_this.auxiliary.previousblockhash !== result.response.bestblockhash)) {
+          _this.auxiliary.height = result.response.blocks;
+          _this.auxiliary.previousblockhash = result.response.bestblockhash;
+          callback(null, true);
+        } else {
+          callback(null, false);
+        }
+      });
+    } else {
+      callback(null, false);
+    }
+  };
+
 
   // Update Work for Auxiliary Chain
   /* istanbul ignore next */
@@ -551,34 +746,60 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
 
   // Initialize Pool Block Polling
   /* istanbul ignore next */
-  this.setupBlockPolling = function() {
-    if (typeof _this.poolConfig.settings.blockRefreshInterval !== 'number' || _this.poolConfig.settings.blockRefreshInterval <= 0) {
-      emitLog('Block template polling has been disabled');
-      return;
-    }
-    let pollingFlag = false;
-    const pollingInterval = _this.poolConfig.settings.blockRefreshInterval;
-    setInterval(() => {
-      if (pollingFlag === false) {
-        pollingFlag = true;
-        _this.getAuxTemplate((auxililaryError, auxiliaryResult, auxiliaryUpdate) => {
-          _this.getBlockTemplate((primaryError, primaryResult, primaryUpdate) => {
-            pollingFlag = false;
-            if (primaryUpdate && !auxiliaryUpdate) {
-              limitMessages(() => {
-                emitLog(`Primary chain (${ _this.poolConfig.primary.coin.name }) notification via RPC polling at height ${ primaryResult.height }`);
-              });
-            }
-            if (auxiliaryUpdate) {
-              limitMessages(() => {
-                emitLog(`Auxiliary chain (${ _this.poolConfig.auxiliary.coin.name }) notification via RPC polling at height ${ auxiliaryResult.height }`);
-              });
-            }
-          }, auxiliaryUpdate);
+
+
+    // Setup Pool Block Polling
+    this.setupBlockPolling = function(callback) {
+
+      // Primary (No Auxiliary) ZMQ Subscription
+      if (!_this.auxiliary.enabled && _this.primary.zmq.enabled) {
+        _this.handlePrimaryBlockZmq(() => {
+          if (_this.poolConfig.debug) { emitLog('Finished setting up block polling framework ...'); }
+          callback();
         });
+  
+      // Primary (No Auxilairy) Block Polling
+      } else if (!_this.auxiliary.enabled) {
+        _this.handlePrimaryBlockPolling();
+        if (_this.poolConfig.debug) { emitLog('Finished setting up block polling framework ...'); }
+        callback();
+  
+      // Primary ZMQ Subscription, Auxiliary ZMQ Subscription
+      } else if (_this.auxiliary.enabled && _this.primary.zmq.enabled &&
+        _this.auxiliary.zmq.enabled) {
+        _this.handlePrimaryBlockZmq(() => {
+          _this.handleAuxiliaryBlockZmq(() => {
+            if (_this.poolConfig.debug) { emitLog('Finished setting up block polling framework ...'); }
+            callback();
+          });
+        });
+  
+      // Primary Block Polling, Auxiliary ZMQ Subscription
+      } else if (_this.auxiliary.enabled && !_this.primary.zmq.enabled &&
+        _this.auxiliary.zmq.enabled) {
+        _this.handlePrimaryBlockPolling();
+        _this.handleAuxiliaryBlockZmq(() => {
+          if (_this.poolConfig.debug) { emitLog('Finished setting up block polling framework ...'); }
+          callback();
+        });
+  
+      // Primary ZMQ Subscription, Auxiliary Block Polling
+      } else if (_this.auxiliary.enabled && _this.primary.zmq.enabled &&
+        !_this.auxiliary.zmq.enabled) {
+        _this.handlePrimaryBlockZmq(() => {
+          _this.handleAuxiliaryBlockPolling();
+          if (_this.poolConfig.debug) { emitLog('Finished setting up block polling framework ...'); }
+          callback();
+        });
+  
+      // Primary Block Polling, Auxiliary Block Polling
+      } else {
+        _this.handleCombinedBlockPolling();
+        if (_this.poolConfig.debug) { emitLog('Finished setting up block polling framework ...'); }
+        callback();
       }
-    }, pollingInterval);
-  };
+    };
+  
 
   // Process Block when Found
   /* istanbul ignore next */
@@ -817,8 +1038,18 @@ const Pool = function(poolConfig, portalConfig, authorizeFn, responseFn) {
       `Stratum Port(s):\t${ _this.poolConfig.statistics.stratumPorts.join(', ') }`,
       `Pool Fee Percentage:\t${ _this.poolConfig.settings.feePercentage * 100 }%`,
     ];
-    if (typeof _this.poolConfig.settings.blockRefreshInterval === 'number' && _this.poolConfig.settings.blockRefreshInterval > 0) {
+    if (_this.primary.zmq.enabled) {
+      infoLines.push(`ZMQ Primary Enabled:\tYes`);
+    } else if (typeof _this.poolConfig.settings.blockRefreshInterval === 'number' && _this.poolConfig.settings.blockRefreshInterval > 0) {
       infoLines.push(`Block Polling Every:\t${ _this.poolConfig.settings.blockRefreshInterval } ms`);
+    }
+    if (_this.auxiliary.enabled) {
+      infoLines.push(`Auxiliary Chain:\t${ _this.poolConfig.auxiliary.coin.name }`);
+      if (_this.auxiliary.zmq.enabled) {
+        infoLines.push(`ZMQ Auxiliary Enabled:\tYes`);
+      } else if (typeof _this.poolConfig.settings.blockRefreshInterval === 'number' && _this.poolConfig.settings.blockRefreshInterval > 0) {
+        infoLines.push(`Auxiliary Polling Every:\t${ _this.poolConfig.settings.blockRefreshInterval } ms`);
+      }
     }
     limitMessages(() => {
       emitSpecialLog(infoLines.join('\n\t\t\t\t'));
